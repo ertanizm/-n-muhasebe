@@ -8,35 +8,20 @@ function toggleSidebar() {
 
 // DOM yüklendiğinde butonlara event ekle
 window.addEventListener("DOMContentLoaded", function () {
-  const collapseBtn = document.getElementById("sidebar-collapse-btn");
-  if (collapseBtn) {
-    collapseBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      toggleSidebar();
-    });
-  }
-  const sidebarToggle = document.querySelector(".sidebar-toggle");
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener("click", function (e) {
-      e.preventDefault();
-      toggleSidebar();
-    });
-  }
-  // --- BURADA .menu-toggle için event listener kaldırıldı ---
-  // Sayfa yüklendiğinde sadece aktif olan submenu açık kalsın, diğerleri kapalı olsun
-  setTimeout(function () {
-    let anyOpen = false;
-    document.querySelectorAll(".menu-toggle").forEach((mt) => {
-      const submenu = mt.nextElementSibling;
-      if (mt.classList.contains("active") && submenu) {
-        submenu.style.display = "block";
-        anyOpen = true;
-      } else if (submenu) {
-        submenu.style.display = "none";
+  // ... diğer kodlar ...
+  var path = window.location.pathname;
+  var activeLink = document.querySelector('.submenu-item[href="' + path + '"]');
+  if (activeLink) {
+    activeLink.classList.add('active');
+    var submenu = activeLink.closest('.submenu');
+    if (submenu) {
+      submenu.classList.add('open');
+      var parentToggle = submenu.previousElementSibling;
+      if (parentToggle && parentToggle.classList.contains("menu-toggle")) {
+        parentToggle.classList.add("open");
       }
-    });
-    // Eğer hiçbiri aktif değilse, hepsi kapalı kalsın
-  }, 0);
+    }
+  }
 });
 
 // Close sidebar when clicking outside on mobile
@@ -288,22 +273,24 @@ window.addEventListener("load", function () {
 
     // Modern ve akordeon sidebar menü
     document.querySelectorAll('.menu-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            // Diğer tüm alt menüleri kapat
-            document.querySelectorAll('.submenu').forEach(sub => {
-                if (sub !== document.getElementById(this.getAttribute('data-target'))) {
-                    sub.classList.remove('open');
-                    if (sub.previousElementSibling) sub.previousElementSibling.classList.remove('open');
-                }
-            });
-            // Sadece tıklananı aç/kapa
-            const targetId = this.getAttribute('data-target');
-            const submenu = document.getElementById(targetId);
-            if (submenu) {
-                submenu.classList.toggle('open');
-                this.classList.toggle('open');
-            }
-        });
-    });
+      toggle.addEventListener('click', function() {
+          const targetId = this.getAttribute('data-target');
+          const submenu = document.getElementById(targetId);
+  
+          // Diğer tüm alt menüleri kapat
+          document.querySelectorAll('.submenu').forEach(sub => {
+              if (sub !== submenu) {
+                  sub.classList.remove('open');
+                  if (sub.previousElementSibling) sub.previousElementSibling.classList.remove('open');
+              }
+          });
+  
+          // Sadece tıklananı aç/kapa
+          if (submenu) {
+              submenu.classList.toggle('open');
+              this.classList.toggle('open');
+          }
+      });
+  });
 })();
 

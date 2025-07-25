@@ -13,15 +13,15 @@
     <%- include('../sidebar') %>
 
     <div class="main-content">
-        <div class="customer-container">
+        <div class="product-container">
             <div class="page-header">
-                <h1 class="page-title">Müşteriler</h1>
+                <h1 class="page-title">Stoklar</h1>
                 <div class="action-buttons">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
                         <i class="fas fa-plus"></i>
-                        <span>Yeni Müşteri</span>
+                        <span>Yeni Stok</span>
                     </button>
-                    <a href="/cari/musteriler/export" style="color: white;" class="btn btn-info">
+                    <a href="/stok/stoklar/export" style="color: white;" class="btn btn-info">
                         <i class="fas fa-file-export"></i>
                         <span>Dışa Aktar</span>
                     </a>
@@ -29,66 +29,37 @@
             </div>
 
             <div class="search-area">
-                <input type="text" class="form-control search-box" placeholder="Müşteri Ara...">
+                <input type="text" class="form-control search-box" placeholder="Stok Ara...">
             </div>
 
-            <div class="customers-table">
+            <div class="products-table">
                 <table class="table">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Cari Kodu</th>
-                            <th>Unvan</th>
-                            <th>Aktif</th>
-                            <th>İl</th>
-                            <th>İlçe</th>
-                            <th>Adres</th>
-                            <th>Vergi Dairesi</th>
-                            <th>Vergi No</th>
-                            <th>Telefon</th>
-                            <th>Email</th>
+                            <th>Stok Kodu</th>
+                            <th>Stok Adı</th>
+                            <th>Birim</th>
+                            <th>Miktar</th>
                             <th>İşlemler</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% if (customers && customers.length > 0) { %>
-                            <% customers.forEach(function(c, i) { %>
+                        <% if (stoklar && stoklar.length > 0) { %>
+                            <% stoklar.forEach(function(c, i) { %>
                                 <tr>
                                     <td><%= c.id %></td>
-                                    <td><%= c.carikodu %></td>
-                                    <td><%= c.unvan %></td>
-                                    <td><%= c.aktif ? 'Evet' : 'Hayır' %></td>
-                                    <td><%= c.il %></td>
-                                    <td><%= c.ilce %></td>
-                                    <td><%= c.adres %></td>
-                                    <td><%= c.vergi_dairesi %></td>
-                                    <td><%= c.vergi_no %></td>
-                                    <td><%= c.telefon %></td>
-                                    <td><%= c.email %></td>
+                                    <td><%= c.stok_kodu %></td>
+                                    <td><%= c.stok_adi %></td>
+                                    <td><%= c.birim %></td>
+                                    <td><%= c.miktar %></td>
                                     <td class="action-buttons">
                                         <button class="btn btn-sm btn-warning me-1 edit-btn" 
                                             data-id="<%= c.id %>"
-                                            data-carikodu="<%= c.carikodu %>"
-                                            data-unvan="<%= c.unvan %>"
-                                            data-aktif="<%= c.aktif %>"
-                                            data-type="<%= c.type %>"
-                                            data-il="<%= c.il %>"
-                                            data-ilce="<%= c.ilce %>"
-                                            data-adres="<%= c.adres %>"
-                                            data-vergi_dairesi="<%= c.vergi_dairesi %>"
-                                            data-vergi_no="<%= c.vergi_no %>"
-                                            data-telefon="<%= c.telefon %>"
-                                            data-email="<%= c.email %>"
-                                            data-resmi="<%= c.resmi %>"
-                                            data-vadeopsiyonu="<%= c.vadeopsiyonu %>"
-                                            data-bakiye="<%= c.bakiye %>"
-                                            data-alacak="<%= c.alacak %>"
-                                            data-borc="<%= c.borc %>"
-                                            data-guncelleyenkullanicikayitno="<%= c.guncelleyenkullanicikayitno %>"
-                                            data-kaydedenkullanicikayitno="<%= c.kaydedenkullanicikayitno %>"
-                                            data-efatura="<%= c.efatura %>"
-                                            data-efaturasenaryo="<%= c.efaturasenaryo %>"
-                                            data-efaturalicietiketi="<%= c.efaturalicietiketi %>"
+                                            data-stok_kodu="<%= c.stok_kodu %>"
+                                            data-stok_adi="<%= c.stok_adi %>"
+                                            data-birim="<%= c.birim %>"
+                                            data-miktar="<%= c.miktar %>"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -99,7 +70,7 @@
                                 </tr>
                             <% }) %>
                         <% } else { %>
-                            <tr><td colspan="12">Kayıt bulunamadı.</td></tr>
+                            <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
                         <% } %>
                     </tbody>
                 </table>
@@ -107,43 +78,42 @@
         </div>
     </div>
 
-    <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addCustomerModalLabel">Yeni Müşteri Ekle</h5>
+                    <h5 class="modal-title" id="addProductModalLabel">Yeni Stok Ekle</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="customerForm">
-                        <input type="hidden" id="customerId" name="id">
+                    <form id="productForm">
+                        <input type="hidden" id="id" name="id">
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="carikodu" class="form-label">Cari Kodu</label>
-                                <input type="text" class="form-control" id="carikodu" name="carikodu">
+                                <label for="stok_kodu" class="form-label">Stok Kodu</label>
+                                <input type="text" class="form-control" id="stok_kodu" name="stok_kodu">
                             </div>
                             <div class="col-md-4">
-                                <label for="unvan" class="form-label">Unvan *</label>
-                                <input type="text" class="form-control" id="unvan" name="unvan" required>
+                                <label for="stok_adi" class="form-label">Stok Adı</label>
+                                <input type="text" class="form-control" id="stok_adi" name="stok_adi" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="aktif" class="form-label">Aktif</label>
-                                <select class="form-control" id="aktif" name="aktif">
-                                    <option value="1">Evet</option>
-                                    <option value="0">Hayır</option>
+                                <label for="birim" class="form-label">Birim</label>
+                                <select class="form-control" id="birim" name="birim">
+                                    <option value="1">Adet</option>
+                                    <option value="0">Kilogram</option>
+                                    <option value="0">Litre</option>
+                                    <option value="0">Paket</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label for="type" class="form-label">Cari Tipi</label>
-                                <select class="form-control" id="type" name="type">
-                                    <option value="0" selected>Müşteri</option>
-                                    <option value="1">Tedarikçi</option>
-                                </select>
+                                <label for="miktar" class="form-label">Miktar</label>
+                                <input type="text" class="form-control" id="miktar" name="miktar">
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <!-- <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="il" class="form-label">İl</label>
+                                <label for="miktar" class="form-label">İl</label>
                                 <input type="text" class="form-control" id="il" name="il">
                             </div>
                             <div class="col-md-4">
@@ -197,8 +167,8 @@
                                     <option value="1">Evet</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-3">
+                        </div> -->
+                        <!-- <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="efaturasenaryo" class="form-label">e-Fatura Senaryo</label>
                                 <input type="text" class="form-control" id="efaturasenaryo" name="efaturasenaryo">
@@ -207,12 +177,12 @@
                                 <label for="efaturalicietiketi" class="form-label">e-Fatura Etiketi</label>
                                 <input type="text" class="form-control" id="efaturalicietiketi" name="efaturalicietiketi">
                             </div>
-                        </div>
+                        </div> -->
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="button" class="btn btn-primary" id="saveCustomer">Kaydet</button>
+                    <button type="button" class="btn btn-primary" id="saveProduct">Kaydet</button>
                 </div>
             </div>
         </div>
@@ -222,13 +192,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/script.js"></script>
     <script>
-        document.getElementById('saveCustomer').addEventListener('click', async function() {
-            const form = document.getElementById('customerForm');
+        document.getElementById('saveProduct').addEventListener('click', async function() {
+            const form = document.getElementById('productForm');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/cari/musteriler', {  // Update API endpoint
+                const response = await fetch('/stok/stoklar', {  // Update API endpoint
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -253,7 +223,7 @@
                 if (!confirm('Müşteriyi silmek istediğinize emin misiniz?')) return;
                 
                 const id = btn.dataset.id;
-                const response = await fetch(`/cari/musteriler/${id}`, {  // Update API endpoint
+                const response = await fetch(`/stok/stoklar/${id}`, {  // Update API endpoint
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -271,31 +241,31 @@
         // Edit butonu için event listener
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const modal = new bootstrap.Modal(document.getElementById('addCustomerModal'));
-                const form = document.getElementById('customerForm');
+                const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+                const form = document.getElementById('productForm');
                 
                 // Form alanlarını doldur
                 form.id.value = btn.dataset.id;
-                form.carikodu.value = btn.dataset.carikodu;
-                form.unvan.value = btn.dataset.unvan;
-                form.aktif.value = btn.dataset.aktif;
-                form.type.value = btn.dataset.type || "0";
-                form.il.value = btn.dataset.il;
-                form.ilce.value = btn.dataset.ilce;
-                form.adres.value = btn.dataset.adres;
-                form.vergi_dairesi.value = btn.dataset.vergi_dairesi;
-                form.vergi_no.value = btn.dataset.vergi_no;
-                form.telefon.value = btn.dataset.telefon;
-                form.email.value = btn.dataset.email;
-                form.resmi.value = btn.dataset.resmi;
-                form.vadeopsiyonu.value = btn.dataset.vadeopsiyonu;
-                form.bakiye.value = btn.dataset.bakiye;
-                form.efatura.value = btn.dataset.efatura;
-                form.efaturasenaryo.value = btn.dataset.efaturasenaryo;
-                form.efaturalicietiketi.value = btn.dataset.efaturalicietiketi;
+                form.stok_kodu.value = btn.dataset.stok_kodu;
+                form.stok_adi.value = btn.dataset.stok_adi;
+                form.birim.value = btn.dataset.birim;
+                form.miktar.value = btn.dataset.miktar || "0";
+                // form.il.value = btn.dataset.il;
+                // form.ilce.value = btn.dataset.ilce;
+                // form.adres.value = btn.dataset.adres;
+                // form.vergi_dairesi.value = btn.dataset.vergi_dairesi;
+                // form.vergi_no.value = btn.dataset.vergi_no;
+                // form.telefon.value = btn.dataset.telefon;
+                // form.email.value = btn.dataset.email;
+                // form.resmi.value = btn.dataset.resmi;
+                // form.vadeopsiyonu.value = btn.dataset.vadeopsiyonu;
+                // form.bakiye.value = btn.dataset.bakiye;
+                // form.efatura.value = btn.dataset.efatura;
+                // form.efaturasenaryo.value = btn.dataset.efaturasenaryo;
+                // form.efaturalicietiketi.value = btn.dataset.efaturalicietiketi;
 
                 // Modal başlığını güncelle
-                document.getElementById('addCustomerModalLabel').textContent = 'Müşteri Düzenle';
+                document.getElementById('addProductModalLabel').textContent = 'Stok Düzenle';
                 
                 modal.show();
             });

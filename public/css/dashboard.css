@@ -650,3 +650,12 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
+.submenu {
+    display: none;
+  }
+  .submenu.open {
+    display: block;
+  }
+  .menu-toggle.open .toggle-icon {
+    transform: rotate(180deg); /* veya yukarı ok için class değişimi */
+  }

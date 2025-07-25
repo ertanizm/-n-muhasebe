@@ -31,8 +31,4 @@ router.get('/anasayfa', (req, res) => {
     res.render('anasayfa', { error: null });
 });
 
-router.get('/stoklar', (req, res) => {
-    res.render('stok/stoklar', { error: null });
-});
-
 module.exports = router;
