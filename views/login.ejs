@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap - Mutabık</title>
+    <link rel="stylesheet" href="/css/authentication.css">  <!-- Düzeltilmiş CSS yolu -->
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Giriş Yap</h2>
+        <p>Hesabınıza erişmek için bilgilerinizi girin.</p>
+
+        <% if (locals.error) { %>
+            <p style="color:red;"><%= error %></p>
+        <% } %>
+
+        <form method="POST" action="/login" class="signup-form">
+            <% if (typeof csrfToken !== 'undefined') { %>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <% } %>
+            <input type="email" name="email" placeholder="E-posta" required>
+            <input type="password" name="password" placeholder="Şifre" required>
+            <button type="submit">Giriş Yap</button>
+        </form>
+
+        <p class="login-link">Hesabın yok mu? <a href="/signup">Kayıt Ol</a></p>
+        <p class="login-link"><a href="/forgot-password">Şifreni mi unuttun?</a></p>
+    </div>
+</body>
+</html>

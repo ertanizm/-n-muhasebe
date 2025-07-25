@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesap Oluştur - Mutabık</title>
+    <link rel="stylesheet" href="/authentication.css">
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Hesap Oluştur</h2>
+        <p>Hızlı ve kolay bir şekilde mutabık olmaya başla.</p>
+        <form method="POST" action="/create-company" class="signup-form">
+            <input type="text" name="firma_adi" placeholder="Firma Adı" required>
+            <input type="email" name="email" placeholder="E-posta" required>
+            <input type="password" name="password" placeholder="Şifre" required>
+            <button type="submit">Kayıt Ol</button>
+        </form>
+        <p class="login-link">Zaten bir hesabın var mı? <a href="/login">Giriş Yap</a></p>
+    </div>
+</body>
+</html>
