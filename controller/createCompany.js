@@ -10,7 +10,7 @@ const app = express();
 const path = require('path');
 const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
-const { getMasterDbConfig, getTenantDbConfig } = require('./db');
+const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar
 app.set('view engine', 'ejs');
