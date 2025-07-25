@@ -31,4 +31,19 @@ router.get('/anasayfa', (req, res) => {
     res.render('anasayfa', { error: null });
 });
 
+router.get('/cari_hesap_ekstresi', (req, res) => {
+    res.render('cari/cariekstre', { error: null });
+});
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = router;
