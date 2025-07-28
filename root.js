@@ -20,7 +20,9 @@ router.get('/', csrfProtection, (req, res) => {
         error: null 
     });
 });
-
+router.get('/login', (req, res) => {
+    res.render('login');
+});
 // Signup sayfası route
 router.get('/signup', (req, res) => {
     res.render('signup');

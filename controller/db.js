@@ -2,7 +2,7 @@ const mysql = require('mysql2/promise');
 
 const host = 'localhost';
 const masterDbUser = 'root';
-const masterDbPass = '1234';
+const masterDbPass = 'Oklava.123123';
 const masterDbName = 'master_db';
 
 function getMasterDbConfig() {
