@@ -10,7 +10,8 @@ const app = express();
 const path = require('path');
 const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
-const { getMasterDbConfig, getTenantDbConfig } = require('./db');
+const stokRouter = require('./stokOperation'); // Stok router ekle
+const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar
 app.set('view engine', 'ejs');
@@ -44,6 +45,7 @@ app.use(session({
 
 // Add cari routes before the root router
 app.use('/cari', cariRouter);
+app.use('/stok', stokRouter);
 app.use('/', rootRouter);
 
 

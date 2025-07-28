@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutabık - Müşteriler</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="main-content">
+        <div class="product-container">
+            <div class="page-header">
+                <h1 class="page-title">Stoklar</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Stok</span>
+                    </button>
+                    <a href="/stok/stoklar/export" style="color: white;" class="btn btn-info">
+                        <i class="fas fa-file-export"></i>
+                        <span>Dışa Aktar</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="search-area">
+                <input type="text" class="form-control search-box" placeholder="Stok Ara...">
+            </div>
+
+            <div class="products-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Stok Kodu</th>
+                            <th>Stok Adı</th>
+                            <th>Birim</th>
+                            <th>Miktar</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (stoklar && stoklar.length > 0) { %>
+                            <% stoklar.forEach(function(c, i) { %>
+                                <tr>
+                                    <td><%= c.id %></td>
+                                    <td><%= c.stok_kodu %></td>
+                                    <td><%= c.stok_adi %></td>
+                                    <td><%= c.birim %></td>
+                                    <td><%= c.miktar %></td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning me-1 edit-btn" 
+                                            data-id="<%= c.id %>"
+                                            data-stok_kodu="<%= c.stok_kodu %>"
+                                            data-stok_adi="<%= c.stok_adi %>"
+                                            data-birim="<%= c.birim %>"
+                                            data-miktar="<%= c.miktar %>"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-btn" data-id="<%= c.id %>">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Yeni Stok Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="id" name="id">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="stok_kodu" class="form-label">Stok Kodu</label>
+                                <input type="text" class="form-control" id="stok_kodu" name="stok_kodu">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="stok_adi" class="form-label">Stok Adı</label>
+                                <input type="text" class="form-control" id="stok_adi" name="stok_adi" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="birim" class="form-label">Birim</label>
+                                <select class="form-control" id="birim" name="birim">
+                                    <option value="1">Adet</option>
+                                    <option value="0">Kilogram</option>
+                                    <option value="0">Litre</option>
+                                    <option value="0">Paket</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="miktar" class="form-label">Miktar</label>
+                                <input type="text" class="form-control" id="miktar" name="miktar">
+                            </div>
+                        </div>
+                        <!-- <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="miktar" class="form-label">İl</label>
+                                <input type="text" class="form-control" id="il" name="il">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ilce" class="form-label">İlçe</label>
+                                <input type="text" class="form-control" id="ilce" name="ilce">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="adres" class="form-label">Adres</label>
+                                <input type="text" class="form-control" id="adres" name="adres">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="vergi_dairesi" class="form-label">Vergi Dairesi</label>
+                                <input type="text" class="form-control" id="vergi_dairesi" name="vergi_dairesi">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="vergi_no" class="form-label">Vergi No</label>
+                                <input type="text" class="form-control" id="vergi_no" name="vergi_no">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="telefon" class="form-label">Telefon</label>
+                                <input type="text" class="form-control" id="telefon" name="telefon">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="resmi" class="form-label">Resmi</label>
+                                <input type="text" class="form-control" id="resmi" name="resmi">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="vadeopsiyonu" class="form-label">Vade Opsiyonu</label>
+                                <input type="text" class="form-control" id="vadeopsiyonu" name="vadeopsiyonu">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="bakiye" class="form-label">Bakiye</label>
+                                <input type="number" step="0.01" class="form-control" id="bakiye" name="bakiye">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="efatura" class="form-label">e-Fatura</label>
+                                <select class="form-control" id="efatura" name="efatura">
+                                    <option value="0">Hayır</option>
+                                    <option value="1">Evet</option>
+                                </select>
+                            </div>
+                        </div> -->
+                        <!-- <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="efaturasenaryo" class="form-label">e-Fatura Senaryo</label>
+                                <input type="text" class="form-control" id="efaturasenaryo" name="efaturasenaryo">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="efaturalicietiketi" class="form-label">e-Fatura Etiketi</label>
+                                <input type="text" class="form-control" id="efaturalicietiketi" name="efaturalicietiketi">
+                            </div>
+                        </div> -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="saveProduct">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        document.getElementById('saveProduct').addEventListener('click', async function() {
+            const form = document.getElementById('productForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/stok/stoklar', {  // Update API endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    location.reload(); // Sayfayı yenile
+                } else {
+                    alert('Kayıt sırasında bir hata oluştu: ' + result.message);
+                }
+            } catch (error) {
+                alert('İşlem sırasında bir hata oluştu');
+            }
+        });
+
+        // Update delete endpoint
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Müşteriyi silmek istediğinize emin misiniz?')) return;
+                
+                const id = btn.dataset.id;
+                const response = await fetch(`/stok/stoklar/${id}`, {  // Update API endpoint
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    btn.closest('tr').remove();
+                    alert('Müşteri başarıyla silindi.');
+                } else {
+                    alert('Silme işlemi başarısız: ' + result.message);
+                }
+            });
+        });
+
+        // Edit butonu için event listener
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+                const form = document.getElementById('productForm');
+                
+                // Form alanlarını doldur
+                form.id.value = btn.dataset.id;
+                form.stok_kodu.value = btn.dataset.stok_kodu;
+                form.stok_adi.value = btn.dataset.stok_adi;
+                form.birim.value = btn.dataset.birim;
+                form.miktar.value = btn.dataset.miktar || "0";
+                // form.il.value = btn.dataset.il;
+                // form.ilce.value = btn.dataset.ilce;
+                // form.adres.value = btn.dataset.adres;
+                // form.vergi_dairesi.value = btn.dataset.vergi_dairesi;
+                // form.vergi_no.value = btn.dataset.vergi_no;
+                // form.telefon.value = btn.dataset.telefon;
+                // form.email.value = btn.dataset.email;
+                // form.resmi.value = btn.dataset.resmi;
+                // form.vadeopsiyonu.value = btn.dataset.vadeopsiyonu;
+                // form.bakiye.value = btn.dataset.bakiye;
+                // form.efatura.value = btn.dataset.efatura;
+                // form.efaturasenaryo.value = btn.dataset.efaturasenaryo;
+                // form.efaturalicietiketi.value = btn.dataset.efaturalicietiketi;
+
+                // Modal başlığını güncelle
+                document.getElementById('addProductModalLabel').textContent = 'Stok Düzenle';
+                
+                modal.show();
+            });
+        });
+    </script>
+</body>
+</html>
