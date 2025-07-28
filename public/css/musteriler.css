@@ -42,38 +42,23 @@
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-.customers-table, .ekstre-table-wrap {
-    overflow-x: auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.07);
-    margin: 24px 0 0 0;
-    max-width: 100vw;
-    width: 100%;
-    padding: 0 0 24px 0;
+.customers-table {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    overflow: hidden;
 }
 
 .table {
-    min-width: 1200px; /* Tablo çok dar olmasın, taşma olursa scroll çıksın */
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fff;
+    margin-bottom: 0;
 }
 
 .table thead th {
-    /* position: sticky;  BUNU KALDIR! */
-    /* top: 0; */
-    /* z-index: 2; */
     background: #f8fafc;
-    color: #232946;
-    font-weight: 700;
-    padding: 10px 10px;
-    border-bottom: 2px solid #e5e7eb;
-    text-align: left;
-    font-size: 1em;
-    letter-spacing: 0.03em;
-    white-space: nowrap;
+    color: #2c3e50;
+    font-weight: 600;
+    padding: 16px;
+    border-bottom: 2px solid #edf2f7;
 }
 
 .table tbody td {
@@ -173,16 +158,4 @@
 .form-control:focus {
     border-color: #3498db;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-@media (max-width: 900px) {
-    .table {
-        min-width: 900px;
-    }
-}
-
-@media (max-width: 1200px) {
-    .table {
-        min-width: 900px;
-    }
 }

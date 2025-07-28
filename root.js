@@ -3,6 +3,8 @@ const csrf = require('csurf');
 const router = express.Router();
 const path = require('path');
 const { authMiddleware } = require('./controller/createCompany');
+const mysql = require('mysql2/promise');
+const { getTenantDbConfig } = require('./controller/db');
 
 // Update views directory path
 router.use((req, res, next) => {
@@ -20,14 +22,32 @@ router.get('/', csrfProtection, (req, res) => {
         error: null 
     });
 });
-router.get('/login', (req, res) => {
-    res.render('login');
-});
 // Signup sayfası route
 router.get('/signup', (req, res) => {
     res.render('signup');
 });
 
+router.get('/hesaplarim', async (req, res) => {
+    if (!req.session || !req.session.user) {
+        return res.redirect('/');
+    }
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        const [hesaplar] = await conn.execute("SELECT * FROM hesapkarti ORDER BY id ASC");
+        await conn.end();
+        res.render('finans/hesaplarim', {
+            user: req.session.user,
+            hesaplar: hesaplar,
+            error: null
+        });
+    } catch (error) {
+        res.render('finans/hesaplarim', {
+            user: req.session.user,
+            hesaplar: [],
+            error: 'Hesaplar alınamadı'
+        });
+    }
+});
 // Homepage sayfası route
 router.get('/anasayfa', (req, res) => {
     res.render('anasayfa', { error: null });

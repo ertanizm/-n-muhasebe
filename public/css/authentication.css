@@ -1,57 +1,113 @@
+/** Arka plan için modern bir degrade **/
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+/** Login kutusu **/
 .signup-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 370px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 38px 32px 32px 32px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+    border: 1px solid #e0e7ff;
+    transition: box-shadow 0.3s, transform 0.2s;
+    position: relative;
+    z-index: 2;
+}
+.signup-container:hover {
+    box-shadow: 0 16px 48px 0 rgba(31, 38, 135, 0.22);
+    transform: translateY(-2px) scale(1.01);
 }
 
 .signup-container h2 {
     text-align: center;
-    color: #2c3e50;
-    margin-bottom: 10px;
+    color: #22223b;
+    margin-bottom: 8px;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 .signup-container p {
     text-align: center;
-    color: #7f8c8d;
+    color: #4a4e69;
     margin-bottom: 20px;
+    font-size: 1.05rem;
 }
 
+/** Form **/
 .signup-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 18px;
 }
-
 .signup-form input {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 14px 16px;
+    border: 1.5px solid #c9c9c9;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #f8f9fa;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(95, 111, 255, 0.04);
 }
-
+.signup-form input:focus {
+    border: 1.5px solid #5f6fff;
+    box-shadow: 0 0 0 2px #e0e7ff;
+    background: #fff;
+}
 .signup-form button {
-    padding: 12px;
-    background: #3498db;
+    padding: 14px;
+    background: linear-gradient(90deg, #5f6fff 0%, #6dd5ed 100%);
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(95, 111, 255, 0.10);
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
 }
-
 .signup-form button:hover {
-    background: #2980b9;
+    background: linear-gradient(90deg, #6dd5ed 0%, #5f6fff 100%);
+    transform: translateY(-2px) scale(1.03);
 }
 
+/** Linkler **/
 .login-link {
-    margin-top: 20px;
+    margin-top: 18px;
     text-align: center;
+    font-size: 1rem;
+}
+.login-link a {
+    color: #5f6fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+.login-link a:hover {
+    color: #22223b;
+    text-decoration: underline;
 }
 
-.login-link a {
-    color: #3498db;
-    text-decoration: none;
+/** Hata mesajı **/
+.signup-container p[style*="color:red"] {
+    background: #ffeaea;
+    color: #d90429 !important;
+    border-radius: 6px;
+    padding: 8px 0;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
 }

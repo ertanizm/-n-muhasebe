@@ -11,6 +11,7 @@ const path = require('path');
 const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
+const finansRouter = require('./finans');
 const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar
@@ -46,6 +47,7 @@ app.use(session({
 // Add cari routes before the root router
 app.use('/cari', cariRouter);
 app.use('/stok', stokRouter);
+app.use('/hesaplarim', finansRouter);
 app.use('/', rootRouter);
 
 
@@ -248,12 +250,20 @@ dorduncuvergiorani INT NULL
                 type TINYINT(1) DEFAULT 0
             )
         `);
-
+        await tenantConn.query(`
+            CREATE TABLE IF NOT EXISTS hesapkarti (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tanimi VARCHAR(255),
+        parabirimi VARCHAR(255) NULL,
+        guncelbakiye DECIMAL (10,2) NULL,
+        posbankasi VARCHAR(255) NULL,
+        tip INT
+        );`)
         await tenantConn.end();
         await masterConn.end();
 
         // Başarılı olursa login sayfasına yönlendir
-        res.redirect('/login');
+        res.redirect('/');
     } catch (err) {
         if (masterConn && masterConn.connection && masterConn.connection.inTransaction) {
             await masterConn.rollback();

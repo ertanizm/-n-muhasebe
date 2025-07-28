@@ -1,0 +1,276 @@
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background: #6c757d;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    position: relative;
+}
+
+.card-header.banka-header {
+    background: #6c757d;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.btn-group-custom {
+    margin-bottom: 20px;
+}
+
+.btn-custom {
+    background: #228dcd;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.btn-custom:hover {
+    opacity: 0.9;
+}
+
+.dropdown-menu-custom {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 10px 0;
+    min-width: 180px;
+}
+
+.dropdown-item-custom {
+    padding: 8px 20px;
+    color: #333;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+}
+
+.dropdown-item-custom:hover {
+    background: #f8f9fa;
+}
+
+.amount-display {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.currency-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.currency-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.currency-tab.active {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: white;
+}
+
+.currency-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.currency-amount {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.total-amount {
+    font-size: 18px;
+    font-weight: bold;
+    float: right;
+}
+
+.row-gap {
+    gap: 20px;
+}
+
+.info-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.kasa-form {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.btn-success:hover, .btn-secondary:hover {
+    opacity: 0.9;
+}
+
+/* Hesap hareketleri sağ paneli */
+.hesap-hareketleri-panel {
+    position: fixed;
+    top: 0;
+    right: -480px;
+    width: 500px;
+    height: 100vh;
+    background: #fff;
+    border-radius: 0 0 0 10px;
+    box-shadow: -4px 0 24px rgba(60,72,88,0.12);
+    margin-top: 0;
+    padding-bottom: 16px;
+    z-index: 2000;
+    transition: right 0.35s cubic-bezier(.77,0,.18,1);
+    display: flex;
+    flex-direction: column;
+}
+.hesap-hareketleri-panel.active {
+    right: 0;
+}
+.hesap-hareketleri-header {
+    background: #6c757d;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 16px 24px 16px 24px;
+    border-radius: 0 0 0 0;
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.hesap-hareketleri-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: color 0.2s;
+}
+.hesap-hareketleri-close:hover {
+    color: #ffc107;
+}
+.hesap-hareketleri-table-wrapper {
+    overflow-x: auto;
+    padding: 16px 12px 0 12px;
+    flex: 1;
+}
+@media (max-width: 600px) {
+    .hesap-hareketleri-panel, .hesap-hareketleri-panel.active {
+        width: 100vw;
+        right: -100vw;
+        border-radius: 0;
+    }
+}
+
+.hesap-hareketleri-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.hesap-hareketleri-table th {
+    background: #eaf5e7;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 10px 8px;
+    border-bottom: 2px solid #d1e7dd;
+    text-align: left;
+    font-size: 1rem;
+}
+
+.hesap-hareketleri-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.98rem;
+    color: #333;
+}
+
+.hesap-hareketleri-table tr:last-child td {
+    border-bottom: none;
+}
