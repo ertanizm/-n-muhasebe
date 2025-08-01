@@ -11,6 +11,7 @@ const path = require('path');
 const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
+const depoRouter = require('./depoOperation'); // depo router ekle
 const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar
@@ -46,6 +47,7 @@ app.use(session({
 // Add cari routes before the root router
 app.use('/cari', cariRouter);
 app.use('/stok', stokRouter);
+app.use('/stok', depoRouter);
 app.use('/', rootRouter);
 
 
@@ -163,51 +165,62 @@ app.post('/create-company', async (req, res) => {
             password: masterDbPass,
             database: dbName
         });
-        await tenantConn.query(`
-            CREATE TABLE IF NOT EXISTS stokgrupkarti (
+ await tenantConn.query(`
+    CREATE TABLE IF NOT EXISTS stokgrupkarti (
     id INT AUTO_INCREMENT PRIMARY KEY,
     grup_kodu VARCHAR(255) NULL,
-    grup_adi VARCHAR(255) NULL
+    grup_adi VARCHAR(255) NULL,
+    kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    guncelleyenkullanicikayitno INT,
+    kaydedenkullanicikayitno INT
 );`)
 await tenantConn.query(`
     CREATE TABLE IF NOT EXISTS depokarti (
-id INT AUTO_INCREMENT PRIMARY KEY,
-depo_kodu VARCHAR(255) NULL,
-depo_adi VARCHAR(255) NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    depo_kodu VARCHAR(255) NULL,
+    depo_adi VARCHAR(255) NULL,
+    kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    guncelleyenkullanicikayitno INT,
+    kaydedenkullanicikayitno INT,
 );`)
 
 await tenantConn.query(`
     CREATE TABLE IF NOT EXISTS vergikarti (
-id INT AUTO_INCREMENT PRIMARY KEY,
-vergikodu VARCHAR(255) NULL,
-birincivergiorani INT,
-ikincivergiorani INT NULL,
-ucuncuvergiorani INT NULL,
-dorduncuvergiorani INT NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vergikodu VARCHAR(255) NULL,
+    birincivergiorani INT,
+    ikincivergiorani INT NULL,
+    ucuncuvergiorani INT NULL,
+    dorduncuvergiorani INT NULL,
+    kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    guncelleyenkullanicikayitno INT,
+    kaydedenkullanicikayitno INT,
 );`)
 
-        await tenantConn.query(`
-            CREATE TABLE IF NOT EXISTS stoklar (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                stok_kodu VARCHAR(50) NULL,
-                stok_adi VARCHAR(255) NULL,
-                birim VARCHAR(10) NULL,
-                aktifbarkod varchar(50),
-                guncelleyenkullanicikayitno INT,
-                kaydedenkullanicikayitno INT,
-                fiyat1 DECIMAL(10,2),
-                fiyat2 DECIMAL (10,2),
-                fiyat3 DECIMAL (10,2),
-                stoktipi TINYINT(1) DEFAULT 0,
-                aktif TINYINT(1) DEFAULT 1,
-                miktar DECIMAL(10,2) DEFAULT 0,
-                kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
-                grupkayitno INT NULL,
-                vergikayitno INT DEFAULT 0,
-                FOREIGN KEY (vergikayitno) REFERENCES vergikarti(id),
-                FOREIGN KEY (grupkayitno) REFERENCES stokgrupkarti(id)
-            )
-        `);
+await tenantConn.query(`
+    CREATE TABLE IF NOT EXISTS stoklar (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stok_kodu VARCHAR(50) NULL,
+        stok_adi VARCHAR(255) NULL,
+        birim VARCHAR(10) NULL,
+        aktifbarkod varchar(50),
+        guncelleyenkullanicikayitno INT,
+        kaydedenkullanicikayitno INT,
+        fiyat1 DECIMAL(10,2),
+        fiyat2 DECIMAL (10,2),
+        fiyat3 DECIMAL (10,2),
+        stoktipi TINYINT(1) DEFAULT 0,
+        aktif TINYINT(1) DEFAULT 1,
+        miktar DECIMAL(10,2) DEFAULT 0,
+        kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+        grupkayitno INT NULL,
+        vergikayitno INT NULL,
+        depokayitno INT NULL,
+        FOREIGN KEY (vergikayitno) REFERENCES vergikarti(id),
+        FOREIGN KEY (grupkayitno) REFERENCES stokgrupkarti(id)
+        FOREIGN KEY (depokayitno) REFERENCES depokarti(id)
+    
+`);
 
        
 

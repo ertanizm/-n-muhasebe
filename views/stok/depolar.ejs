@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutabık - Depolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="main-content">
+        <div class="product-container">
+            <div class="page-header">
+                <h1 class="page-title">Depolar</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepoModal">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Depo</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-area">
+                <input type="text" class="form-control search-box" placeholder="Depo Ara...">
+            </div>
+
+            <div class="products-table mt-4">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Depo Kodu</th>
+                            <th>Depo Adı</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% depolar.forEach(function(d) { %>
+                        <tr>
+                            <td><%= d.id %></td>
+                            <td><%= d.depo_kodu %></td>
+                            <td><%= d.depo_adi %></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1 edit-btn"
+                                    data-id="<%= d.id %>"
+                                    data-depo_kodu="<%= d.depo_kodu %>"
+                                    data-depo_adi="<%= d.depo_adi %>">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="<%= d.id %>">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addDepoModal" tabindex="-1" aria-labelledby="addDepoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDepoModalLabel">Yeni Depo Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="depoForm">
+                        <input type="hidden" id="id" name="id">
+                        <div class="mb-3">
+                            <label for="depo_kodu" class="form-label">Depo Kodu</label>
+                            <input type="text" class="form-control" id="depo_kodu" name="depo_kodu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="depo_adi" class="form-label">Depo Adı</label>
+                            <input type="text" class="form-control" id="depo_adi" name="depo_adi" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="saveDepo">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        document.getElementById('saveDepo').addEventListener('click', async function() {
+            const form = document.getElementById('depoForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/stok/depolar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Kayıt sırasında bir hata oluştu: ' + result.message);
+                }
+            } catch (error) {
+                alert('İşlem sırasında bir hata oluştu');
+            }
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Depoyu silmek istediğinize emin misiniz?')) return;
+                
+                const id = btn.dataset.id;
+                const response = await fetch(`/stok/depolar/${id}`, {  // Update API endpoint
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    btn.closest('tr').remove();
+                    alert('Depoyu başarıyla silindi.');
+                } else {
+                    alert('Silme işlemi başarısız: ' + result.message);
+                }
+            });
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('addDepoModal'));
+                const form = document.getElementById('depoForm');
+                form.id.value = btn.dataset.id;
+                form.depo_kodu.value = btn.dataset.depo_kodu;
+                form.depo_adi.value = btn.dataset.depo_adi;
+                document.getElementById('addDepoModalLabel').textContent = 'Depo Düzenle';
+                modal.show();
+            });
+        });
+    </script>
+</body>
+</html> 
