@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutabık - Stok Grupları</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="main-content">
+        <div class="product-container">
+            <div class="page-header">
+                <h1 class="page-title">Stok Grupları</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGrupModal">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Grup</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-area">
+                <input type="text" class="form-control search-box" placeholder="Grup Ara...">
+            </div>
+
+            <div class="products-table mt-4">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Grup Kodu</th>
+                            <th>Grup Adı</th>
+                            <!-- <th>Açıklama</th> -->
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% gruplar.forEach(function(g) { %>
+                        <tr>
+                            <td><%= g.id %></td>
+                            <td><%= g.grup_kodu %></td>
+                            <td><%= g.grup_adi %></td>
+                            <!-- <td><%= g.aciklama || '-' %></td> -->
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1 edit-btn"
+                                    data-id="<%= g.id %>"
+                                    data-grup_kodu="<%= g.grup_kodu %>"
+                                    data-grup_adi="<%= g.grup_adi %>">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="<%= g.id %>">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addGrupModal" tabindex="-1" aria-labelledby="addGrupModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addGrupModalLabel">Yeni Grup Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="grupForm">
+                        <input type="hidden" id="id" name="id">
+                        <div class="mb-3">
+                            <label for="grup_kodu" class="form-label">Grup Kodu</label>
+                            <input type="text" class="form-control" id="grup_kodu" name="grup_kodu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="grup_adi" class="form-label">Grup Adı</label>
+                            <input type="text" class="form-control" id="grup_adi" name="grup_adi" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="saveGrup">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        document.getElementById('saveGrup').addEventListener('click', async function() {
+            const form = document.getElementById('grupForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/stok/stokgrup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Kayıt sırasında bir hata oluştu: ' + result.message);
+                }
+            } catch (error) {
+                alert('İşlem sırasında bir hata oluştu');
+            }
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Grubu silmek istediğinize emin misiniz?')) return;
+                
+                const id = btn.dataset.id;
+                const response = await fetch(`/stok/stokgrup/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    btn.closest('tr').remove();
+                    alert('Grup başarıyla silindi.');
+                } else {
+                    alert('Silme işlemi başarısız: ' + result.message);
+                }
+            });
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('addGrupModal'));
+                const form = document.getElementById('grupForm');
+                form.id.value = btn.dataset.id;
+                form.grup_kodu.value = btn.dataset.grup_kodu;
+                form.grup_adi.value = btn.dataset.grup_adi;
+                document.getElementById('addGrupModalLabel').textContent = 'Grup Düzenle';
+                modal.show();
+            });
+        });
+    </script>
+</body>
+</html>

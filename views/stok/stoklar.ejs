@@ -33,7 +33,166 @@
             </div>
 
             <div class="products-table">
-                <table class="table">
+                <div class="products-tabs mt-4">
+                    <ul class="nav nav-tabs" id="stokTab" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="genel-tab" data-bs-toggle="tab" data-bs-target="#genel" type="button" role="tab">Genel Bilgiler</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="satis-tab" data-bs-toggle="tab" data-bs-target="#satis" type="button" role="tab">Satış Bilgileri</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ek-tab" data-bs-toggle="tab" data-bs-target="#ek" type="button" role="tab">Ek Bilgiler</button>
+                      </li>
+                    </ul>
+                  
+                    <div class="tab-content mt-3" id="stokTabContent">
+                  
+                      <!-- GENEL BİLGİLER -->
+                      <div class="tab-pane fade show active" id="genel" role="tabpanel">
+                        <table class="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>Stok Tipi</th>
+                              <th>Stok Kodu</th>
+                              <th>Stok Adı</th>
+                              <th>Grup</th>
+                              <th>Depo</th>
+                              <th>Birim</th>
+                              <th>Miktar</th>
+                              <th>İşlemler</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% stoklar.forEach(function(c) { %>
+                              <tr>
+                                <td><%= c.id %></td>
+                                <td><%= c.stokText %></td>
+                                <td><%= c.stok_kodu %></td>
+                                <td><%= c.stok_adi %></td>
+                                <td>
+                                    <% 
+                                    let grupAdi = '';
+                                    for(let grup of gruplar) {
+                                        if(grup.id == c.grupkayitno) {
+                                            grupAdi = grup.grup_adi;
+                                            break;
+                                        }
+                                    }
+                                    %>
+                                    <%= grupAdi %>
+                                </td>
+                                <td>
+                                    <% 
+                                    let depoAdi = '';
+                                    for(let depo of depolar) {
+                                        if(depo.id == c.depokayitno) {
+                                            depoAdi = depo.depo_adi;
+                                            break;
+                                        }
+                                    }
+                                    %>
+                                    <%= depoAdi %>
+                                </td>
+                                <td><%= c.birimText %></td>
+                                <td><%= c.miktar %></td>
+                                <td>
+                                  <button class="btn btn-sm btn-warning me-1 edit-btn"
+                                    data-id="<%= c.id %>"
+                                    data-stok_kodu="<%= c.stok_kodu %>"
+                                    data-stok_adi="<%= c.stok_adi %>"
+                                    data-birim="<%= c.birim %>"
+                                    data-miktar="<%= c.miktar %>"
+                                    data-fiyat1="<%= c.fiyat1 %>"
+                                    data-fiyat2="<%= c.fiyat2 %>"
+                                    data-fiyat3="<%= c.fiyat3 %>"
+                                    data-stoktipi="<%= c.stoktipi %>"
+                                    data-aktif="<%= c.aktif %>"
+                                    data-aktifbarkod="<%= c.aktifbarkod %>"
+                                    data-kaydedenkullanicikayitno="<%= c.kaydedenkullanicikayitno %>"
+                                    data-guncelleyenkullanicikayitno="<%= c.guncelleyenkullanicikayitno %>"
+                                    data-grupkayitno="<%= c.grupkayitno %>"
+                                    data-vergikayitno="<%= c.vergikayitno %>"
+                                    data-depokayitno="<%= c.depokayitno %>"
+                                    data-kayittarihi="<%= c.kayittarihi %>">
+                                    <i class="fas fa-edit"></i>
+                                  </button>
+                                  <button class="btn btn-sm btn-danger delete-btn" data-id="<%= c.id %>">
+                                    <i class="fas fa-trash-alt"></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            <% }) %>
+                          </tbody>
+                        </table>
+                      </div>
+                  
+                      <!-- SATIŞ BİLGİLERİ -->
+                      <div class="tab-pane fade" id="satis" role="tabpanel">
+                        <table class="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Fiyat 1</th>
+                              <th>Fiyat 2</th>
+                              <th>Fiyat 3</th>
+                              <th>Vergi</th>
+                              <!-- <th>Stok Tipi</th> -->
+                              <!-- <th>Aktif</th> -->
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% stoklar.forEach(function(c) { %>
+                              <tr>
+                                <td><%= c.fiyat1 %></td>
+                                <td><%= c.fiyat2 %></td>
+                                <td><%= c.fiyat3 %></td>
+                                <td>
+                                    <% 
+                                    let vergiAdi = '';
+                                    for(let vergi of vergiler) {
+                                        if(vergi.id == c.vergikayitno) {
+                                            vergiAdi = vergi.vergikodu;
+                                            break;
+                                        }
+                                    }
+                                    %>
+                                    <%= vergiAdi %>
+                                </td>                                
+                                <!-- <td><%= c.stokText %></td> -->
+                                <!-- <td><%= c.aktif %></td> -->
+                              </tr>
+                            <% }) %>
+                          </tbody>
+                        </table>
+                      </div>
+                  
+                      <!-- EK BİLGİLER -->
+                      <div class="tab-pane fade" id="ek" role="tabpanel">
+                        <table class="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Kaydeden Kullanıcı</th>
+                              <th>Güncelleyen Kullanıcı</th>
+                              <th>Kayıt Tarihi</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% stoklar.forEach(function(c) { %>
+                              <tr>
+                                <td><%= c.kaydedenkullanicikayitno %></td>
+                                <td><%= c.guncelleyenkullanicikayitno %></td>
+                                <td><%= c.kayittarihiFormatted  %></td>
+                              </tr>
+                            <% }) %>
+                          </tbody>
+                        </table>
+                      </div>
+                  
+                    </div>
+                  </div>
+                  
+                <!-- <table class="table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -41,6 +200,16 @@
                             <th>Stok Adı</th>
                             <th>Birim</th>
                             <th>Miktar</th>
+                            <th>Fiyat 1</th>
+                            <th>Fiyat 2</th>
+                            <th>Fiyat 3</th>
+                            <th>Stok Tipi</th>
+                            <th>Aktif</th>
+                            <th>Kaydet K.</th>
+                            <th>Güncelleyen K.</th>
+                            <th>Grup</th>
+                            <th>Vergi</th>
+                            <th>Kayıt Tarihi</th>
                             <th>İşlemler</th>
                         </tr>
                     </thead>
@@ -53,13 +222,33 @@
                                     <td><%= c.stok_adi %></td>
                                     <td><%= c.birim %></td>
                                     <td><%= c.miktar %></td>
+                                    <td><%= c.fiyat1 %></td>
+                                    <td><%= c.fiyat2 %></td>
+                                    <td><%= c.fiyat3 %></td>
+                                    <td><%= c.stoktipi %></td>
+                                    <td><%= c.aktif %></td>
+                                    <td><%= c.kaydedenkullanicikayitno %></td>
+                                    <td><%= c.guncelleyenkullanicikayitno %></td>
+                                    <td><%= c.grupkayitno %></td>
+                                    <td><%= c.vergikayitno %></td>
+                                    <td><%= c.kayittarihi %></td>
                                     <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning me-1 edit-btn" 
+                                        <button class="btn btn-sm btn-warning me-1 edit-btn"
                                             data-id="<%= c.id %>"
                                             data-stok_kodu="<%= c.stok_kodu %>"
                                             data-stok_adi="<%= c.stok_adi %>"
                                             data-birim="<%= c.birim %>"
                                             data-miktar="<%= c.miktar %>"
+                                            data-fiyat1="<%= c.fiyat1 %>"
+                                            data-fiyat2="<%= c.fiyat2 %>"
+                                            data-fiyat3="<%= c.fiyat3 %>"
+                                            data-stoktipi="<%= c.stoktipi %>"
+                                            data-aktif="<%= c.aktif %>"
+                                            data-kaydedenkullanicikayitno="<%= c.kaydedenkullanicikayitno %>"
+                                            data-guncelleyenkullanicikayitno="<%= c.guncelleyenkullanicikayitno %>"
+                                            data-grupkayitno="<%= c.grupkayitno %>"
+                                            data-vergikayitno="<%= c.vergikayitno %>"
+                                            data-kayittarihi="<%= c.kayittarihi %>"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -70,10 +259,10 @@
                                 </tr>
                             <% }) %>
                         <% } else { %>
-                            <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
+                            <tr><td colspan="16">Kayıt bulunamadı.</td></tr>
                         <% } %>
                     </tbody>
-                </table>
+                </table> -->
             </div>
         </div>
     </div>
@@ -88,98 +277,100 @@
                 <div class="modal-body">
                     <form id="productForm">
                         <input type="hidden" id="id" name="id">
+                
+                        <!-- GENEL BİLGİLER -->
+                        <h5 class="mb-3">Genel Bilgiler</h5>
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="stok_kodu" class="form-label">Stok Kodu</label>
                                 <input type="text" class="form-control" id="stok_kodu" name="stok_kodu">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-8">
                                 <label for="stok_adi" class="form-label">Stok Adı</label>
                                 <input type="text" class="form-control" id="stok_adi" name="stok_adi" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="birim" class="form-label">Birim</label>
                                 <select class="form-control" id="birim" name="birim">
-                                    <option value="1">Adet</option>
-                                    <option value="0">Kilogram</option>
-                                    <option value="0">Litre</option>
-                                    <option value="0">Paket</option>
+                                    <option value="0">Adet</option>
+                                    <option value="1">Kilogram</option>
+                                    <option value="2">Litre</option>
+                                    <option value="3">Paket</option>
+                                    <option value="4">Metre</option>
+                                    <option value="5">Koli</option>
+                                    <option value="6">Kutu</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label for="miktar" class="form-label">Miktar</label>
                                 <input type="text" class="form-control" id="miktar" name="miktar">
                             </div>
-                        </div>
-                        <!-- <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="miktar" class="form-label">İl</label>
-                                <input type="text" class="form-control" id="il" name="il">
+                            <div class="col-md-11">
+                                <label for="aktifbarkod" class="form-label">Aktif Barkod</label>
+                                <input type="text" class="form-control" id="aktifbarkod" name="aktifbarkod">
                             </div>
                             <div class="col-md-4">
-                                <label for="ilce" class="form-label">İlçe</label>
-                                <input type="text" class="form-control" id="ilce" name="ilce">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="adres" class="form-label">Adres</label>
-                                <input type="text" class="form-control" id="adres" name="adres">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="vergi_dairesi" class="form-label">Vergi Dairesi</label>
-                                <input type="text" class="form-control" id="vergi_dairesi" name="vergi_dairesi">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="vergi_no" class="form-label">Vergi No</label>
-                                <input type="text" class="form-control" id="vergi_no" name="vergi_no">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="telefon" class="form-label">Telefon</label>
-                                <input type="text" class="form-control" id="telefon" name="telefon">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="resmi" class="form-label">Resmi</label>
-                                <input type="text" class="form-control" id="resmi" name="resmi">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="vadeopsiyonu" class="form-label">Vade Opsiyonu</label>
-                                <input type="text" class="form-control" id="vadeopsiyonu" name="vadeopsiyonu">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="bakiye" class="form-label">Bakiye</label>
-                                <input type="number" step="0.01" class="form-control" id="bakiye" name="bakiye">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="efatura" class="form-label">e-Fatura</label>
-                                <select class="form-control" id="efatura" name="efatura">
-                                    <option value="0">Hayır</option>
-                                    <option value="1">Evet</option>
+                                <label for="grupkayitno" class="form-label">Grup Kayıt No</label>
+                                 <select class="form-control" id="grupkayitno" name="grupkayitno">
+                                    <option value="">Grup Seçiniz</option>
+                                    <% gruplar.forEach(function(grup) { %>
+                                        <option value="<%= grup.id %>"><%= grup.grup_adi %></option>
+                                    <% }) %>
                                 </select>
                             </div>
-                        </div> -->
-                        <!-- <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="efaturasenaryo" class="form-label">e-Fatura Senaryo</label>
-                                <input type="text" class="form-control" id="efaturasenaryo" name="efaturasenaryo">
+                            <div class="col-md-4">
+                                <label for="vergikayitno" class="form-label">Vergi Kayıt No</label>
+                                <select class="form-control" id="vergikayitno" name="vergikayitno">
+                                    <option value="">Vergi Seçiniz</option>
+                                    <% vergiler.forEach(function(vergi) { %>
+                                        <option value="<%= vergi.id %>"><%= vergi.vergikodu %></option>
+                                    <% }) %>
+                                </select>
                             </div>
-                            <div class="col-md-6">
-                                <label for="efaturalicietiketi" class="form-label">e-Fatura Etiketi</label>
-                                <input type="text" class="form-control" id="efaturalicietiketi" name="efaturalicietiketi">
+                            <div class="col-md-4">
+                                <label for="depokayitno" class="form-label">Depo Kayıt No</label>
+                                <select class="form-control" id="depokayitno" name="depokayitno">
+                                    <option value="">Depo Seçiniz</option>
+                                    <% depolar.forEach(function(depo) { %>
+                                        <option value="<%= depo.id %>"><%= depo.depo_adi %></option>
+                                    <% }) %>
+                                </select>
                             </div>
-                        </div> -->
+                        </div>
+                
+                        <!-- SATIŞ BİLGİLERİ -->
+                        <h5 class="mb-3 mt-4">Satış Bilgileri</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="fiyat1" class="form-label">Fiyat 1</label>
+                                <input type="number" step="0.01" class="form-control" id="fiyat1" name="fiyat1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="fiyat2" class="form-label">Fiyat 2</label>
+                                <input type="number" step="0.01" class="form-control" id="fiyat2" name="fiyat2">
+                            </div>
+                            <div class="col-md-4">  
+                                <label for="fiyat3" class="form-label">Fiyat 3</label>
+                                <input type="number" step="0.01" class="form-control" id="fiyat3" name="fiyat3">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="stoktipi" class="form-label">Stok Tipi</label>
+                                <select class="form-control" id="stoktipi" name="stoktipi">
+                                    <option value="0">Ürün</option>
+                                    <option value="1">Hizmet</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="aktif" class="form-label">Aktif</label>
+                                <select class="form-control" id="aktif" name="aktif">
+                                    <option value="1">Evet</option>
+                                    <option value="0">Hayır</option>
+                                </select>
+                            </div>
+                        </div>
                     </form>
                 </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
                     <button type="button" class="btn btn-primary" id="saveProduct">Kaydet</button>
@@ -217,13 +408,13 @@
             }
         });
 
-        // Update delete endpoint
+        //  delete endpoint
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (!confirm('Müşteriyi silmek istediğinize emin misiniz?')) return;
+                if (!confirm('Depoyu silmek istediğinize emin misiniz?')) return;
                 
                 const id = btn.dataset.id;
-                const response = await fetch(`/stok/stoklar/${id}`, {  // Update API endpoint
+                const response = await fetch(`/stok/stoklar/${id}`, { 
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -231,7 +422,7 @@
                 const result = await response.json();
                 if (result.success) {
                     btn.closest('tr').remove();
-                    alert('Müşteri başarıyla silindi.');
+                    alert('Depo başarıyla silindi.');
                 } else {
                     alert('Silme işlemi başarısız: ' + result.message);
                 }
@@ -250,19 +441,15 @@
                 form.stok_adi.value = btn.dataset.stok_adi;
                 form.birim.value = btn.dataset.birim;
                 form.miktar.value = btn.dataset.miktar || "0";
-                // form.il.value = btn.dataset.il;
-                // form.ilce.value = btn.dataset.ilce;
-                // form.adres.value = btn.dataset.adres;
-                // form.vergi_dairesi.value = btn.dataset.vergi_dairesi;
-                // form.vergi_no.value = btn.dataset.vergi_no;
-                // form.telefon.value = btn.dataset.telefon;
-                // form.email.value = btn.dataset.email;
-                // form.resmi.value = btn.dataset.resmi;
-                // form.vadeopsiyonu.value = btn.dataset.vadeopsiyonu;
-                // form.bakiye.value = btn.dataset.bakiye;
-                // form.efatura.value = btn.dataset.efatura;
-                // form.efaturasenaryo.value = btn.dataset.efaturasenaryo;
-                // form.efaturalicietiketi.value = btn.dataset.efaturalicietiketi;
+                form.aktifbarkod.value = btn.dataset.aktifbarkod || "";
+                form.grupkayitno.value = btn.dataset.grupkayitno || "";
+                form.vergikayitno.value = btn.dataset.vergikayitno || "";
+                form.depokayitno.value = btn.dataset.depokayitno || "";
+                form.fiyat1.value = btn.dataset.fiyat1 || "";
+                form.fiyat2.value = btn.dataset.fiyat2 || "";
+                form.fiyat3.value = btn.dataset.fiyat3 || "";
+                form.stoktipi.value = btn.dataset.stoktipi || "0";
+                form.aktif.value = btn.dataset.aktif || "1";
 
                 // Modal başlığını güncelle
                 document.getElementById('addProductModalLabel').textContent = 'Stok Düzenle';
