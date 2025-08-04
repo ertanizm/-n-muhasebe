@@ -28,7 +28,7 @@
                     <span>Cariler</span>
                 </a>
                 <a href="/cari_hesap_ekstresi" class="submenu-item" title="Müşteriler">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-receipt"></i>
                     <span>Cari Hesap Ekstresi</span>
                 </a>
             </div>
@@ -46,11 +46,11 @@
                     <span>Hizmet ve Ürünler</span>
                 </a>
                 <a href="/stok/stokgrup" class="submenu-item" title="Stok Grubu">
-                    <i class="fas fa-tags"></i>
-                    <span>Stok Grubu</span>
+                    <i class="fa-solid fa-layer-group"></i>
+                                        <span>Stok Grubu</span>
                 </a>
                 <a href="/stok/stokekstresi" class="submenu-item" title="Stok Ekstresi">
-                    <i class="fas fa-tags"></i>
+                    <i class="fas fa-receipt"></i>
                     <span>Stok Ekstresi</span>
                 </a>
                 <a href="/stok/depolar" class="submenu-item" title="Depolar">
@@ -70,15 +70,16 @@
         </div>
         <div class="menu-section">
             <div class="menu-item menu-toggle" data-target="expenses-submenu" title="ALIŞLAR">
-                <i class="fas fa-arrow-up"></i>
+                <i class="fas fa-arrow-down"></i>
                 <span>ALIŞLAR</span>
                 <i class="fas fa-chevron-down toggle-icon"></i>
             </div>
             <div class="submenu" id="expenses-submenu">
-                <a href="/irsaliye" class="submenu-item" title="Gelen İrsaliyeler">
+                <a href="/irsaliye/gelen" class="submenu-item" title="Gelen İrsaliyeler">
                     <i class="fas fa-truck fa-flip-horizontal"></i>
                     <span>Gelen İrsaliyeler</span>
                 </a>
+            
                 <a href="/alislar/alislar_raporu" class="submenu-item" title="Alışlar Raporu">
                     <i class="fas fa-chart-bar"></i>
                     <span>Alışlar Raporu</span>
@@ -87,12 +88,12 @@
         </div>
         <div class="menu-section">
             <div class="menu-item menu-toggle" data-target="sales-submenu" title="SATIŞLAR">
-                <i class="fas fa-arrow-down"></i>
+                <i class="fas fa-arrow-up"></i>
                 <span>SATIŞLAR</span>
                 <i class="fas fa-chevron-down toggle-icon"></i>
             </div>
             <div class="submenu" id="sales-submenu">
-                <a href="/stok/giden_irsaliyeler" class="submenu-item" title="Giden İrsaliyeler">
+                <a href="/irsaliye/giden" class="submenu-item" title="Giden İrsaliyeler">
                             <i class="fas fa-truck"></i>
                             <span>Giden İrsaliyeler</span>
                         </a>
@@ -121,14 +122,12 @@
     
         <div class="menu-section">
             <div class="menu-item menu-toggle" data-target="expenses2-submenu" title="GİDERLER">
-                <i class="fas fa-arrow-up"></i>
-                <span>GİDERLER</span>
+                <i class="fa-solid fa-chart-line"></i>                <span>GİDERLER</span>
                 <i class="fas fa-chevron-down toggle-icon"></i>
             </div>
             <div class="submenu" id="expenses2-submenu">
                 <a href="/giderler/odemeler_raporu" class="submenu-item" title="Ödemeler Raporu">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Ödemeler</span>
+                    <i class="fa-solid fa-money-bill-wave"></i>                    <span>Ödemeler</span>
                 </a>
                 <a href="/giderler/gider_listesi" class="submenu-item" title="Gider Listesi">
                     <i class="fas fa-file-alt"></i>
@@ -190,7 +189,7 @@
         <div class="submenu" id="settings-submenu">
             <a href="/ayarlar/firma-bilgileri" class="submenu-item" title="Firma Bilgileri">Firma Bilgileri</a>
             <a href="/stok/vergi" class="submenu-item" title="Vergi Karti">Vergi Karti</a>
-            <a href="/ayarlar/kategori-etiket" class="submenu-item" title="Kategori ve Etiketler">Kategori ve Etiketler</a>
+            <a href="/stok/vergi" class="submenu-item" title="Vergi Karti">Döviz Karti</a>
             <a href="/ayarlar/kullanicilar" class="submenu-item" title="Kullanıcılar">Kullanıcılar</a>
             <a href="/ayarlar/yazdirma-sablonlari" class="submenu-item" title="Yazdırma Şablonları">Yazdırma Şablonları</a>
         </div>

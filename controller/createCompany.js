@@ -11,13 +11,10 @@ const path = require('path');
 const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
-<<<<<<< HEAD
 const depoRouter = require('./depoOperation'); // depo router ekle
-const finansRouter = require('./finans'); // depo router ekle
-=======
+
 
 const finansRouter = require('./finans');
->>>>>>> f13b737b84eb77f212ed903d0852ab89d1591035
 const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar
@@ -230,18 +227,6 @@ await tenantConn.query(`
 `);
 
        
-
-        await tenantConn.query(`
-            CREATE TABLE IF NOT EXISTS faturalar (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                fatura_no VARCHAR(50),
-                tarih DATE,
-                cari_unvan VARCHAR(255),
-                tutar DECIMAL(12,2),
-                kdv_orani DECIMAL(5,2)
-            )
-        `);
-
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS cariler (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -277,6 +262,88 @@ await tenantConn.query(`
         posbankasi VARCHAR(255) NULL,
         tip INT
         );`)
+        await tenantConn.query(`
+            CREATE TABLE IF NOT EXISTS dovizkarti (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                doviz_turu VARCHAR(10) NOT NULL,
+                doviz_kodu VARCHAR(10) NOT NULL,
+                doviz_adi VARCHAR(50) NOT NULL,
+                doviz_kuru DECIMAL(10,4) NOT NULL
+            )
+        `);
+        await tenantConn.query(`
+            CREATE TABLE IF NOT EXISTS faturalar (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                fis_no VARCHAR(50) NOT NULL,
+                faturabelgono VARCHAR(50) NULL,
+                tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                carikayitno INT NOT NULL,
+                stokkayitno INT NOT NULL,
+                depokayitno INT NOT NULL,
+                fis_tipi INT NOT NULL DEFAULT 0,
+                kdv_orani DECIMAL(5,2) NOT NULL,
+                tutar DECIMAL(10,2) NOT NULL,
+                aratoplam DECIMAL(10,2) NOT NULL,
+                kdvtoplam DECIMAL(10,2) NOT NULL,
+                geneltoplam DECIMAL(10,2) NOT NULL,
+                dovizkayitno INT NULL,
+                iskontorani DECIMAL(5,2) NULL,
+                iskontotutar DECIMAL(10,2) NULL,
+                teslimalan VARCHAR(50)  NULL,
+                teslimeden VARCHAR(50)  NULL,
+                plaka VARCHAR(50)  NULL,
+                earsiv TINYINT(1) DEFAULT 0 NULL,
+                durum INT NOT NULL DEFAULT 0,
+                tipi INT NOT NULL DEFAULT 0,
+                miktar DECIMAL(10,2) NOT NULL,
+                birim VARCHAR(10) NOT NULL,
+                aciklama TEXT,
+                guncelleyenkullanicikayitno INT,
+                kaydedenkullanicikayitno INT,
+                FOREIGN KEY (carikayitno) REFERENCES cariler(id),
+                FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
+                FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
+                FOREIGN KEY (dovizkayitno) REFERENCES dovizkarti(id)
+            )
+        `);
+        await tenantConn.query(`
+    CREATE TABLE IF NOT EXISTS irsaliyeler (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        fis_no VARCHAR(50) NOT NULL,
+        faturabelgono VARCHAR(50) NULL,
+        tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        carikayitno INT NOT NULL,
+        stokkayitno INT NOT NULL,
+        depokayitno INT NOT NULL,
+        fis_tipi INT NOT NULL DEFAULT 0,
+        kdv_orani DECIMAL(5,2) NOT NULL,
+        tutar DECIMAL(10,2) NOT NULL,
+        aratoplam DECIMAL(10,2) NOT NULL,
+        kdvtoplam DECIMAL(10,2) NOT NULL,
+        geneltoplam DECIMAL(10,2) NOT NULL,
+        dovizkayitno INT NULL,
+        faturakayitno INT NULL,
+        iskontorani DECIMAL(5,2) NULL,
+        iskontotutar DECIMAL(10,2) NULL,
+        teslimalan VARCHAR(50)  NULL,
+        teslimeden VARCHAR(50)  NULL,
+        plaka VARCHAR(50)  NULL,
+        durum INT NOT NULL DEFAULT 0,
+        tipi INT NOT NULL DEFAULT 0,
+        miktar DECIMAL(10,2) NOT NULL,
+        birim VARCHAR(10) NOT NULL,
+        aciklama TEXT,
+        guncelleyenkullanicikayitno INT,
+        kaydedenkullanicikayitno INT,
+        FOREIGN KEY (carikayitno) REFERENCES cariler(id),
+        FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
+        FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
+        FOREIGN KEY (dovizkayitno) REFERENCES dovizkarti(id),
+        FOREIGN KEY (faturakayitno) REFERENCES faturalar(id)
+    )
+`);
+
+       
         await tenantConn.end();
         await masterConn.end();
 

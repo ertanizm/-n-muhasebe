@@ -62,7 +62,8 @@ router.get('/cari_hesap_ekstresi', (req, res) => {
 
 
 
-router.get('/irsaliye', irsaliyeController.gelenIrsaliyeler);
+router.get('/irsaliye/gelen', irsaliyeController.gelenIrsaliyeler);
+router.get('/irsaliye/giden', irsaliyeController.gidenIrsaliyeler);
 
 
 
