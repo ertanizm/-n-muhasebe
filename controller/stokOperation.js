@@ -375,6 +375,116 @@ router.delete('/vergi/:id', async (req, res) => {
 });
 
 
+//Fiyat Listesi
+router.get('/fiyatlistesi', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        // Stokları grup bilgileriyle birlikte çek
+        const [fiyatlistesi] = await conn.execute(`
+            SELECT s.*, sg.grup_adi, v.birincivergiorani as vergi_orani
+            FROM stoklar s
+            LEFT JOIN stokgrupkarti sg ON s.grupkayitno = sg.id
+            LEFT JOIN vergikarti v ON s.vergikayitno = v.id
+            ORDER BY s.id ASC
+        `);
+        
+        await conn.end();
+        
+        res.render('stok/fiyatlistesi', {
+            user: req.session.user,
+            fiyatlistesi: fiyatlistesi
+        });
+    } catch (error) {
+        console.error('Fiyat listesi alınamadı:', error);
+        res.render('stok/fiyatlistesi', {
+            user: req.session.user,
+            fiyatlistesi: [],
+            error: 'Fiyat listesi alınamadı'
+        });
+    }
+});
+
+// Tekil stok bilgisi getir
+router.get('/stoklar/:id', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        const [stoklar] = await conn.execute(`
+            SELECT s.*, sg.grup_adi, v.birincivergiorani as vergi_orani
+            FROM stoklar s
+            LEFT JOIN stokgrupkarti sg ON s.grupkayitno = sg.id
+            LEFT JOIN vergikarti v ON s.vergikayitno = v.id
+            WHERE s.id = ?
+        `, [req.params.id]);
+        
+        await conn.end();
+        
+        if (stoklar.length > 0) {
+            res.json({ success: true, data: stoklar[0] });
+        } else {
+            res.json({ success: false, message: 'Stok bulunamadı' });
+        }
+    } catch (error) {
+        console.error('Stok bilgisi alınamadı:', error);
+        res.status(500).json({ success: false, message: 'Stok bilgisi alınamadı' });
+    }
+});
+
+// Fiyat güncelleme
+router.post('/fiyatguncelle', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        const {
+            id, fiyat1, fiyat2, fiyat3, vergi_orani, aciklama
+        } = req.body;
+        
+        const kullaniciId = req.session.user.id;
+        
+        // Fiyat güncelleme
+        await conn.execute(
+            `UPDATE stoklar SET 
+                fiyat1 = ?, 
+                fiyat2 = ?, 
+                fiyat3 = ?,
+                guncelleyenkullanicikayitno = ?
+             WHERE id = ?`,
+            [
+                fiyat1 || null,
+                fiyat2 || null,
+                fiyat3 || null,
+                kullaniciId,
+                id
+            ]
+        );
+        
+        // Fiyat geçmişi kaydet (opsiyonel)
+        if (aciklama) {
+            await conn.execute(
+                `INSERT INTO fiyat_gecmisi (
+                    stok_id, eski_fiyat1, eski_fiyat2, eski_fiyat3,
+                    yeni_fiyat1, yeni_fiyat2, yeni_fiyat3,
+                    guncelleyen_kullanici, aciklama, guncelleme_tarihi
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+                [
+                    id, null, null, null, fiyat1, fiyat2, fiyat3, kullaniciId, aciklama
+                ]
+            );
+        }
+        
+        await conn.end();
+        res.json({ success: true, message: 'Fiyat başarıyla güncellendi' });
+    } catch (error) {
+        console.error('Fiyat güncelleme başarısız:', error);
+        res.status(500).json({ success: false, message: 'Fiyat güncellenirken hata oluştu' });
+    }
+});
+
+//Vergi ekleme ve güncelleme
+
+
+//Stok Ekstresi Listesi
 router.get('/stokekstresi', async (req, res) => {
     try {
         const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
@@ -391,7 +501,32 @@ router.get('/stokekstresi', async (req, res) => {
         });
     } catch (error) {
         console.error('Grup listesi alınamadı:', error);
-        res.render('stok/vergi', {
+        res.render('stok/stokekstresi', {
+            user: req.session.user,
+            //stokgrup: [],
+            error: 'Grup listesi alınamadı'
+        });
+    }
+});
+
+//Depo Transfer Listesi
+router.get('/depotransfer', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        // Stokları çek
+        //const [vergi] = await conn.execute("SELECT * FROM vergikarti ORDER BY id ASC");
+        
+        await conn.end();
+      
+        
+        res.render('stok/depotransfer', {
+            user: req.session.user,
+            //vergi: vergi
+        });
+    } catch (error) {
+        console.error('Grup listesi alınamadı:', error);
+        res.render('stok/depotransfer', {
             user: req.session.user,
             //stokgrup: [],
             error: 'Grup listesi alınamadı'
@@ -400,3 +535,4 @@ router.get('/stokekstresi', async (req, res) => {
 });
 
 module.exports = router;
+

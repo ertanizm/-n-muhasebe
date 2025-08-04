@@ -221,9 +221,6 @@ await tenantConn.query(`
         FOREIGN KEY (depokayitno) REFERENCES depokarti(id)
     
 `);
-
-       
-
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS faturalar (
                 id INT AUTO_INCREMENT PRIMARY KEY,
