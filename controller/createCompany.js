@@ -11,8 +11,13 @@ const path = require('path');
 const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
+<<<<<<< HEAD
 const depoRouter = require('./depoOperation'); // depo router ekle
 const finansRouter = require('./finans'); // depo router ekle
+=======
+
+const finansRouter = require('./finans');
+>>>>>>> f13b737b84eb77f212ed903d0852ab89d1591035
 const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar

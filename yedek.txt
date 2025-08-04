@@ -240,7 +240,6 @@ app.listen(3000, () => {
 
 
 
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -248,22 +247,54 @@ app.listen(3000, () => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/cariekstre.css">
     <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+      <link rel="stylesheet" href="/css/musteriler.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
 <%- include('../sidebar') %>
+<%
+// ÖRNEK VERİ (backend'den veri gelene kadar)
+const hareketler = [
+  {
+    fis_tarihi: "23.05.2024",
+    fatura_fis_no: "2950",
+    stok_fis_no: "4160",
+    fis_tipi: "Alış İrsaliyesi",
+    islem_detay_turu: "Fasondan Mal Girişi",
+    musteri: "HAKTUL TEKSTİL SAN TİC...",
+    belge_no: "2024-3157",
+    borc: "0,00",
+    alacak: "0,00",
+    doviz_cinsi: "USD",
+    bakiye: "692.061.854...",
+    bakiye_turu: "BB",
+    doviz_kuru: "32,2000",
+    doviz_borc: "1.613,25",
+    doviz_alacak: "0,00",
+    doviz_bakiye: "4.956.958,33",
+    aciklama: "",
+    vade_tarihi: "",
+    vade_gun: ""
+  },
+  // ...daha fazla örnek satır ekleyebilirsin
+];
+%>
 <div class="main-content">
     <div class="ekstre-header">
         <div class="ekstre-filter-row">
+           
             <div class="ekstre-filter-group">
                 <label>Hesap</label>
-                <select><option>...</option></select>
-            </div>
-            <div class="ekstre-filter-group">
+                <select>
+                    <option>...</option>
+                </select>   
                 <label>Tarih Aralığı</label>
                 <input type="date" value="2024-01-01">
-                <span class="ekstre-date-sep">-</span>
+            </div>
+            <span class="ekstre-date-sep">-</span>
+            <div class="ekstre-filter-group" style="margin-top: 24px;">
                 <input type="date" value="2025-12-31">
             </div>
             <button class="ekstre-btn ekstre-btn-primary"><i class="fas fa-bolt"></i> Raporu Hazırla</button>
@@ -296,9 +327,9 @@ app.listen(3000, () => {
             <button class="ekstre-btn ekstre-btn-mail"><i class="fas fa-envelope"></i> Gönder</button>
         </div>
     </div>
-    <div class="ekstre-table-wrap">
+    <div class="customers-table">
         <% if (hareketler && hareketler.length > 0) { %>
-        <table class="ekstre-table">
+        <table class="table">
             <thead>
                 <tr>
                     <th>Fiş Tarihi</th>

@@ -1,147 +1,173 @@
-.filter-card {
-    background: #f8f9fa;
-    border-radius: 8px;
+body {
+    background-color: #f8f9fa;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.main-content {
+    flex-grow: 1;
+    margin-left: 280px; /* Sidebar genişliği kadar boşluk bırakır */
     padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid #e9ecef;
-}
+    transition: margin-left 0.3s ease-in-out;
+    background-color: #f8f9fa;
 
-.summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
 }
-
-.summary-card {
-    background: white;
-    border-radius: 8px;
-    padding: 15px;
-    border: 1px solid #e9ecef;
-    text-align: center;
+.ekstre-header {
+    margin-bottom: 32px;
 }
-
-.summary-card .value {
-    font-size: 24px;
-    font-weight: bold;
-    color: #495057;
+.ekstre-filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
 }
-
-.summary-card .label {
-    font-size: 12px;
+.ekstre-filter-group label {
+    font-weight: 600;
+    color: #22223b;
+    margin-bottom: 4px;
+    display: block;
+    font-size: 0.98rem;
+}
+.ekstre-filter-group input,
+.ekstre-filter-group select {
+    padding: 8px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f8fafc;
+    margin-bottom: 4px;
+    width: 170px;
+}
+.ekstre-btn {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ekstre-btn-primary {
+    background: linear-gradient(90deg, #5f6fff 0%, #6dd5ed 100%);
+    color: #fff;
+}
+.ekstre-btn-primary:hover {
+    background: linear-gradient(90deg, #6dd5ed 0%, #5f6fff 100%);
+}
+.ekstre-btn-pdf {
+    background: #e74c3c;
+    color: #fff;
+}
+.ekstre-btn-mail {
+    background: #228dcd;
+    color: #fff;
+}
+.ekstre-btn-pdf:hover, .ekstre-btn-mail:hover {
+    opacity: 0.9;
+}
+.ekstre-summary-row {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+.ekstre-summary-box {
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(95, 111, 255, 0.07);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    min-width: 180px;
+}
+.ekstre-summary-title {
+    font-size: 0.98rem;
+    color: #4a4e69;
+    font-weight: 600;
+}
+.ekstre-summary-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #22223b;
+}
+.ekstre-borc i { color: #e74c3c; }
+.ekstre-alacak i { color: #27ae60; }
+.ekstre-bakiye i { color: #228dcd; }
+.ekstre-action-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.customers-table {
+    width: 100%;
+    overflow-x: scroll;
+    display: block;
+    /* Eğer dikey scroll da istersen: overflow-y: auto; max-height: 400px; */
+}
+.table {
+    min-width: 1200px; /* Tüm sütunlar daralmadan görünsün diye */
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(95, 111, 255, 0.04);
+}
+.table thead th {
+    background: #eaf5e7;
     color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 700;
+    padding: 12px 8px;
+    border-bottom: 2px solid #d1e7dd;
+    font-size: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
-
-.summary-card.positive .value {
-    color: #28a745;
+.table tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.98rem;
+    color: #333;
+    background: #fff;
 }
-
-.summary-card.negative .value {
-    color: #dc3545;
+.table tbody tr:nth-child(even) td {
+    background: #f8f9fa;
 }
-
-.movement-table {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.table tbody tr:hover td {
+    background: #e0e7ff;
 }
-
-.movement-table .table {
+.borc { color: #e74c3c; font-weight: 600; }
+.alacak { color: #27ae60; font-weight: 600; }
+.ekstre-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 40px 0;
+    font-size: 1.1rem;
+}
+.ekstre-empty i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: block;
+}
+.table-scroll-wrapper {
+    max-height: 350px;
+    overflow-y: auto;
+    width: 100%;
+}
+.table-scroll-wrapper table {
     margin-bottom: 0;
 }
-
-.movement-table .table th {
-    background: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #495057;
+@media (max-width: 900px) {
+    .main-content { padding: 10px; }
+    .ekstre-summary-row { flex-direction: column; gap: 10px; }
 }
-
-.movement-type {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.movement-type.satis {
-    background: #d4edda;
-    color: #155724;
-}
-
-.movement-type.alis {
-    background: #d1ecf1;
-    color: #0c5460;
-}
-
-.movement-type.aktarma {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.movement-type.sayim {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.quantity-positive {
-    color: #28a745;
-    font-weight: 600;
-}
-
-.quantity-negative {
-    color: #dc3545;
-    font-weight: 600;
-}
-
-.balance-positive {
-    background: #d4edda;
-    color: #155724;
-    font-weight: 600;
-}
-
-.balance-negative {
-    background: #f8d7da;
-    color: #721c24;
-    font-weight: 600;
-}
-
-.pagination-wrapper {
-    background: white;
-    padding: 15px;
-    border-radius: 0 0 8px 8px;
-    border-top: 1px solid #e9ecef;
-}
-
-.export-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.btn-export {
-    padding: 8px 16px;
-    font-size: 12px;
-    border-radius: 4px;
-}
-
-.date-range-picker {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.form-select-sm {
-    font-size: 12px;
-    padding: 6px 12px;
+@media (max-width: 600px) {
+    .ekstre-filter-row { flex-direction: column; gap: 8px; }
+    .ekstre-summary-row { flex-direction: column; }
+    .ekstre-summary-box { min-width: 0; }
+    .table thead th, .table tbody td { font-size: 0.92rem; }
 }
 
 .form-control-sm {

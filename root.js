@@ -5,6 +5,7 @@ const path = require('path');
 const { authMiddleware } = require('./controller/createCompany');
 const mysql = require('mysql2/promise');
 const { getTenantDbConfig } = require('./controller/db');
+const irsaliyeController = require('./controller/irsaliye');
 
 // Update views directory path
 router.use((req, res, next) => {
@@ -60,6 +61,8 @@ router.get('/cari_hesap_ekstresi', (req, res) => {
 
 
 
+
+router.get('/irsaliye', irsaliyeController.gelenIrsaliyeler);
 
 
 
