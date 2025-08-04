@@ -1,198 +1,150 @@
-body, html {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: 'Open Sans', Arial, sans-serif;
-    background: #edeef0;
-}
-
-.ekstre-main-bg {
-    min-height: 100vh;
-    background: #edeef0;
-    padding: 32px 0;
-}
-
-.ekstre-content {
-    background: #fff;
+.filter-card {
+    background: #f8f9fa;
     border-radius: 8px;
-    max-width: 98vw;
-    width: 98%;
-    margin: 0 auto;
-    box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.07);
-    padding: 24px 32px 32px 32px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
 }
 
-.ekstre-filter-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.ekstre-filter-group {
-    display: flex;
-    flex-direction: column;   /* DİKEY hizalama! */
-    min-width: 120px;
-    margin-bottom: 0;
+.summary-card {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    text-align: center;
 }
 
-.ekstre-filter-group label {
-    color: #444;
-    font-size: 1em;
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.ekstre-filter-group select,
-.ekstre-filter-group input[type="date"] {
-    background: #fff;
-    color: #232946;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 1em;
-    min-width: 120px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 2px rgba(31,38,135,0.03);
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    cursor: pointer;
-    height: 40px;
-    line-height: 1.4;
-}
-
-.ekstre-date-sep {
-    color: #888;
-    margin: 0 6px;
+.summary-card .value {
+    font-size: 24px;
     font-weight: bold;
-    align-self: flex-end;
-    margin-bottom: 8px;
+    color: #495057;
 }
 
-.ekstre-btn-primary {
-    background: #ef4444;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 20px;
-    font-weight: 600;
-    font-size: 1em;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.summary-card .label {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-card.positive .value {
+    color: #28a745;
+}
+
+.summary-card.negative .value {
+    color: #dc3545;
+}
+
+.movement-table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.movement-table .table {
     margin-bottom: 0;
 }
 
-@media (max-width: 900px) {
-    .ekstre-filter-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    .ekstre-btn-primary {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-.ekstre-btn {
-    border: none;
-    border-radius: 4px;
-    padding: 8px 20px;
+.movement-table .table th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
     font-weight: 600;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-    margin-right: 8px;
-    margin-bottom: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.ekstre-btn-primary:hover {
-    background: #dc2626;
-}
-.ekstre-btn-pdf {
-    background: #fbbf24;
-    color: #232946;
-}
-.ekstre-btn-pdf:hover {
-    background: #f59e42;
-}
-.ekstre-btn-mail {
-    background: #374151;
-    color: #fff;
-}
-.ekstre-btn-mail:hover {
-    background: #2563eb;
-    color: #fff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
 }
 
-.ekstre-summary-row {
+.movement-type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.movement-type.satis {
+    background: #d4edda;
+    color: #155724;
+}
+
+.movement-type.alis {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.movement-type.aktarma {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.movement-type.sayim {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.quantity-positive {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.quantity-negative {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.balance-positive {
+    background: #d4edda;
+    color: #155724;
+    font-weight: 600;
+}
+
+.balance-negative {
+    background: #f8d7da;
+    color: #721c24;
+    font-weight: 600;
+}
+
+.pagination-wrapper {
+    background: white;
+    padding: 15px;
+    border-radius: 0 0 8px 8px;
+    border-top: 1px solid #e9ecef;
+}
+
+.export-buttons {
     display: flex;
-    gap: 18px;
-    margin-bottom: 18px;
+    gap: 10px;
     flex-wrap: wrap;
 }
-.ekstre-summary-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-radius: 6px;
-    padding: 16px 32px;
-    min-width: 260px;
-    box-shadow: 0 1px 4px rgba(31, 38, 135, 0.04);
-    background: #fff;
-}
-.ekstre-borc {
-    background: #ff8a7a;
-}
-.ekstre-alacak {
-    background: #5ec6e7;
-}
-.ekstre-bakiye {
-    background: #6ed6b7;
-}
-.ekstre-summary-box i {
-    font-size: 2.2em;
-    opacity: 0.8;
-}
-.ekstre-summary-title {
-    color: #fff;
-    font-size: 1.1em;
-    font-weight: 600;
-}
-.ekstre-summary-value {
-    font-size: 1.5em;
-    font-weight: 700;
-    margin-top: 2px;
-    color: #fff;
+
+.btn-export {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 4px;
 }
 
-.ekstre-action-row {
-    margin-bottom: 18px;
+.date-range-picker {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-.ekstre-empty {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    color: #444;
-    background: #fff8dc;
-    border-radius: 6px;
-    padding: 18px 24px;
-    font-size: 1.1em;
-    margin: 18px 0 0 0;
-    gap: 12px;
-    border: 1px solid #ffe6a1;
+.form-select-sm {
+    font-size: 12px;
+    padding: 6px 12px;
 }
-.ekstre-empty i {
-    font-size: 1.7em;
-    color: #fbbf24;
-    opacity: 0.8;
+
+.form-control-sm {
+    font-size: 12px;
+    padding: 6px 12px;
 }

@@ -66,6 +66,11 @@ router.get('/cari_hesap_ekstresi', (req, res) => {
 
 
 
+router.get('/ceklistesi', (req, res) => {
+    res.render('finans/cekler', { error: null });
+});
+
+
 
 
 module.exports = router;

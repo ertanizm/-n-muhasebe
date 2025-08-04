@@ -12,6 +12,7 @@ const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
 const depoRouter = require('./depoOperation'); // depo router ekle
+const finansRouter = require('./finans'); // depo router ekle
 const { getMasterDbConfig, getTenantDbConfig, host, masterDbUser, masterDbPass, masterDbName } = require('./db');
 
 // View engine setup - düzeltilmiş yollar
@@ -48,6 +49,7 @@ app.use(session({
 app.use('/cari', cariRouter);
 app.use('/stok', stokRouter);
 app.use('/stok', depoRouter);
+app.use('/hesaplarim', finansRouter);
 app.use('/', rootRouter);
 
 
