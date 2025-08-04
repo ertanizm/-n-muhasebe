@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelen İrsaliyeler</title>
+    <link rel="stylesheet" href="/css/irsaliyeler.css">    <link href="/css/dashboard.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<%- include('../sidebar') %>
+<div class="irsaliye-content">
+    <div class="irsaliye-header">
+        <div class="irsaliye-title">Gelen İrsaliyeler</div>
+        <button onclick="openModal()" class="btn btn-primary irsaliye-add-btn">
+            <i class="fas fa-plus"></i> İrsaliye Ekle
+        </button>
+    </div>
+    
+    <div class="irsaliye-filters">
+        <input type="text" class="form-control" placeholder="İrsaliye No, Cari veya Açıklama ile ara">
+        <input type="date" class="form-control">
+        <input type="date" class="form-control">
+        <select class="form-control">
+            <option>Durum (Tümü)</option>
+            <option>Taslak</option>
+            <option>Onaylandı</option>
+            <option>İptal</option>
+        </select>
+        <button class="btn btn-outline-secondary">
+            <i class="fas fa-search"></i> Filtrele
+        </button>
+    </div>
+    
+    <div class="irsaliye-table-wrapper">
+        <table class="table irsaliye-table">
+            <thead>
+                <tr>
+                    <th>İrsaliye No</th>
+                    <th>Tarih</th>
+                    <th>Cari</th>
+                    <th>Tutar</th>
+                    <th>Durum</th>
+                    <th>Açıklama</th>
+                    <th style="text-align:right;">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Örnek veriler -->
+                <tr>
+                    <td>IRSL-2024-001</td>
+                    <td>01.06.2024</td>
+                    <td>ABC Tekstil</td>
+                    <td>12.500 ₺</td>
+                    <td>
+                        <span class="irsaliye-status onaylandı">Onaylandı</span>
+                    </td>
+                    <td>Haziran sevkiyatı</td>
+                    <td style="text-align:right;">
+                        <div class="irsaliye-actions">
+                            <button class="btn btn-light btn-sm"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-light btn-sm"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-light btn-sm"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>IRSL-2024-002</td>
+                    <td>03.06.2024</td>
+                    <td>XYZ Gıda</td>
+                    <td>8.200 ₺</td>
+                    <td>
+                        <span class="irsaliye-status taslak">Taslak</span>
+                    </td>
+                    <td>Numune gönderimi</td>
+                    <td style="text-align:right;">
+                        <div class="irsaliye-actions">
+                            <button class="btn btn-light btn-sm"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-light btn-sm"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-light btn-sm"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>IRSL-2024-003</td>
+                    <td>05.06.2024</td>
+                    <td>DEF Otomotiv</td>
+                    <td>15.000 ₺</td>
+                    <td>
+                        <span class="irsaliye-status iptal">İptal</span>
+                    </td>
+                    <td>Yanlış giriş</td>
+                    <td style="text-align:right;">
+                        <div class="irsaliye-actions">
+                            <button class="btn btn-light btn-sm"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-light btn-sm"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-light btn-sm"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="irsaliyeModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <!-- <h2 class="modal-title">Yeni İrsaliye Oluştur</h2> -->
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="modal-form">
+                <!-- İrsaliye Türü -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">İrsaliye Türü:</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="satis" name="irsaliye_turu" value="satis" checked>
+                                <label for="satis">Satış İrsaliyesi</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="alis" name="irsaliye_turu" value="alis">
+                                <label for="alis">Alış İrsaliyesi</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tedarikçi -->
+                <div class="form-section">
+                    <div class="section-title">TEDARİKÇİ</div>
+                    <div class="form-group">
+                        <div class="customer-search">
+                            <input type="text" class="form-control" placeholder="Kayıtlı bir müşteri seçebilir veya yeni bir müşteri ismi yazabilirsiniz" />
+                            <span class="search-icon">🔍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tedarikçi Bilgileri -->
+                <div class="form-section">
+                    <div class="section-title">TEDARİKÇİ BİLGİLERİ</div>
+                    <div style="color: #6c757d; font-size: 14px; margin-bottom: 20px;">-</div>
+                </div>
+
+                <!-- Adres Bilgileri -->
+                <div class="form-section">
+                    <div class="address-section">
+                        <div class="form-group">
+                            <label class="form-label">ÇIKİŞ ADRESİ</label>
+                            <textarea class="form-control" rows="4"></textarea>
+                            <div style="margin-top: 8px;">
+                                <input type="text" class="form-control" placeholder="POSTA KODU" style="margin-bottom: 8px;" />
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" class="form-control" placeholder="İLÇE" />
+                                    <input type="text" class="form-control" placeholder="İL" />
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="cikis_ayni">
+                                    <label for="cikis_ayni">Çıkış adresi tedarikçi adresi ile aynı</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">SEVKİYAT ADRESİ</label>
+                            <textarea class="form-control" rows="4"></textarea>
+                            <div style="margin-top: 8px;">
+                                <input type="text" class="form-control" placeholder="POSTA KODU" style="margin-bottom: 8px;" />
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" class="form-control" placeholder="İLÇE" />
+                                    <input type="text" class="form-control" placeholder="İL" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sevkiyat Yöntemi -->
+                <div class="form-section">
+                    <div class="section-title">SEVKİYAT YÖNTEMİ</div>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="tasiyici" name="sevkiyat" value="tasiyici" checked>
+                            <label for="tasiyici">TAŞIYICI</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="kargo" name="sevkiyat" value="kargo">
+                            <label for="kargo">KARGO / LOJİSTİK</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Araç Bilgileri -->
+                <div class="form-section">
+                    <div class="section-title">ARAÇ BİLGİLERİ</div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="ARAÇ PLAKASI" />
+                    </div>
+                    <button class="btn-add-row">+ ŞOFÖR EKLE</button>
+                </div>
+
+                <!-- Tarih Bilgileri -->
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">DÜZENLEME TARİHİ</label>
+                            <input type="date" class="form-control" value="2025-07-29" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">FİİLİ SEVK TARİHİ</label>
+                            <input type="date" class="form-control" value="2025-07-29" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ek Bilgiler -->
+                <div class="form-section">
+                    <button class="tag-button">+ İRSALİYE NUMARASI EKLE</button>
+                    <button class="tag-button">+ SİPARİŞ BİLGİSİ EKLE</button>
+                </div>
+
+                <!-- Ürün Tablosu -->
+                <div class="form-section">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">ÜRÜN</th>
+                                <th style="width: 15%;">MİKTAR</th>
+                                <th style="width: 15%;">BİRİM</th>
+                                <th style="width: 15%;">Adet</th>
+                                <th style="width: 10%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody">
+                            <tr>
+                                <td><input type="text" placeholder="Ürün/Hizmet" /></td>
+                                <td><input type="text" placeholder="1,00" style="text-align: right;" /></td>
+                                <td><input type="text" /></td>
+                                <td>
+                                    <select class="form-control">
+                                        <option>Adet</option>
+                                    </select>
+                                </td>
+                                <td style="text-align: center;">
+                                    <button class="btn-delete" onclick="removeRow(this)">🗑</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn-add-row" onclick="addProductRow()">+ Satır Ekle</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
+            <button class="btn-save" onclick="saveIrsaliye()">Kaydet & Görüntüle</button>
+            <button class="btn-save" onclick="saveIrsaliye()">Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('irsaliyeModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('irsaliyeModal').style.display = 'none';
+    }
+
+    // Modal dışına tıklandığında kapat
+    document.getElementById('irsaliyeModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Ürün tablosuna satır ekleme
+    function addProductRow() {
+        const tbody = document.getElementById('productTableBody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="text" placeholder="Ürün/Hizmet" /></td>
+            <td><input type="text" placeholder="1,00" style="text-align: right;" /></td>
+            <td><input type="text" /></td>
+            <td>
+                <select class="form-control">
+                    <option>Adet</option>
+                </select>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="removeRow(this)">🗑</button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+
+    // Satır silme
+    function removeRow(button) {
+        button.closest('tr').remove();
+    }
+
+    // İrsaliye kaydetme
+    function saveIrsaliye() {
+        // Burada form verilerini toplayıp sunucuya gönderebilirsiniz
+        alert('İrsaliye kaydedildi!');
+        closeModal();
+    }
+
+    // Checkbox fonksiyonu
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'cikis_ayni' && e.target.checked) {
+            console.log('Çıkış adresi tedarikçi adresi ile aynı olarak işaretlendi');
+        }
+    });
+</script>
+
+<script src="/js/script.js"></script>
+</body>
+</html>
