@@ -2,11 +2,26 @@ const express = require('express');
 const csrf = require('csurf');
 const router = express.Router();
 const path = require('path');
-const { authMiddleware } = require('./controller/createCompany');
 const mysql = require('mysql2/promise');
 const { getTenantDbConfig } = require('./controller/db');
 const irsaliyeController = require('./controller/irsaliye');
 const cariOperations = require('./controller/cariOperations');
+
+// Auth middleware for page routes
+const authMiddleware = (req, res, next) => {
+    if (!req.session || !req.session.user) {
+        return res.redirect('/');
+    }
+    next();
+};
+
+// Auth middleware for API routes
+const apiAuthMiddleware = (req, res, next) => {
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Oturum geçersiz' });
+    }
+    next();
+};
 
 // Update views directory path
 router.use((req, res, next) => {
@@ -58,23 +73,18 @@ router.get('/anasayfa', (req, res) => {
 // Cari operations routes
 router.use('/cari', cariOperations);
 
+router.get('/irsaliye/gelen', authMiddleware, irsaliyeController.gelenIrsaliyeler);
+router.get('/irsaliye/giden', authMiddleware, irsaliyeController.gidenIrsaliyeler);
 
-
-
-
-router.get('/irsaliye/gelen', irsaliyeController.gelenIrsaliyeler);
-router.get('/irsaliye/giden', irsaliyeController.gidenIrsaliyeler);
-
-
-
-
-
+// API endpointleri - Auth middleware ile korumalı
+router.get('/api/cariler', apiAuthMiddleware, irsaliyeController.getCariler);
+router.get('/api/depolar', apiAuthMiddleware, irsaliyeController.getDepolar);
+router.get('/api/stoklar', apiAuthMiddleware, irsaliyeController.getStoklar);
+router.post('/api/irsaliye', apiAuthMiddleware, irsaliyeController.createIrsaliye);
+router.post('/api/add-test-data', apiAuthMiddleware, irsaliyeController.addTestData);
 
 router.get('/ceklistesi', (req, res) => {
     res.render('finans/cekler', { error: null });
 });
-
-
-
 
 module.exports = router;
