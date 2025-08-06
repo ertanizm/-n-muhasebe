@@ -138,23 +138,23 @@
             <!-- Özet Kartları -->
             <div class="summary-cards" id="ozetKartlari">
                 <div class="summary-card">
-                    <div class="value positive" id="toplamGiris">+50</div>
+                    <div class="value positive" id="toplamGiris">+0,00</div>
                     <div class="label">Toplam Giriş</div>
                 </div>
                 <div class="summary-card">
-                    <div class="value negative" id="toplamCikis">-30</div>
+                    <div class="value negative" id="toplamCikis">-0,00</div>
                     <div class="label">Toplam Çıkış</div>
                 </div>
                 <div class="summary-card">
-                    <div class="value" id="toplamBakiye">150</div>
+                    <div class="value" id="toplamBakiye">0,00</div>
                     <div class="label">Mevcut Stok</div>
                 </div>
                 <div class="summary-card">
-                    <div class="value" id="hareketSayisi">20</div>
+                    <div class="value" id="hareketSayisi">0</div>
                     <div class="label">Hareket Sayısı</div>
                 </div>
                 <div class="summary-card d-none">
-                    <div class="value" id="stokDegeri">₺15,750</div>
+                    <div class="value" id="stokDegeri">₺0,00</div>
                     <div class="label">Stok Değeri</div>
                 </div>
             </div>
@@ -245,12 +245,14 @@
                     updateOzetKartlari(data.ozet);
                     updateKayitBilgisi(data.hareketler.length);
                 } else {
+                    console.error('Backend hatası:', data);
                     alert('Arama sırasında hata oluştu: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Arama hatası:', error);
-                alert('Arama sırasında hata oluştu');
+                console.error('Hata detayı:', error.message);
+                alert('Arama sırasında hata oluştu: ' + error.message);
             });
         }
 
@@ -269,10 +271,22 @@
                 row.setAttribute('data-id', hareket.id);
                 
                 const tarih = new Date(hareket.tarih).toLocaleDateString('tr-TR');
-                const girisText = hareket.giris_miktar > 0 ? '+' + hareket.giris_miktar : '-';
-                const cikisText = hareket.cikis_miktar > 0 ? '-' + hareket.cikis_miktar : '-';
-                const birimFiyat = hareket.birim_fiyat && hareket.birim_fiyat !== null ? parseFloat(hareket.birim_fiyat).toFixed(2) : '0.00';
-                const toplamTutar = hareket.toplam_tutar && hareket.toplam_tutar !== null ? parseFloat(hareket.toplam_tutar).toFixed(2) : '0.00';
+                
+                // Sayısal değerleri düzgün formatla
+                const formatNumber = (num) => {
+                    if (num === null || num === undefined || isNaN(num)) return '0,00';
+                    const number = parseFloat(num) || 0;
+                    return number.toLocaleString('tr-TR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                };
+
+                const girisText = hareket.giris_miktar > 0 ? '+' + formatNumber(hareket.giris_miktar) : '-';
+                const cikisText = hareket.cikis_miktar > 0 ? '-' + formatNumber(hareket.cikis_miktar) : '-';
+                const bakiyeText = formatNumber(hareket.bakiye);
+                const birimFiyat = hareket.birim_fiyat && hareket.birim_fiyat !== null ? formatNumber(hareket.birim_fiyat) : '0,00';
+                const toplamTutar = hareket.toplam_tutar && hareket.toplam_tutar !== null ? formatNumber(hareket.toplam_tutar) : '0,00';
 
                 row.innerHTML = `
                     <td>${tarih}</td>
@@ -282,7 +296,7 @@
                     <td>${hareket.depo_adi || '-'}</td>
                     <td class="quantity-positive">${girisText}</td>
                     <td class="quantity-negative">${cikisText}</td>
-                    <td class="balance-positive">${hareket.bakiye}</td>
+                    <td class="balance-positive">${bakiyeText}</td>
                     <td>${hareket.aciklama || '-'}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteHareket(${hareket.id})">
@@ -296,11 +310,34 @@
 
         // Özet kartlarını güncelle
         function updateOzetKartlari(ozet) {
-            document.getElementById('toplamGiris').textContent = '+' + ozet.toplamGiris;
-            document.getElementById('toplamCikis').textContent = '-' + ozet.toplamCikis;
-            document.getElementById('toplamBakiye').textContent = ozet.toplamGiris + ozet.toplamCikis;
-            document.getElementById('hareketSayisi').textContent = ozet.hareketSayisi;
-            document.getElementById('stokDegeri').textContent = '₺' + ozet.stokDegeri.toLocaleString('tr-TR');
+            // Sayısal değerleri düzgün formatla
+            const formatNumber = (num) => {
+                if (num === null || num === undefined || isNaN(num)) return '0,00';
+                const number = parseFloat(num) || 0;
+                return number.toLocaleString('tr-TR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            };
+
+            const formatInteger = (num) => {
+                if (num === null || num === undefined || isNaN(num)) return '0';
+                const number = parseInt(num) || 0;
+                return number.toLocaleString('tr-TR');
+            };
+
+            // Özet verilerini güvenli şekilde al
+            const toplamGiris = ozet && ozet.toplamGiris !== undefined ? ozet.toplamGiris : 0;
+            const toplamCikis = ozet && ozet.toplamCikis !== undefined ? ozet.toplamCikis : 0;
+            const mevcutStok = ozet && ozet.mevcutStok !== undefined ? ozet.mevcutStok : 0;
+            const hareketSayisi = ozet && ozet.hareketSayisi !== undefined ? ozet.hareketSayisi : 0;
+            const stokDegeri = ozet && ozet.stokDegeri !== undefined ? ozet.stokDegeri : 0;
+
+            document.getElementById('toplamGiris').textContent = '+' + formatNumber(toplamGiris);
+            document.getElementById('toplamCikis').textContent = '-' + formatNumber(toplamCikis);
+            document.getElementById('toplamBakiye').textContent = formatNumber(mevcutStok);
+            document.getElementById('hareketSayisi').textContent = formatInteger(hareketSayisi);
+            document.getElementById('stokDegeri').textContent = '₺' + formatNumber(stokDegeri);
         }
 
         // Kayıt bilgisini güncelle

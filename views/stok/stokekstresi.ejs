@@ -34,62 +34,98 @@
 
             <!-- Filtreler -->
             <div class="filter-card">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label class="form-label">Stok Kodu/Adı</label>
-                        <input type="text" class="form-control form-control-sm" placeholder="Stok ara...">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Hareket Türü</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="satis">Satış</option>
-                            <option value="alis">Alış</option>
-                            <option value="aktarma">Aktarma</option>
-                            <option value="sayim">Sayım</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Depo</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="1">Ana Depo</option>
-                            <option value="2">Şube Depo</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Tarih Aralığı</label>
-                        <div class="date-range-picker">
-                            <input type="date" class="form-control form-control-sm" value="2024-01-01">
-                            <span>-</span>
-                            <input type="date" class="form-control form-control-sm" value="2024-12-31">
+                <div class="filter-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
+                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+                    </button>
+                </div>
+                <div class="filter-content" id="filterContent">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Stok Kodu/Adı</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control form-control-sm" id="stokArama" placeholder="Stok ara...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Stok Grubu</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                <select class="form-select form-select-sm" id="stokGrubu">
+                                    <option value="">Tümü</option>
+                                    <option value="elektronik">Elektronik</option>
+                                    <option value="giyim">Giyim</option>
+                                    <option value="ev">Ev & Yaşam</option>
+                                    <option value="spor">Spor</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Depo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
+                                <select class="form-select form-select-sm" id="depoId">
+                                    <option value="">Tümü</option>
+                                    <option value="1">Ana Depo</option>
+                                    <option value="2">Şube Depo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Tarih Aralığı</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
+                                </div>
+                                <span class="mx-1">-</span>
+                                <div class="input-group input-group-sm">
+                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Başlangıç Bakiyesi</label>
-                        <input type="number" class="form-control form-control-sm" placeholder="0" value="100">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Bitiş Bakiyesi</label>
-                        <input type="number" class="form-control form-control-sm" placeholder="0" value="150">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Sıralama</label>
-                        <select class="form-select form-select-sm">
-                            <option value="date">Tarih</option>
-                            <option value="type">Hareket Türü</option>
-                            <option value="quantity">Miktar</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button class="btn btn-primary btn-sm me-2">
-                            <i class="fas fa-search"></i> Ara
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-times"></i> Temizle
-                        </button>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Başlangıç Bakiyesi</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-boxes"></i></span>
+                                <input type="number" class="form-control form-control-sm" id="baslangicBakiye" placeholder="0" value="0" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Bitiş Bakiyesi</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-boxes"></i></span>
+                                <input type="number" class="form-control form-control-sm" id="bitisBakiye" placeholder="0" value="999999" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Sıralama</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-sort"></i></span>
+                                <select class="form-select form-select-sm" id="siralama">
+                                    <option value="date">Tarih</option>
+                                    <option value="stok">Stok Kodu</option>
+                                    <option value="quantity">Miktar</option>
+                                    <option value="value">Değer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary btn-sm me-2" onclick="searchStokHareketler()">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Temizle
+                            </button>
+                            <button class="btn btn-outline-info btn-sm ms-2" onclick="exportFilters()">
+                                <i class="fas fa-download"></i> Dışa Aktar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,136 +186,7 @@
                             <td>₺15,000.00</td>
                             <td>Yıllık stok alımı</td>
                         </tr>
-                        <tr>
-                            <td>05.01.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-001</td>
-                            <td>XYZ Mağazası</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-20</td>
-                            <td class="balance-positive">80</td>
-                            <td>₺180.00</td>
-                            <td>₺3,600.00</td>
-                            <td>Perakende satış</td>
-                        </tr>
-                        <tr>
-                            <td>10.01.2024</td>
-                            <td><span class="movement-type aktarma">Aktarma</span></td>
-                            <td>AKT-2024-001</td>
-                            <td>-</td>
-                            <td>Şube Depo</td>
-                            <td class="quantity-positive">+30</td>
-                            <td class="quantity-negative">-30</td>
-                            <td class="balance-positive">80</td>
-                            <td>₺150.00</td>
-                            <td>₺4,500.00</td>
-                            <td>Depo aktarımı</td>
-                        </tr>
-                        <tr>
-                            <td>15.01.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-002</td>
-                            <td>DEF Market</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-15</td>
-                            <td class="balance-positive">65</td>
-                            <td>₺175.00</td>
-                            <td>₺2,625.00</td>
-                            <td>Toptan satış</td>
-                        </tr>
-                        <tr>
-                            <td>20.01.2024</td>
-                            <td><span class="movement-type sayim">Sayım</span></td>
-                            <td>SAY-2024-001</td>
-                            <td>-</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+5</td>
-                            <td>-</td>
-                            <td class="balance-positive">70</td>
-                            <td>₺150.00</td>
-                            <td>₺750.00</td>
-                            <td>Sayım farkı</td>
-                        </tr>
-                        <tr>
-                            <td>25.01.2024</td>
-                            <td><span class="movement-type alis">Alış</span></td>
-                            <td>ALI-2024-002</td>
-                            <td>GHI Tedarik</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+50</td>
-                            <td>-</td>
-                            <td class="balance-positive">120</td>
-                            <td>₺160.00</td>
-                            <td>₺8,000.00</td>
-                            <td>Ek stok alımı</td>
-                        </tr>
-                        <tr>
-                            <td>30.01.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-003</td>
-                            <td>JKL Perakende</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-25</td>
-                            <td class="balance-positive">95</td>
-                            <td>₺185.00</td>
-                            <td>₺4,625.00</td>
-                            <td>Perakende satış</td>
-                        </tr>
-                        <tr>
-                            <td>02.02.2024</td>
-                            <td><span class="movement-type aktarma">Aktarma</span></td>
-                            <td>AKT-2024-002</td>
-                            <td>-</td>
-                            <td>Şube Depo</td>
-                            <td class="quantity-positive">+20</td>
-                            <td class="quantity-negative">-20</td>
-                            <td class="balance-positive">95</td>
-                            <td>₺160.00</td>
-                            <td>₺3,200.00</td>
-                            <td>Şube aktarımı</td>
-                        </tr>
-                        <tr>
-                            <td>05.02.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-004</td>
-                            <td>MNO Ticaret</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-10</td>
-                            <td class="balance-positive">85</td>
-                            <td>₺190.00</td>
-                            <td>₺1,900.00</td>
-                            <td>Toptan satış</td>
-                        </tr>
-                        <tr>
-                            <td>10.02.2024</td>
-                            <td><span class="movement-type alis">Alış</span></td>
-                            <td>ALI-2024-003</td>
-                            <td>PQR Tedarik</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+75</td>
-                            <td>-</td>
-                            <td class="balance-positive">160</td>
-                            <td>₺155.00</td>
-                            <td>₺11,625.00</td>
-                            <td>Büyük alım</td>
-                        </tr>
-                        <tr>
-                            <td>15.02.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-005</td>
-                            <td>RST Market</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-35</td>
-                            <td class="balance-positive">125</td>
-                            <td>₺195.00</td>
-                            <td>₺6,825.00</td>
-                            <td>Perakende satış</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -314,27 +221,77 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/script.js"></script>
     <script>
-        // Filtre işlemleri
-        document.querySelectorAll('.form-control, .form-select').forEach(input => {
-            input.addEventListener('change', function() {
-                // Filtre değişikliklerini işle
-                console.log('Filtre değişti:', this.name, this.value);
-            });
-        });
+        // Stok hareket arama
+        function searchStokHareketler() {
+            const filters = {
+                stok_arama: document.getElementById('stokArama').value,
+                stok_grubu: document.getElementById('stokGrubu').value,
+                depo_id: document.getElementById('depoId').value,
+                baslangic_tarih: document.getElementById('baslangicTarih').value,
+                bitis_tarih: document.getElementById('bitisTarih').value,
+                baslangic_bakiye: document.getElementById('baslangicBakiye').value,
+                bitis_bakiye: document.getElementById('bitisBakiye').value,
+                siralama: document.getElementById('siralama').value
+            };
 
-        // Arama butonu
-        document.querySelector('.btn-primary').addEventListener('click', function() {
-            // Arama işlemini başlat
-            console.log('Arama başlatıldı');
-        });
+            console.log('Stok arama filtresi:', filters);
+            alert('Stok arama işlemi başlatıldı');
+        }
 
-        // Temizle butonu
-        document.querySelector('.btn-outline-secondary').addEventListener('click', function() {
-            // Formu temizle
-            document.querySelectorAll('.form-control, .form-select').forEach(input => {
-                input.value = '';
-            });
-        });
+        // Filtreleri temizle
+        function clearFilters() {
+            document.getElementById('stokArama').value = '';
+            document.getElementById('stokGrubu').value = '';
+            document.getElementById('depoId').value = '';
+            document.getElementById('baslangicTarih').value = '2025-01-01';
+            document.getElementById('bitisTarih').value = '2025-12-31';
+            document.getElementById('baslangicBakiye').value = '0';
+            document.getElementById('bitisBakiye').value = '999999';
+            document.getElementById('siralama').value = 'date';
+        }
+
+        // Filtre toggle fonksiyonu
+        function toggleFilters() {
+            const filterContent = document.getElementById('filterContent');
+            const toggleIcon = document.getElementById('filterToggleIcon');
+            
+            if (filterContent.classList.contains('collapsed')) {
+                filterContent.classList.remove('collapsed');
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                filterContent.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Filtreleri dışa aktar
+        function exportFilters() {
+            const filters = {
+                stok_arama: document.getElementById('stokArama').value,
+                stok_grubu: document.getElementById('stokGrubu').value,
+                depo_id: document.getElementById('depoId').value,
+                baslangic_tarih: document.getElementById('baslangicTarih').value,
+                bitis_tarih: document.getElementById('bitisTarih').value,
+                baslangic_bakiye: document.getElementById('baslangicBakiye').value,
+                bitis_bakiye: document.getElementById('bitisBakiye').value,
+                siralama: document.getElementById('siralama').value
+            };
+            
+            const filterText = Object.entries(filters)
+                .filter(([key, value]) => value)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join('\n');
+            
+            const blob = new Blob([filterText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'stok_filtreleri.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
 
         // Export butonları
         document.querySelectorAll('.btn-export').forEach(btn => {
@@ -342,6 +299,15 @@
                 const action = this.textContent.trim();
                 console.log('Export işlemi:', action);
                 alert(`${action} işlemi başlatıldı`);
+            });
+        });
+
+        // Enter tuşu ile arama
+        document.querySelectorAll('#stokArama, #baslangicBakiye, #bitisBakiye').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchStokHareketler();
+                }
             });
         });
 
