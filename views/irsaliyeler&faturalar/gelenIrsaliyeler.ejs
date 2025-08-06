@@ -56,55 +56,32 @@
 </div>
 
 <!-- Modal -->
-<!-- Modal -->
 <div class="modal-overlay" id="irsaliyeModal">
     <div class="modal-container">
         <div class="modal-header">
-            <!-- <h2 class="modal-title">Yeni İrsaliye Oluştur</h2> -->
             <button class="modal-close" onclick="closeModal()">×</button>
         </div>
-        
         <div class="modal-body">
             <div class="modal-form">
-                <!-- İrsaliye Türü -->
-                <div class="form-section">
-                    <div class="form-group">
-                        <label class="form-label">İrsaliye Türü:</label>
-                        <div class="radio-group">
-                            <div class="radio-item">
-                                <input type="radio" id="satis" name="irsaliye_turu" value="satis" checked>
-                                <label for="satis">Satış İrsaliyesi</label>
-                            </div>
-                            <div class="radio-item">
-                                <input type="radio" id="alis" name="irsaliye_turu" value="alis">
-                                <label for="alis">Alış İrsaliyesi</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Tedarikçi -->
                 <div class="form-section">
                     <div class="section-title">TEDARİKÇİ</div>
                     <div class="form-group">
                         <div class="customer-search">
-                            <input type="text" class="form-control" placeholder="Kayıtlı bir müşteri seçebilir veya yeni bir müşteri ismi yazabilirsiniz" />
-                            <span class="search-icon">🔍</span>
+                            <input type="text" id="tedarikci" class="form-control" placeholder="Tedarikçi seçin" readonly />
+                            <span class="search-icon" onclick="openCariModal()">🔍</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tedarikçi Bilgileri -->
-                <div class="form-section">
-                    <div class="section-title">TEDARİKÇİ BİLGİLERİ</div>
-                    <div style="color: #6c757d; font-size: 14px; margin-bottom: 20px;">-</div>
-                </div>
+                <!-- Stoklar -->
+              
 
                 <!-- Adres Bilgileri -->
                 <div class="form-section">
                     <div class="address-section">
                         <div class="form-group">
-                            <label class="form-label">ÇIKİŞ ADRESİ</label>
+                            <label class="form-label">ÇIKIŞ ADRESİ</label>
                             <textarea class="form-control" rows="4"></textarea>
                             <div style="margin-top: 8px;">
                                 <input type="text" class="form-control" placeholder="POSTA KODU" style="margin-bottom: 8px;" />
@@ -183,6 +160,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 40%;">ÜRÜN</th>
+                                <th style="width: 5%;"></th>
                                 <th style="width: 15%;">MİKTAR</th>
                                 <th style="width: 15%;">BİRİM</th>
                                 <th style="width: 15%;">Adet</th>
@@ -191,7 +169,14 @@
                         </thead>
                         <tbody id="productTableBody">
                             <tr>
-                                <td><input type="text" placeholder="Ürün/Hizmet" /></td>
+                                <td>
+                                    <div class="product-search-container">
+                                        <input type="text" id="urunHizmet" placeholder="Ürün/Hizmet" readonly />
+                                    </div>
+                                </td>
+                                <td>
+                                        <span class="search-icon-right" onclick="openStokModal()">🔍</span>
+                                </td>
                                 <td><input type="text" placeholder="1,00" style="text-align: right;" /></td>
                                 <td><input type="text" /></td>
                                 <td>
@@ -209,7 +194,6 @@
                 </div>
             </div>
         </div>
-        
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
             <button class="btn-save" onclick="saveIrsaliye()">Kaydet & Görüntüle</button>
@@ -217,6 +201,67 @@
         </div>
     </div>
 </div>
+
+<!-- Cari Modal -->
+<div class="modal-overlay" id="cariModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeCariModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Carikodu</th>
+                        <th>Unvan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Örnek veriler -->
+                    <tr onclick="selectCari('ABC123', 'ABC Tekstil')">
+                        <td>ABC123</td>
+                        <td>ABC Tekstil</td>
+                    </tr>
+                    <tr onclick="selectCari('XYZ456', 'XYZ Gıda')">
+                        <td>XYZ456</td>
+                        <td>XYZ Gıda</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Stok Modal -->
+<div class="modal-overlay" id="stokModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeStokModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Stok Kodu</th>
+                        <th>Stok Adı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Örnek veriler -->
+                    <tr onclick="selectStok('STK001', 'Ürün A')">
+                        <td>STK001</td>
+                        <td>Ürün A</td>
+                    </tr>
+                    <tr onclick="selectStok('STK002', 'Ürün B')">
+                        <td>STK002</td>
+                        <td>Ürün B</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script>
     function openModal() {
         document.getElementById('irsaliyeModal').style.display = 'block';
@@ -226,18 +271,56 @@
         document.getElementById('irsaliyeModal').style.display = 'none';
     }
 
-    // Modal dışına tıklandığında kapat
-    document.getElementById('irsaliyeModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
+    function openCariModal() {
+        document.getElementById('cariModal').style.display = 'block';
+    }
+
+    function closeCariModal() {
+        document.getElementById('cariModal').style.display = 'none';
+    }
+
+    function selectCari(kodu, unvan) {
+        document.getElementById('tedarikci').value = unvan;
+        closeCariModal();
+    }
+
+    function openStokModal() {
+        document.getElementById('stokModal').style.display = 'block';
+    }
+
+    function closeStokModal() {
+        document.getElementById('stokModal').style.display = 'none';
+    }
+
+    function selectStok(kodu, adi) {
+        document.getElementById('urunHizmet').value = adi;
+        closeStokModal();
+    }
 
     // Ürün tablosuna satır ekleme
     function addProductRow() {
         const tbody = document.getElementById('productTableBody');
         const newRow = document.createElement('tr');
-        newRow.innerHTML = `\n            <td><input type="text" placeholder="Ürün/Hizmet" /></td>\n            <td><input type="text" placeholder="1,00" style="text-align: right;" /></td>\n            <td><input type="text" /></td>\n            <td>\n                <select class="form-control">\n                    <option>Adet</option>\n                </select>\n            </td>\n            <td style="text-align: center;">\n                <button class="btn-delete" onclick="removeRow(this)">🗑</button>\n            </td>\n        `;
+        newRow.innerHTML = `
+            <td>
+                <div class="product-search-container">
+                    <input type="text" id="urunHizmet" placeholder="Ürün/Hizmet" readonly />
+                </div>
+            </td>
+            <td>
+                <span class="search-icon-right" onclick="openStokModal()">🔍</span>
+            </td>
+            <td><input type="text" placeholder="1,00" style="text-align: right;" /></td>
+            <td><input type="text" /></td>
+            <td>
+                <select class="form-control">
+                    <option>Adet</option>
+                </select>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="removeRow(this)">🗑</button>
+            </td>
+        `;
         tbody.appendChild(newRow);
     }
 
