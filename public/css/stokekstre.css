@@ -4,6 +4,59 @@
     padding: 20px;
     margin-bottom: 20px;
     border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.filter-header h5 {
+    color: #495057;
+    font-weight: 600;
+}
+
+.filter-content {
+    transition: all 0.3s ease;
+}
+
+.filter-content.collapsed {
+    display: none;
+}
+
+.input-group {
+    margin-bottom: 10px;
+}
+
+.input-group-text {
+    background: #e9ecef;
+    border-color: #ced4da;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.form-label {
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.date-range-picker {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.date-separator {
+    color: #6c757d;
+    font-weight: 600;
+    padding: 0 5px;
 }
 
 .summary-cards {
@@ -19,6 +72,12 @@
     padding: 15px;
     border: 1px solid #e9ecef;
     text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .summary-card .value {
@@ -132,13 +191,6 @@
     border-radius: 4px;
 }
 
-.date-range-picker {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
 .form-select-sm {
     font-size: 12px;
     padding: 6px 12px;
@@ -147,4 +199,29 @@
 .form-control-sm {
     font-size: 12px;
     padding: 6px 12px;
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+    .filter-content .row > div {
+        margin-bottom: 15px;
+    }
+    
+    .date-range-picker {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .summary-cards {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .movement-table {
+        font-size: 12px;
+    }
+    
+    .movement-table .table th,
+    .movement-table .table td {
+        padding: 8px 4px;
+    }
 }

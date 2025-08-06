@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutabık - Döviz Kartları</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="main-content">
+        <div class="product-container">
+            <div class="page-header">
+                <h1 class="page-title">Döviz Kartları</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDovizModal">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Döviz</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-area">
+                <input type="text" class="form-control search-box" placeholder="Döviz Ara...">
+            </div>
+
+            <div class="products-table mt-4">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Döviz Kodu</th>
+                            <th>Döviz Adı</th>
+                            <th>Döviz Türü</th>
+                            <th>Döviz Kuru</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% doviz.forEach(function(d) { %>
+                        <tr>
+                            <td><%= d.id %></td>
+                            <td><%= d.doviz_kodu %></td>
+                            <td><%= d.doviz_adi %></td>
+                            <td><%= d.doviz_turu %></td>
+                            <td><%= d.doviz_kuru %></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1 edit-btn"
+                                    data-id="<%= d.id %>"
+                                    data-dovizkodu="<%= d.doviz_kodu %>"
+                                    data-dovizadi="<%= d.doviz_adi %>"
+                                    data-doviz_turu="<%= d.doviz_turu %>"
+                                    data-doviz_kuru="<%= d.doviz_kuru %>">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="<%= d.id %>">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addDovizModal" tabindex="-1" aria-labelledby="addDovizModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDovizModalLabel">Yeni Döviz Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="dovizForm">
+                        <input type="hidden" id="id" name="id">
+                        <div class="mb-3">
+                            <label for="doviz_kodu" class="form-label">Döviz Kodu</label>
+                            <input type="text" class="form-control" id="doviz_kodu" name="doviz_kodu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="doviz_adi" class="form-label">Döviz Adı</label>
+                            <input type="text" class="form-control" id="doviz_adi" name="doviz_adi" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="doviz_turu" class="form-label">Döviz Türü</label>
+                            <input type="text" class="form-control" id="doviz_turu" name="doviz_turu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="doviz_kuru" class="form-label">Döviz Kuru</label>
+                            <input type="number" step="0.0001" class="form-control" id="doviz_kuru" name="doviz_kuru" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="saveDoviz">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        document.getElementById('saveDoviz').addEventListener('click', async function() {
+            const form = document.getElementById('dovizForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Boş değerleri temizle
+            Object.keys(data).forEach(key => {
+                if (data[key] === '') {
+                    data[key] = null;
+                }
+            });
+            
+            // Kullanıcı bilgilerini ekle
+            data.guncelleyenkullanicikayitno = '<%= user.id %>';
+            data.kaydedenkullanicikayitno = '<%= user.id %>';
+            
+            try {
+                const response = await fetch('/stok/doviz', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Kayıt sırasında bir hata oluştu: ' + result.message);
+                }
+            } catch (error) {
+                alert('İşlem sırasında bir hata oluştu');
+            }
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Döviz kartını silmek istediğinize emin misiniz?')) return;
+                
+                const id = btn.dataset.id;
+                const response = await fetch(`/stok/doviz/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    btn.closest('tr').remove();
+                    alert('Döviz kartı başarıyla silindi.');
+                } else {
+                    alert('Silme işlemi başarısız: ' + result.message);
+                }
+            });
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('addDovizModal'));
+                const form = document.getElementById('dovizForm');
+                form.id.value = btn.dataset.id;
+                form.doviz_kodu.value = btn.dataset.dovizkodu;
+                form.doviz_adi.value = btn.dataset.dovizadi;
+                form.doviz_turu.value = btn.dataset.doviz_turu;
+                form.doviz_kuru.value = btn.dataset.doviz_kuru;
+                document.getElementById('addDovizModalLabel').textContent = 'Döviz Düzenle';
+                modal.show();
+            });
+        });
+    </script>
+</body>
+</html>

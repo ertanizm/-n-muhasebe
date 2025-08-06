@@ -374,7 +374,90 @@ router.delete('/vergi/:id', async (req, res) => {
     }
 });
 
+                //DOVİZ İŞLEMLERİ   
 
+//Döviz Listesi
+router.get('/doviz', async (req, res) => {
+try {
+    const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+    
+    // Stokları çek
+    const [doviz] = await conn.execute("SELECT * FROM dovizkarti ORDER BY id ASC");
+    
+    await conn.end();
+
+    res.render('stok/doviz', {
+        user: req.session.user,
+        doviz: doviz
+    });
+
+} catch (error) {
+    console.error('Döviz listesi alınamadı:', error);
+    res.render('stok/doviz', {
+        user: req.session.user,
+        doviz: [],
+        error: 'Döviz listesi alınamadı'
+    });
+}
+});
+
+//Döviz ekleme ve güncelleme
+router.post('/doviz', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+    const {
+        id, doviz_kodu, doviz_adi,doviz_kuru,doviz_turu,guncelleyenkullanicikayitno,kaydedenkullanicikayitno
+    } = req.body;
+
+    const kullaniciId = req.session.user.id;
+
+    if (id) {
+        // Update
+        await conn.execute(
+            `UPDATE dovizkarti SET 
+                doviz_kodu = ?, 
+                doviz_adi = ?, 
+                doviz_kuru = ?,
+                doviz_turu = ?,
+                guncelleyenkullanicikayitno = ?
+            WHERE id = ?`,
+            [doviz_kodu, doviz_adi, doviz_kuru, doviz_turu, kullaniciId, id]
+        );
+    }
+    else {
+        // Insert
+        await conn.execute(
+            `INSERT INTO dovizkarti (
+                doviz_kodu, doviz_adi, guncelleyenkullanicikayitno, kaydedenkullanicikayitno,doviz_kuru,doviz_turu
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            [doviz_kodu, doviz_adi, kullaniciId, kullaniciId,doviz_kuru,doviz_turu]
+        );
+    }
+        await conn.end();
+        res.json({ success: true, message: 'Döviz işlemi başarılı' });
+    } catch (error) {
+        console.error('Döviz işlemi başarısız:', error);
+        res.status(500).json({ success: false, message: 'Döviz işlemi sırasında hata oluştu: ' + error.message });
+    }
+});
+
+router.delete('/doviz/:id', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ success: false, message: 'Oturum geçersiz' });
+    }
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        await conn.execute("DELETE FROM dovizkarti WHERE id = ?", [req.params.id]);
+        await conn.end();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Döviz silme başarısız:', error);
+        res.status(500).json({ success: false, message: 'Döviz silinirken hata oluştu' });
+    }
+});
+        
+
+        //Stok Ekstresi
 router.get('/stokekstresi', async (req, res) => {
     try {
         const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));

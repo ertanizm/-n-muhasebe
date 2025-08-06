@@ -175,6 +175,7 @@ app.post('/create-company', async (req, res) => {
     grup_kodu VARCHAR(255) NULL,
     grup_adi VARCHAR(255) NULL,
     kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     guncelleyenkullanicikayitno INT,
     kaydedenkullanicikayitno INT
 );`)
@@ -184,8 +185,9 @@ await tenantConn.query(`
     depo_kodu VARCHAR(255) NULL,
     depo_adi VARCHAR(255) NULL,
     kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     guncelleyenkullanicikayitno INT,
-    kaydedenkullanicikayitno INT,
+    kaydedenkullanicikayitno INT
 );`)
 
 await tenantConn.query(`
@@ -197,8 +199,9 @@ await tenantConn.query(`
     ucuncuvergiorani INT NULL,
     dorduncuvergiorani INT NULL,
     kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+    guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     guncelleyenkullanicikayitno INT,
-    kaydedenkullanicikayitno INT,
+    kaydedenkullanicikayitno INT
 );`)
 
 await tenantConn.query(`
@@ -217,13 +220,14 @@ await tenantConn.query(`
         aktif TINYINT(1) DEFAULT 1,
         miktar DECIMAL(10,2) DEFAULT 0,
         kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+        guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         grupkayitno INT NULL,
         vergikayitno INT NULL,
         depokayitno INT NULL,
         FOREIGN KEY (vergikayitno) REFERENCES vergikarti(id),
-        FOREIGN KEY (grupkayitno) REFERENCES stokgrupkarti(id)
+        FOREIGN KEY (grupkayitno) REFERENCES stokgrupkarti(id),
         FOREIGN KEY (depokayitno) REFERENCES depokarti(id)
-    
+    )
 `);
 
        
@@ -241,6 +245,8 @@ await tenantConn.query(`
                 bakiye DECIMAL(15,2) DEFAULT 0 NULL,
                 alacak DECIMAL(15,2) DEFAULT 0 NULL,
                 borc DECIMAL(15,2) DEFAULT 0 NULL,
+                kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+                guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 guncelleyenkullanicikayitno INT,
                 kaydedenkullanicikayitno INT,
                 efatura TINYINT(1) DEFAULT 0 NULL,
@@ -260,22 +266,74 @@ await tenantConn.query(`
         parabirimi VARCHAR(255) NULL,
         guncelbakiye DECIMAL (10,2) NULL,
         posbankasi VARCHAR(255) NULL,
-        tip INT
+        tip INT,
+        guncelleyenkullanicikayitno INT,
+        kaydedenkullanicikayitno INT,
+        kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+        guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );`)
+
+         // Hareket türleri tablosu
+         await conn.execute(`
+            CREATE TABLE IF NOT EXISTS hareket_turleri (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tur_adi VARCHAR(50) NOT NULL,
+                tur_kodu VARCHAR(20) UNIQUE,
+                aktif TINYINT(1) DEFAULT 1,
+                kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Cari hareketler tablosu
+        await conn.execute(`
+            CREATE TABLE IF NOT EXISTS cari_hareketler (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                cari_id INT NOT NULL,
+                hareket_turu_id INT NOT NULL,
+                depo_id INT,
+                belge_no VARCHAR(100),
+                tarih DATE NOT NULL,
+                giris_miktar DECIMAL(15,2) DEFAULT 0,
+                cikis_miktar DECIMAL(15,2) DEFAULT 0,
+                bakiye DECIMAL(15,2) DEFAULT 0,
+                birim_fiyat DECIMAL(15,2) DEFAULT 0,
+                toplam_tutar DECIMAL(15,2) DEFAULT 0,
+                aciklama TEXT,
+                kaydeden_kullanici INT,
+                kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (cari_id) REFERENCES cariler(id) ON DELETE CASCADE,
+                FOREIGN KEY (hareket_turu_id) REFERENCES hareket_turleri(id),
+                FOREIGN KEY (depo_id) REFERENCES depokarti(id)
+            )
+        `);
+
+        // Varsayılan hareket türlerini ekle
+        await conn.execute(`
+            INSERT IGNORE INTO hareket_turleri (tur_adi, tur_kodu) VALUES 
+            ('Alış', 'ALIS'),
+            ('Satış', 'SATIS'),
+            ('Aktarma', 'AKTARMA'),
+            ('Sayım', 'SAYIM')
+        `);
+        
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS dovizkarti (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 doviz_turu VARCHAR(10) NOT NULL,
                 doviz_kodu VARCHAR(10) NOT NULL,
                 doviz_adi VARCHAR(50) NOT NULL,
-                doviz_kuru DECIMAL(10,4) NOT NULL
+                doviz_kuru DECIMAL(10,4) NOT NULL,
+                guncelleyenkullanicikayitno INT,
+                kaydedenkullanicikayitno INT,
+                kayittarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+                guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
         `);
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS faturalar (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 fis_no VARCHAR(50) NOT NULL,
-                faturabelgono VARCHAR(50) NULL,
+                faturabelgeno VARCHAR(50) NULL,
                 tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 carikayitno INT NOT NULL,
                 stokkayitno INT NOT NULL,
@@ -300,12 +358,33 @@ await tenantConn.query(`
                 aciklama TEXT,
                 guncelleyenkullanicikayitno INT,
                 kaydedenkullanicikayitno INT,
+                guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (carikayitno) REFERENCES cariler(id),
                 FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
-                FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
-                FOREIGN KEY (dovizkayitno) REFERENCES dovizkarti(id)
+                FOREIGN KEY (depokayitno) REFERENCES depokarti(id)
             )
         `);
+        await conn.execute(`
+            CREATE TABLE IF NOT EXISTS cekler (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                cari_id INT NOT NULL,
+                kasa_banka_id INT NOT NULL,
+                cek_no VARCHAR(100),
+                vade DATE,
+                tarih DATE NOT NULL,    
+                tutar DECIMAL(15,2) DEFAULT 0,
+                aciklama TEXT,
+                islem_tipi int DEFAULT 0,
+                durum int DEFAULT 0,
+                kaydeden_kullanici INT,
+                guncelleyenkullanicikayitno INT,
+                kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (cari_id) REFERENCES cariler(id) ON DELETE CASCADE,               
+                FOREIGN KEY (kasa_banka_id) REFERENCES hesapkarti(id)
+            )
+        `);
+
         await tenantConn.query(`
     CREATE TABLE IF NOT EXISTS irsaliyeler (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -335,6 +414,7 @@ await tenantConn.query(`
         aciklama TEXT,
         guncelleyenkullanicikayitno INT,
         kaydedenkullanicikayitno INT,
+        guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (carikayitno) REFERENCES cariler(id),
         FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
         FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
@@ -342,6 +422,7 @@ await tenantConn.query(`
         FOREIGN KEY (faturakayitno) REFERENCES faturalar(id)
     )
 `);
+
 
        
         await tenantConn.end();
