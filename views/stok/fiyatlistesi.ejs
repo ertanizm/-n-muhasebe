@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutabık - Fiyat Listesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+    <style>
+        .filter-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .summary-card .label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .summary-card.positive .value {
+            color: #28a745;
+        }
+        
+        .summary-card.negative .value {
+            color: #dc3545;
+        }
+        
+        .price-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .price-table .table {
+            margin-bottom: 0;
+        }
+        
+        .price-table .table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+        }
+        
+        .price-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .price-type.alis {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .price-type.satis {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .price-type.toptan {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .price-type.perakende {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .price-high {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .price-low {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .price-normal {
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .pagination-wrapper {
+            background: white;
+            padding: 15px;
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-export {
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .date-range-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .form-select-sm {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        
+        .form-control-sm {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 10px;
+        }
+        
+        .price-input {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .stock-status {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .stock-status.stokta {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .stock-status.az {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .stock-status.yok {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="main-content">
+        <div class="product-container">
+            <div class="page-header">
+                <h1 class="page-title">Fiyat Listesi</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Fiyat</span>
+                    </button>
+                    <div class="export-buttons">
+                        <button class="btn btn-outline-success btn-export">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-outline-danger btn-export">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn btn-outline-primary btn-export">
+                            <i class="fas fa-print"></i> Yazdır
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtreler -->
+            <div class="filter-card">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Stok Kodu/Adı</label>
+                        <input type="text" class="form-control form-control-sm" placeholder="Stok ara...">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Fiyat Türü</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="alis">Alış Fiyatı</option>
+                            <option value="satis">Satış Fiyatı</option>
+                            <option value="toptan">Toptan Fiyat</option>
+                            <option value="perakende">Perakende Fiyat</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Stok Grubu</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="1">Elektronik</option>
+                            <option value="2">Gıda</option>
+                            <option value="3">Tekstil</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Stok Durumu</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="stokta">Stokta</option>
+                            <option value="az">Az Stok</option>
+                            <option value="yok">Stok Yok</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Fiyat Aralığı</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" class="form-control form-control-sm" placeholder="Min">
+                            <span class="align-self-center">-</span>
+                            <input type="number" class="form-control form-control-sm" placeholder="Max">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Vergi Oranı</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="0">%0</option>
+                            <option value="1">%1</option>
+                            <option value="8">%8</option>
+                            <option value="18">%18</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Sıralama</label>
+                        <select class="form-select form-select-sm">
+                            <option value="name">Stok Adı</option>
+                            <option value="code">Stok Kodu</option>
+                            <option value="price">Fiyat</option>
+                            <option value="stock">Stok Miktarı</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-search"></i> Ara
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times"></i> Temizle
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özet Kartları -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="value">150</div>
+                    <div class="label">Toplam Ürün</div>
+                </div>
+                <div class="summary-card positive">
+                    <div class="value">120</div>
+                    <div class="label">Stokta Olan</div>
+                </div>
+                <div class="summary-card negative">
+                    <div class="value">30</div>
+                    <div class="label">Stok Yok</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">₺45,250</div>
+                    <div class="label">Toplam Değer</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">₺302</div>
+                    <div class="label">Ortalama Fiyat</div>
+                </div>
+            </div>
+
+            <!-- Fiyat Listesi Tablosu -->
+            <div class="price-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Stok Kodu</th>
+                            <th>Stok Adı</th>
+                            <th>Grup</th>
+                            <th>Stok Durumu</th>
+                            <th>Alış Fiyatı</th>
+                            <th>Satış Fiyatı</th>
+                            <th>Toptan Fiyat</th>
+                            <th>Perakende Fiyat</th>
+                            <th>Vergi Oranı</th>
+                            <th>Son Güncelleme</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% fiyatlistesi.forEach(function(stok) { %>
+                        <tr>
+                            <td><%= stok.stok_kodu %></td>
+                            <td><%= stok.stok_adi %></td>
+                            <td><%= stok.grup_adi || '-' %></td>
+                            <td>
+                                <% if (stok.miktar > 50) { %>
+                                    <span class="stock-status stokta">Stokta</span>
+                                <% } else if (stok.miktar > 0) { %>
+                                    <span class="stock-status az">Az Stok</span>
+                                <% } else { %>
+                                    <span class="stock-status yok">Stok Yok</span>
+                                <% } %>
+                            </td>
+                            <td class="price-normal">₺<%= stok.fiyat1 || '0.00' %></td>
+                            <td class="price-high">₺<%= stok.fiyat2 || '0.00' %></td>
+                            <td class="price-normal">₺<%= stok.fiyat3 || '0.00' %></td>
+                            <td class="price-high">₺<%= stok.fiyat2 || '0.00' %></td>
+                            <td><%= stok.vergi_orani || '0' %>%</td>
+                            <td><%= stok.kayittarihi ? new Date(stok.kayittarihi).toLocaleDateString('tr-TR') : '-' %></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay" data-id="<%= stok.id %>">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle" data-id="<%= stok.id %>">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success btn-action" title="Fiyat Güncelle" data-id="<%= stok.id %>">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sayfalama -->
+            <div class="pagination-wrapper">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Toplam <%= fiyatlistesi.length %> kayıt gösteriliyor
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Fiyat listesi sayfalama">
+                            <ul class="pagination pagination-sm justify-content-end mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">Önceki</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">Sonraki</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fiyat Güncelleme Modal -->
+    <div class="modal fade" id="addPriceModal" tabindex="-1" aria-labelledby="addPriceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPriceModalLabel">Fiyat Güncelle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="priceForm">
+                        <input type="hidden" id="stok_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="stok_kodu" class="form-label">Stok Kodu</label>
+                                    <input type="text" class="form-control" id="stok_kodu" name="stok_kodu" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="stok_adi" class="form-label">Stok Adı</label>
+                                    <input type="text" class="form-control" id="stok_adi" name="stok_adi" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="fiyat1" class="form-label">Alış Fiyatı</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₺</span>
+                                        <input type="number" step="0.01" class="form-control price-input" id="fiyat1" name="fiyat1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="fiyat2" class="form-label">Satış Fiyatı</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₺</span>
+                                        <input type="number" step="0.01" class="form-control price-input" id="fiyat2" name="fiyat2">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="fiyat3" class="form-label">Toptan Fiyat</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₺</span>
+                                        <input type="number" step="0.01" class="form-control price-input" id="fiyat3" name="fiyat3">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="vergi_orani" class="form-label">Vergi Oranı</label>
+                                    <select class="form-select" id="vergi_orani" name="vergi_orani">
+                                        <option value="0">%0</option>
+                                        <option value="1">%1</option>
+                                        <option value="8">%8</option>
+                                        <option value="18">%18</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="aciklama" class="form-label">Açıklama</label>
+                                    <textarea class="form-control" id="aciklama" name="aciklama" rows="3" placeholder="Fiyat güncelleme açıklaması"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="savePrice">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        // Filtre işlemleri
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('change', function() {
+                console.log('Filtre değişti:', this.name, this.value);
+            });
+        });
+
+        // Arama butonu
+        document.querySelector('.btn-primary').addEventListener('click', function() {
+            console.log('Arama başlatıldı');
+        });
+
+        // Temizle butonu
+        document.querySelector('.btn-outline-secondary').addEventListener('click', function() {
+            document.querySelectorAll('.form-control, .form-select').forEach(input => {
+                input.value = '';
+            });
+        });
+
+        // Export butonları
+        document.querySelectorAll('.btn-export').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                console.log('Export işlemi:', action);
+                alert(`${action} işlemi başlatıldı`);
+            });
+        });
+
+        // Fiyat güncelleme butonları
+        document.querySelectorAll('.btn-action').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const action = this.title;
+                const stokId = this.dataset.id;
+                
+                if (action === 'Fiyat Güncelle') {
+                    // Modal'ı aç ve stok bilgilerini doldur
+                    const modal = new bootstrap.Modal(document.getElementById('addPriceModal'));
+                    document.getElementById('stok_id').value = stokId;
+                    
+                    // Stok bilgilerini getir ve formu doldur
+                    fetchStokBilgileri(stokId);
+                    
+                    modal.show();
+                } else if (action === 'Düzenle') {
+                    console.log('Düzenle:', stokId);
+                } else if (action === 'Detay') {
+                    console.log('Detay:', stokId);
+                }
+            });
+        });
+
+        // Stok bilgilerini getir
+        async function fetchStokBilgileri(stokId) {
+            try {
+                const response = await fetch(`/stok/stoklar/${stokId}`);
+                const stok = await response.json();
+                
+                if (stok.success) {
+                    document.getElementById('stok_kodu').value = stok.data.stok_kodu;
+                    document.getElementById('stok_adi').value = stok.data.stok_adi;
+                    document.getElementById('fiyat1').value = stok.data.fiyat1 || '';
+                    document.getElementById('fiyat2').value = stok.data.fiyat2 || '';
+                    document.getElementById('fiyat3').value = stok.data.fiyat3 || '';
+                    document.getElementById('vergi_orani').value = stok.data.vergi_orani || '0';
+                }
+            } catch (error) {
+                console.error('Stok bilgileri alınamadı:', error);
+            }
+        }
+
+        // Fiyat kaydetme
+        document.getElementById('savePrice').addEventListener('click', async function() {
+            const form = document.getElementById('priceForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/stok/fiyatguncelle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Fiyat başarıyla güncellendi!');
+                    location.reload();
+                } else {
+                    alert('Fiyat güncellenirken hata oluştu: ' + result.message);
+                }
+            } catch (error) {
+                alert('İşlem sırasında bir hata oluştu');
+            }
+        });
+    </script>
+</body>
+</html>
+

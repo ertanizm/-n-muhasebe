@@ -6,6 +6,7 @@ const { authMiddleware } = require('./controller/createCompany');
 const mysql = require('mysql2/promise');
 const { getTenantDbConfig } = require('./controller/db');
 const irsaliyeController = require('./controller/irsaliye');
+const cariOperations = require('./controller/cariOperations');
 
 // Update views directory path
 router.use((req, res, next) => {
@@ -54,9 +55,8 @@ router.get('/anasayfa', (req, res) => {
     res.render('anasayfa', { error: null });
 });
 
-router.get('/cari_hesap_ekstresi', (req, res) => {
-    res.render('cari/cariekstre', { error: null });
-});
+// Cari operations routes
+router.use('/cari', cariOperations);
 
 
 

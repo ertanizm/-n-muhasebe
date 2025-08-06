@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutabık - Depo Transferi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+    <link href="/css/depotransfer.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="main-content">
+        <div class="product-container">
+            <div class="page-header">
+                <h1 class="page-title">Depo Transferi</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTransferModal">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Transfer</span>
+                    </button>
+                    <div class="export-buttons">
+                        <button class="btn btn-outline-success btn-export">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-outline-danger btn-export">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn btn-outline-primary btn-export">
+                            <i class="fas fa-print"></i> Yazdır
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtreler -->
+            <div class="filter-card">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Transfer No</label>
+                        <input type="text" class="form-control form-control-sm" placeholder="Transfer no ara...">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Durum</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="bekliyor">Bekliyor</option>
+                            <option value="onaylandi">Onaylandı</option>
+                            <option value="tamamlandi">Tamamlandı</option>
+                            <option value="iptal">İptal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Kaynak Depo</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="1">Ana Depo</option>
+                            <option value="2">Şube Depo</option>
+                            <option value="3">Merkez Depo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Hedef Depo</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="1">Ana Depo</option>
+                            <option value="2">Şube Depo</option>
+                            <option value="3">Merkez Depo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Tarih Aralığı</label>
+                        <div class="date-range-picker">
+                            <input type="date" class="form-control form-control-sm" value="2024-01-01">
+                            <span>-</span>
+                            <input type="date" class="form-control form-control-sm" value="2024-12-31">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Sorumlu</label>
+                        <select class="form-select form-select-sm">
+                            <option value="">Tümü</option>
+                            <option value="1">Ahmet Yılmaz</option>
+                            <option value="2">Fatma Demir</option>
+                            <option value="3">Mehmet Kaya</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Sıralama</label>
+                        <select class="form-select form-select-sm">
+                            <option value="date">Tarih</option>
+                            <option value="status">Durum</option>
+                            <option value="source">Kaynak Depo</option>
+                            <option value="target">Hedef Depo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-search"></i> Ara
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times"></i> Temizle
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özet Kartları -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="value">25</div>
+                    <div class="label">Toplam Transfer</div>
+                </div>
+                <div class="summary-card pending">
+                    <div class="value">8</div>
+                    <div class="label">Bekleyen</div>
+                </div>
+                <div class="summary-card completed">
+                    <div class="value">15</div>
+                    <div class="label">Tamamlanan</div>
+                </div>
+                <div class="summary-card cancelled">
+                    <div class="value">2</div>
+                    <div class="label">İptal Edilen</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value">₺45,250</div>
+                    <div class="label">Toplam Değer</div>
+                </div>
+            </div>
+
+            <!-- Transfer Tablosu -->
+            <div class="transfer-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Transfer No</th>
+                            <th>Tarih</th>
+                            <th>Kaynak Depo</th>
+                            <th>Hedef Depo</th>
+                            <th>Stok Sayısı</th>
+                            <th>Toplam Miktar</th>
+                            <th>Toplam Değer</th>
+                            <th>Durum</th>
+                            <th>Sorumlu</th>
+                            <th>Açıklama</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TRF-2024-001</td>
+                            <td>01.01.2024</td>
+                            <td>Ana Depo</td>
+                            <td>Şube Depo</td>
+                            <td>5</td>
+                            <td>150</td>
+                            <td>₺22,500</td>
+                            <td><span class="transfer-status tamamlandi">Tamamlandı</span></td>
+                            <td>Ahmet Yılmaz</td>
+                            <td>Şube stok aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger btn-action" title="İptal">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-002</td>
+                            <td>05.01.2024</td>
+                            <td>Merkez Depo</td>
+                            <td>Ana Depo</td>
+                            <td>3</td>
+                            <td>75</td>
+                            <td>₺11,250</td>
+                            <td><span class="transfer-status onaylandi">Onaylandı</span></td>
+                            <td>Fatma Demir</td>
+                            <td>Merkez aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success btn-action" title="Tamamla">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-003</td>
+                            <td>10.01.2024</td>
+                            <td>Şube Depo</td>
+                            <td>Ana Depo</td>
+                            <td>2</td>
+                            <td>40</td>
+                            <td>₺6,000</td>
+                            <td><span class="transfer-status bekliyor">Bekliyor</span></td>
+                            <td>Mehmet Kaya</td>
+                            <td>Geri dönüş aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success btn-action" title="Onayla">
+                                        <i class="fas fa-thumbs-up"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-004</td>
+                            <td>15.01.2024</td>
+                            <td>Ana Depo</td>
+                            <td>Merkez Depo</td>
+                            <td>4</td>
+                            <td>120</td>
+                            <td>₺18,000</td>
+                            <td><span class="transfer-status tamamlandi">Tamamlandı</span></td>
+                            <td>Ahmet Yılmaz</td>
+                            <td>Merkez depo aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger btn-action" title="İptal">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-005</td>
+                            <td>20.01.2024</td>
+                            <td>Şube Depo</td>
+                            <td>Ana Depo</td>
+                            <td>1</td>
+                            <td>25</td>
+                            <td>₺3,750</td>
+                            <td><span class="transfer-status iptal">İptal</span></td>
+                            <td>Fatma Demir</td>
+                            <td>İptal edildi</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-006</td>
+                            <td>25.01.2024</td>
+                            <td>Ana Depo</td>
+                            <td>Şube Depo</td>
+                            <td>6</td>
+                            <td>180</td>
+                            <td>₺27,000</td>
+                            <td><span class="transfer-status bekliyor">Bekliyor</span></td>
+                            <td>Mehmet Kaya</td>
+                            <td>Yeni şube aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success btn-action" title="Onayla">
+                                        <i class="fas fa-thumbs-up"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-007</td>
+                            <td>30.01.2024</td>
+                            <td>Merkez Depo</td>
+                            <td>Ana Depo</td>
+                            <td>3</td>
+                            <td>90</td>
+                            <td>₺13,500</td>
+                            <td><span class="transfer-status onaylandi">Onaylandı</span></td>
+                            <td>Ahmet Yılmaz</td>
+                            <td>Merkez aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success btn-action" title="Tamamla">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TRF-2024-008</td>
+                            <td>05.02.2024</td>
+                            <td>Ana Depo</td>
+                            <td>Şube Depo</td>
+                            <td>4</td>
+                            <td>100</td>
+                            <td>₺15,000</td>
+                            <td><span class="transfer-status tamamlandi">Tamamlandı</span></td>
+                            <td>Fatma Demir</td>
+                            <td>Şube aktarımı</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info btn-action" title="Detay">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning btn-action" title="Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger btn-action" title="İptal">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sayfalama -->
+            <div class="pagination-wrapper">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Toplam 8 kayıt gösteriliyor (1-8 / 8)
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Transfer sayfalama">
+                            <ul class="pagination pagination-sm justify-content-end mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">Önceki</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">Sonraki</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yeni Transfer Modal -->
+    <div class="modal fade" id="addTransferModal" tabindex="-1" aria-labelledby="addTransferModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTransferModalLabel">Yeni Transfer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="transferForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="transfer_no" class="form-label">Transfer No</label>
+                                    <input type="text" class="form-control" id="transfer_no" name="transfer_no" value="TRF-2024-009" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="transfer_date" class="form-label">Transfer Tarihi</label>
+                                    <input type="date" class="form-control" id="transfer_date" name="transfer_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="source_depo" class="form-label">Kaynak Depo</label>
+                                    <select class="form-select" id="source_depo" name="source_depo" required>
+                                        <option value="">Seçiniz</option>
+                                        <option value="1">Ana Depo</option>
+                                        <option value="2">Şube Depo</option>
+                                        <option value="3">Merkez Depo</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="target_depo" class="form-label">Hedef Depo</label>
+                                    <select class="form-select" id="target_depo" name="target_depo" required>
+                                        <option value="">Seçiniz</option>
+                                        <option value="1">Ana Depo</option>
+                                        <option value="2">Şube Depo</option>
+                                        <option value="3">Merkez Depo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="responsible" class="form-label">Sorumlu</label>
+                                    <select class="form-select" id="responsible" name="responsible" required>
+                                        <option value="">Seçiniz</option>
+                                        <option value="1">Ahmet Yılmaz</option>
+                                        <option value="2">Fatma Demir</option>
+                                        <option value="3">Mehmet Kaya</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Açıklama</label>
+                                    <input type="text" class="form-control" id="description" name="description" placeholder="Transfer açıklaması">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Transfer Kalemleri</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Stok Kodu</th>
+                                        <th>Stok Adı</th>
+                                        <th>Miktar</th>
+                                        <th>Birim Fiyat</th>
+                                        <th>Toplam</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transferItems">
+                                    <tr>
+                                        <td>
+                                            <select class="form-select form-select-sm">
+                                                <option value="">Seçiniz</option>
+                                                <option value="1">STK-001</option>
+                                                <option value="2">STK-002</option>
+                                            </select>
+                                        </td>
+                                        <td>Ürün Adı</td>
+                                        <td><input type="number" class="form-control form-control-sm" value="10"></td>
+                                        <td>₺150.00</td>
+                                        <td>₺1,500.00</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus"></i> Kalem Ekle
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="saveTransfer">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        // Filtre işlemleri
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('change', function() {
+                console.log('Filtre değişti:', this.name, this.value);
+            });
+        });
+
+        // Arama butonu
+        document.querySelector('.btn-primary').addEventListener('click', function() {
+            console.log('Arama başlatıldı');
+        });
+
+        // Temizle butonu
+        document.querySelector('.btn-outline-secondary').addEventListener('click', function() {
+            document.querySelectorAll('.form-control, .form-select').forEach(input => {
+                input.value = '';
+            });
+        });
+
+        // Export butonları
+        document.querySelectorAll('.btn-export').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                console.log('Export işlemi:', action);
+                alert(`${action} işlemi başlatıldı`);
+            });
+        });
+
+        // Transfer kaydetme
+        document.getElementById('saveTransfer').addEventListener('click', async function() {
+            const form = document.getElementById('transferForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                // Transfer kaydetme işlemi
+                console.log('Transfer kaydediliyor:', data);
+                alert('Transfer başarıyla kaydedildi!');
+                location.reload();
+            } catch (error) {
+                alert('Transfer kaydedilirken hata oluştu');
+            }
+        });
+
+        // Tablo satır tıklama
+        document.querySelectorAll('.table tbody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                console.log('Transfer satırı tıklandı:', this);
+            });
+        });
+
+        // Action butonları
+        document.querySelectorAll('.btn-action').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const action = this.title;
+                console.log('Action:', action);
+                
+                if (action === 'Onayla') {
+                    if (confirm('Transferi onaylamak istediğinize emin misiniz?')) {
+                        alert('Transfer onaylandı!');
+                    }
+                } else if (action === 'Tamamla') {
+                    if (confirm('Transferi tamamlamak istediğinize emin misiniz?')) {
+                        alert('Transfer tamamlandı!');
+                    }
+                } else if (action === 'İptal') {
+                    if (confirm('Transferi iptal etmek istediğinize emin misiniz?')) {
+                        alert('Transfer iptal edildi!');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

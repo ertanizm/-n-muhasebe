@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mutabık - Stok Ekstresi</title>
+    <title>Mutabık - Cari Ekstresi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/dashboard.css" rel="stylesheet">
@@ -19,13 +19,13 @@
                 <h1 class="page-title">Cari Ekstresi</h1>
                 <div class="action-buttons">
                     <div class="export-buttons">
-                        <button class="btn btn-outline-success btn-export">
+                        <button class="btn btn-outline-success btn-export" onclick="exportToExcel()">
                             <i class="fas fa-file-excel"></i> Excel
                         </button>
-                        <button class="btn btn-outline-danger btn-export">
+                        <button class="btn btn-outline-danger btn-export" onclick="exportToPDF()">
                             <i class="fas fa-file-pdf"></i> PDF
                         </button>
-                        <button class="btn btn-outline-primary btn-export">
+                        <button class="btn btn-outline-primary btn-export" onclick="printReport()">
                             <i class="fas fa-print"></i> Yazdır
                         </button>
                     </div>
@@ -34,93 +34,134 @@
 
             <!-- Filtreler -->
             <div class="filter-card">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label class="form-label">Cari Kodu/Adı</label>
-                        <input type="text" class="form-control form-control-sm" placeholder="Cari ara...">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Hareket Türü</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="satis">Satış</option>
-                            <option value="alis">Alış</option>
-                            <option value="aktarma">Aktarma</option>
-                            <option value="sayim">Sayım</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Depo</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="1">Ana Depo</option>
-                            <option value="2">Şube Depo</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Tarih Aralığı</label>
-                        <div class="date-range-picker">
-                            <input type="date" class="form-control form-control-sm" value="2024-01-01">
-                            <span>-</span>
-                            <input type="date" class="form-control form-control-sm" value="2024-12-31">
-                        </div>
-                    </div>
+                <div class="filter-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
+                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+                    </button>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Başlangıç Bakiyesi</label>
-                        <input type="number" class="form-control form-control-sm" placeholder="0" value="100">
+                <div class="filter-content" id="filterContent">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Cari Kodu/Adı</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control form-control-sm" id="cariArama" placeholder="Cari ara...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Hareket Türü</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                <select class="form-select form-select-sm" id="hareketTuru">
+                                    <option value="">Tümü</option>
+                                    <% if (typeof hareketTurleri !== 'undefined') { %>
+                                        <% hareketTurleri.forEach(function(tur) { %>
+                                            <option value="<%= tur.tur_kodu %>"><%= tur.tur_adi %></option>
+                                        <% }); %>
+                                    <% } %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Depo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
+                                <select class="form-select form-select-sm" id="depoId">
+                                    <option value="">Tümü</option>
+                                    <% if (typeof depolar !== 'undefined') { %>
+                                        <% depolar.forEach(function(depo) { %>
+                                            <option value="<%= depo.id %>"><%= depo.depo_adi %></option>
+                                        <% }); %>
+                                    <% } %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Tarih Aralığı</label>
+                            <div class="d-flex align-items-center gap-2"> <!-- buraya d-flex eklendi -->
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
+                                </div>
+                                <span class="mx-1">-</span> <!-- araya tire işareti -->
+                                <div class="input-group input-group-sm">
+                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Bitiş Bakiyesi</label>
-                        <input type="number" class="form-control form-control-sm" placeholder="0" value="150">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Sıralama</label>
-                        <select class="form-select form-select-sm">
-                            <option value="date">Tarih</option>
-                            <option value="type">Hareket Türü</option>
-                            <option value="quantity">Miktar</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button class="btn btn-primary btn-sm me-2">
-                            <i class="fas fa-search"></i> Ara
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-times"></i> Temizle
-                        </button>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Başlangıç Bakiyesi</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                                <input type="number" class="form-control form-control-sm" id="baslangicBakiye" placeholder="0" value="0" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Bitiş Bakiyesi</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                                <input type="number" class="form-control form-control-sm" id="bitisBakiye" placeholder="0" value="999999" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Sıralama</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-sort"></i></span>
+                                <select class="form-select form-select-sm" id="siralama">
+                                    <option value="date">Tarih</option>
+                                    <option value="type">Hareket Türü</option>
+                                    <option value="quantity">Miktar</option>
+                                    <option value="amount">Tutar</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end align-items-center ">
+                            <button class="btn btn-primary btn-sm me-2" onclick="searchHareketler()">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Temizle
+                            </button>
+                            <button class="btn btn-outline-info btn-sm ms-2" onclick="exportFilters()">
+                                <i class="fas fa-download"></i> Dışa Aktar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Özet Kartları -->
-            <div class="summary-cards">
+            <div class="summary-cards" id="ozetKartlari">
                 <div class="summary-card">
-                    <div class="value positive">+50</div>
+                    <div class="value positive" id="toplamGiris">+0,00</div>
                     <div class="label">Toplam Giriş</div>
                 </div>
                 <div class="summary-card">
-                    <div class="value negative">-30</div>
+                    <div class="value negative" id="toplamCikis">-0,00</div>
                     <div class="label">Toplam Çıkış</div>
                 </div>
                 <div class="summary-card">
-                    <div class="value">150</div>
+                    <div class="value" id="toplamBakiye">0,00</div>
                     <div class="label">Mevcut Stok</div>
                 </div>
                 <div class="summary-card">
-                    <div class="value">20</div>
+                    <div class="value" id="hareketSayisi">0</div>
                     <div class="label">Hareket Sayısı</div>
                 </div>
-                <div class="summary-card">
-                    <div class="value">₺15,750</div>
+                <div class="summary-card d-none">
+                    <div class="value" id="stokDegeri">₺0,00</div>
                     <div class="label">Stok Değeri</div>
                 </div>
             </div>
 
             <!-- Stok Hareketleri Tablosu -->
             <div class="movement-table">
-                <table class="table table-hover">
+                <table class="table table-hover" id="hareketTablosu">
                     <thead>
                         <tr>
                             <th>Tarih</th>
@@ -131,154 +172,13 @@
                             <th>Giriş</th>
                             <th>Çıkış</th>
                             <th>Bakiye</th>
-                            <th>Birim Fiyat</th>
-                            <th>Toplam Tutar</th>
                             <th>Açıklama</th>
+                            <th>İşlemler</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="hareketTablosuBody">
                         <tr>
-                            <td>01.01.2024</td>
-                            <td><span class="movement-type alis">Alış</span></td>
-                            <td>ALI-2024-001</td>
-                            <td>ABC Ticaret Ltd. Şti.</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+100</td>
-                            <td>-</td>
-                            <td class="balance-positive">100</td>
-                            <td>₺150.00</td>
-                            <td>₺15,000.00</td>
-                            <td>Yıllık stok alımı</td>
-                        </tr>
-                        <tr>
-                            <td>05.01.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-001</td>
-                            <td>XYZ Mağazası</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-20</td>
-                            <td class="balance-positive">80</td>
-                            <td>₺180.00</td>
-                            <td>₺3,600.00</td>
-                            <td>Perakende satış</td>
-                        </tr>
-                        <tr>
-                            <td>10.01.2024</td>
-                            <td><span class="movement-type aktarma">Aktarma</span></td>
-                            <td>AKT-2024-001</td>
-                            <td>-</td>
-                            <td>Şube Depo</td>
-                            <td class="quantity-positive">+30</td>
-                            <td class="quantity-negative">-30</td>
-                            <td class="balance-positive">80</td>
-                            <td>₺150.00</td>
-                            <td>₺4,500.00</td>
-                            <td>Depo aktarımı</td>
-                        </tr>
-                        <tr>
-                            <td>15.01.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-002</td>
-                            <td>DEF Market</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-15</td>
-                            <td class="balance-positive">65</td>
-                            <td>₺175.00</td>
-                            <td>₺2,625.00</td>
-                            <td>Toptan satış</td>
-                        </tr>
-                        <tr>
-                            <td>20.01.2024</td>
-                            <td><span class="movement-type sayim">Sayım</span></td>
-                            <td>SAY-2024-001</td>
-                            <td>-</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+5</td>
-                            <td>-</td>
-                            <td class="balance-positive">70</td>
-                            <td>₺150.00</td>
-                            <td>₺750.00</td>
-                            <td>Sayım farkı</td>
-                        </tr>
-                        <tr>
-                            <td>25.01.2024</td>
-                            <td><span class="movement-type alis">Alış</span></td>
-                            <td>ALI-2024-002</td>
-                            <td>GHI Tedarik</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+50</td>
-                            <td>-</td>
-                            <td class="balance-positive">120</td>
-                            <td>₺160.00</td>
-                            <td>₺8,000.00</td>
-                            <td>Ek stok alımı</td>
-                        </tr>
-                        <tr>
-                            <td>30.01.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-003</td>
-                            <td>JKL Perakende</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-25</td>
-                            <td class="balance-positive">95</td>
-                            <td>₺185.00</td>
-                            <td>₺4,625.00</td>
-                            <td>Perakende satış</td>
-                        </tr>
-                        <tr>
-                            <td>02.02.2024</td>
-                            <td><span class="movement-type aktarma">Aktarma</span></td>
-                            <td>AKT-2024-002</td>
-                            <td>-</td>
-                            <td>Şube Depo</td>
-                            <td class="quantity-positive">+20</td>
-                            <td class="quantity-negative">-20</td>
-                            <td class="balance-positive">95</td>
-                            <td>₺160.00</td>
-                            <td>₺3,200.00</td>
-                            <td>Şube aktarımı</td>
-                        </tr>
-                        <tr>
-                            <td>05.02.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-004</td>
-                            <td>MNO Ticaret</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-10</td>
-                            <td class="balance-positive">85</td>
-                            <td>₺190.00</td>
-                            <td>₺1,900.00</td>
-                            <td>Toptan satış</td>
-                        </tr>
-                        <tr>
-                            <td>10.02.2024</td>
-                            <td><span class="movement-type alis">Alış</span></td>
-                            <td>ALI-2024-003</td>
-                            <td>PQR Tedarik</td>
-                            <td>Ana Depo</td>
-                            <td class="quantity-positive">+75</td>
-                            <td>-</td>
-                            <td class="balance-positive">160</td>
-                            <td>₺155.00</td>
-                            <td>₺11,625.00</td>
-                            <td>Büyük alım</td>
-                        </tr>
-                        <tr>
-                            <td>15.02.2024</td>
-                            <td><span class="movement-type satis">Satış</span></td>
-                            <td>SAT-2024-005</td>
-                            <td>RST Market</td>
-                            <td>Ana Depo</td>
-                            <td>-</td>
-                            <td class="quantity-negative">-35</td>
-                            <td class="balance-positive">125</td>
-                            <td>₺195.00</td>
-                            <td>₺6,825.00</td>
-                            <td>Perakende satış</td>
+                            <td colspan="12" class="text-center">Veriler yükleniyor...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -288,18 +188,17 @@
             <div class="pagination-wrapper">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <small class="text-muted">
-                            Toplam 20 kayıt gösteriliyor (1-10 / 20)
+                        <small class="text-muted" id="kayitBilgisi">
+                            Toplam 0 kayıt gösteriliyor
                         </small>
                     </div>
                     <div class="col-md-6">
-                        <nav aria-label="Stok hareketleri sayfalama">
-                            <ul class="pagination pagination-sm justify-content-end mb-0">
+                        <nav aria-label="Cari hareketleri sayfalama">
+                            <ul class="pagination pagination-sm justify-content-end mb-0" id="sayfalama">
                                 <li class="page-item disabled">
                                     <a class="page-link" href="#" tabindex="-1">Önceki</a>
                                 </li>
                                 <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
                                 <li class="page-item">
                                     <a class="page-link" href="#">Sonraki</a>
                                 </li>
@@ -314,42 +213,244 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/script.js"></script>
     <script>
-        // Filtre işlemleri
-        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+        // Sayfa yüklendiğinde varsayılan arama yap
+        document.addEventListener('DOMContentLoaded', function() {
+            searchHareketler();
+        });
+
+        // Cari hareket arama
+        function searchHareketler() {
+            const filters = {
+                cari_arama: document.getElementById('cariArama').value,
+                hareket_turu: document.getElementById('hareketTuru').value,
+                depo_id: document.getElementById('depoId').value,
+                baslangic_tarih: document.getElementById('baslangicTarih').value,
+                bitis_tarih: document.getElementById('bitisTarih').value,
+                baslangic_bakiye: document.getElementById('baslangicBakiye').value,
+                bitis_bakiye: document.getElementById('bitisBakiye').value,
+                siralama: document.getElementById('siralama').value
+            };
+
+            fetch('/cari/cariekstre/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(filters)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateHareketTablosu(data.hareketler);
+                    updateOzetKartlari(data.ozet);
+                    updateKayitBilgisi(data.hareketler.length);
+                } else {
+                    console.error('Backend hatası:', data);
+                    alert('Arama sırasında hata oluştu: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Arama hatası:', error);
+                console.error('Hata detayı:', error.message);
+                alert('Arama sırasında hata oluştu: ' + error.message);
+            });
+        }
+
+        // Hareket tablosunu güncelle
+        function updateHareketTablosu(hareketler) {
+            const tbody = document.getElementById('hareketTablosuBody');
+            tbody.innerHTML = '';
+
+            if (hareketler.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center">Hareket bulunamadı</td></tr>';
+                return;
+            }
+
+            hareketler.forEach(hareket => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', hareket.id);
+                
+                const tarih = new Date(hareket.tarih).toLocaleDateString('tr-TR');
+                
+                // Sayısal değerleri düzgün formatla
+                const formatNumber = (num) => {
+                    if (num === null || num === undefined || isNaN(num)) return '0,00';
+                    const number = parseFloat(num) || 0;
+                    return number.toLocaleString('tr-TR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                };
+
+                const girisText = hareket.giris_miktar > 0 ? '+' + formatNumber(hareket.giris_miktar) : '-';
+                const cikisText = hareket.cikis_miktar > 0 ? '-' + formatNumber(hareket.cikis_miktar) : '-';
+                const bakiyeText = formatNumber(hareket.bakiye);
+                const birimFiyat = hareket.birim_fiyat && hareket.birim_fiyat !== null ? formatNumber(hareket.birim_fiyat) : '0,00';
+                const toplamTutar = hareket.toplam_tutar && hareket.toplam_tutar !== null ? formatNumber(hareket.toplam_tutar) : '0,00';
+
+                row.innerHTML = `
+                    <td>${tarih}</td>
+                    <td><span class="movement-type ${hareket.hareket_turu.toLowerCase()}">${hareket.hareket_turu}</span></td>
+                    <td>${hareket.belge_no || '-'}</td>
+                    <td>${hareket.cari_adi || '-'}</td>
+                    <td>${hareket.depo_adi || '-'}</td>
+                    <td class="quantity-positive">${girisText}</td>
+                    <td class="quantity-negative">${cikisText}</td>
+                    <td class="balance-positive">${bakiyeText}</td>
+                    <td>${hareket.aciklama || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteHareket(${hareket.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Özet kartlarını güncelle
+        function updateOzetKartlari(ozet) {
+            // Sayısal değerleri düzgün formatla
+            const formatNumber = (num) => {
+                if (num === null || num === undefined || isNaN(num)) return '0,00';
+                const number = parseFloat(num) || 0;
+                return number.toLocaleString('tr-TR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            };
+
+            const formatInteger = (num) => {
+                if (num === null || num === undefined || isNaN(num)) return '0';
+                const number = parseInt(num) || 0;
+                return number.toLocaleString('tr-TR');
+            };
+
+            // Özet verilerini güvenli şekilde al
+            const toplamGiris = ozet && ozet.toplamGiris !== undefined ? ozet.toplamGiris : 0;
+            const toplamCikis = ozet && ozet.toplamCikis !== undefined ? ozet.toplamCikis : 0;
+            const mevcutStok = ozet && ozet.mevcutStok !== undefined ? ozet.mevcutStok : 0;
+            const hareketSayisi = ozet && ozet.hareketSayisi !== undefined ? ozet.hareketSayisi : 0;
+            const stokDegeri = ozet && ozet.stokDegeri !== undefined ? ozet.stokDegeri : 0;
+
+            document.getElementById('toplamGiris').textContent = '+' + formatNumber(toplamGiris);
+            document.getElementById('toplamCikis').textContent = '-' + formatNumber(toplamCikis);
+            document.getElementById('toplamBakiye').textContent = formatNumber(mevcutStok);
+            document.getElementById('hareketSayisi').textContent = formatInteger(hareketSayisi);
+            document.getElementById('stokDegeri').textContent = '₺' + formatNumber(stokDegeri);
+        }
+
+        // Kayıt bilgisini güncelle
+        function updateKayitBilgisi(count) {
+            document.getElementById('kayitBilgisi').textContent = `Toplam ${count} kayıt gösteriliyor`;
+        }
+
+        // Filtreleri temizle
+        function clearFilters() {
+            document.getElementById('cariArama').value = '';
+            document.getElementById('hareketTuru').value = '';
+            document.getElementById('depoId').value = '';
+            document.getElementById('baslangicTarih').value = '2024-01-01';
+            document.getElementById('bitisTarih').value = '2024-12-31';
+            document.getElementById('baslangicBakiye').value = '0';
+            document.getElementById('bitisBakiye').value = '999999';
+            document.getElementById('siralama').value = 'date';
+            searchHareketler();
+        }
+
+        // Hareket silme
+        function deleteHareket(id) {
+            if (confirm('Bu hareketi silmek istediğinizden emin misiniz?')) {
+                fetch(`/cari/cariekstre/hareket/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        searchHareketler(); // Tabloyu yenile
+                    } else {
+                        alert('Hareket silinirken hata oluştu: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Silme hatası:', error);
+                    alert('Hareket silinirken hata oluştu');
+                });
+            }
+        }
+
+        // Export fonksiyonları
+        function exportToExcel() {
+            alert('Excel export işlemi başlatıldı');
+            // Excel export implementasyonu buraya eklenebilir
+        }
+
+        function exportToPDF() {
+            alert('PDF export işlemi başlatıldı');
+            // PDF export implementasyonu buraya eklenebilir
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        // Filtre toggle fonksiyonu
+        function toggleFilters() {
+            const filterContent = document.getElementById('filterContent');
+            const toggleIcon = document.getElementById('filterToggleIcon');
+            
+            if (filterContent.classList.contains('collapsed')) {
+                filterContent.classList.remove('collapsed');
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                filterContent.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Filtreleri dışa aktar
+        function exportFilters() {
+            const filters = {
+                cari_arama: document.getElementById('cariArama').value,
+                hareket_turu: document.getElementById('hareketTuru').value,
+                depo_id: document.getElementById('depoId').value,
+                baslangic_tarih: document.getElementById('baslangicTarih').value,
+                bitis_tarih: document.getElementById('bitisTarih').value,
+                baslangic_bakiye: document.getElementById('baslangicBakiye').value,
+                bitis_bakiye: document.getElementById('bitisBakiye').value,
+                siralama: document.getElementById('siralama').value
+            };
+            
+            const filterText = Object.entries(filters)
+                .filter(([key, value]) => value)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join('\n');
+            
+            const blob = new Blob([filterText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cari_filtreleri.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Filtre değişikliklerini dinle
+        document.querySelectorAll('#cariArama, #hareketTuru, #depoId, #baslangicTarih, #bitisTarih, #baslangicBakiye, #bitisBakiye, #siralama').forEach(input => {
             input.addEventListener('change', function() {
-                // Filtre değişikliklerini işle
-                console.log('Filtre değişti:', this.name, this.value);
+                // Otomatik arama için debounce eklenebilir
+                console.log('Filtre değişti:', this.id, this.value);
             });
         });
 
-        // Arama butonu
-        document.querySelector('.btn-primary').addEventListener('click', function() {
-            // Arama işlemini başlat
-            console.log('Arama başlatıldı');
-        });
-
-        // Temizle butonu
-        document.querySelector('.btn-outline-secondary').addEventListener('click', function() {
-            // Formu temizle
-            document.querySelectorAll('.form-control, .form-select').forEach(input => {
-                input.value = '';
-            });
-        });
-
-        // Export butonları
-        document.querySelectorAll('.btn-export').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const action = this.textContent.trim();
-                console.log('Export işlemi:', action);
-                alert(`${action} işlemi başlatıldı`);
-            });
-        });
-
-        // Tablo satır tıklama
-        document.querySelectorAll('.table tbody tr').forEach(row => {
-            row.addEventListener('click', function() {
-                // Satır detaylarını göster
-                console.log('Satır tıklandı:', this);
+        // Enter tuşu ile arama
+        document.querySelectorAll('#cariArama, #baslangicBakiye, #bitisBakiye').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchHareketler();
+                }
             });
         });
     </script>
