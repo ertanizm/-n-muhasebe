@@ -38,93 +38,16 @@
             </div>
 
             <!-- Filtreler -->
-            <div class="filter-card">
-                <div class="filter-header">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
-                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
-                    </button>
-                </div>
-                <div class="filter-content" id="filterContent">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Cari Kodu/Adı</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control " id="cariArama" placeholder="Cari ara...">
-                            </div>
-                        </div> <div class="col-md-3">
-                            <label class="form-label fw-bold">Çek No</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control " id="cek_no" placeholder="Çek No ara...">
-
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Tarih Aralığı</label>
-                            <div class="d-flex align-items-center gap-2"> <!-- buraya d-flex eklendi -->
-                                <div class="input-group ">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
-                                </div>
-                                <span class="mx-1">-</span> <!-- araya tire işareti -->
-                                <div class="input-group ">
-                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                </div>
-                            </div>
-                        </div>
-                       
-                        
-                    </div>
-                    <div class="row mt-3 ">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">İşlem Tipi</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                <select class="form-select" id="islem_tipi">
-                                    <option value="">Tümü</option>
-                                    <option value="0">Alış</option>
-                                    <option value="1">Çıkış</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Durum</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                <select class="form-select " id="durum">
-                                    <option value="">Tümü</option>
-                                    <option value="1">Ciro Edildi</option>
-                                    <option value="2">Tahsis Edildi</option>
-                                    <option value="3">Portföyde</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Sıralama</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-sort"></i></span>
-                                <select class="form-select " id="siralama">
-                                    <option value="date">Tarih</option>
-                                    <option value="type">Hareket Türü</option>
-                                    <option value="quantity">Miktar</option>
-                                    <option value="amount">Tutar</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3 d-flex justify-content-end align-items-end gap-2 text-end mt-md-4">
-                            <button class="btn btn-primary " onclick="searchCekler()">
-                                <i class="fas fa-search"></i> Ara
-                            </button>
-                            <button class="btn btn-outline-secondary " onclick="clearFilters()">
-                                <i class="fas fa-times"></i> Temizle
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <%- include('../filtre', {
+                showIsimArama: true,
+                cekNo: true,
+                isimAramaLabel: 'Cari Kodu/Adı',
+                isimAramaPlaceholder: 'Cari ara...',
+                showTarih: true,
+                showIslemTuru: true,
+                showDurum: true,
+                showSirala: true
+            }) %>
 
             <div id="printArea" class="products-table">
                 <div class="products-tabs mt-4">
@@ -451,9 +374,9 @@
             }
         }
 
-        function searchCekler() {
+        function searchFiltre() {
     const filters = {
-        cari_arama: document.getElementById('cariArama').value,
+        cari_arama: document.getElementById('isimArama').value,
         islem_tipi: document.getElementById('islem_tipi').value,
         cek_no: document.getElementById('cek_no').value,
         baslangic_tarih: document.getElementById('baslangicTarih').value,
@@ -480,25 +403,25 @@
     });
 }
 
-document.querySelectorAll('#cariArama, #hareketTuru,#siralama').forEach(input => {
-    input.addEventListener('change', searchCekler);
+document.querySelectorAll('#isimArama, #hareketTuru,#siralama').forEach(input => {
+    input.addEventListener('change', searchFiltre);
 });
 
-document.querySelectorAll('#cariArama').forEach(input => {
+document.querySelectorAll('#isimArama').forEach(input => {
     input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') searchCekler();
+        if (e.key === 'Enter') searchFiltre();
     });
 });
 
 function clearFilters() {
-            document.getElementById('cariArama').value = '';
+            document.getElementById('isimArama').value = '';
             document.getElementById('islem_tipi').value = '';
             document.getElementById('cek_no').value = '';
             document.getElementById('baslangicTarih').value = '2025-01-01';
             document.getElementById('bitisTarih').value = '2025-12-31';
             document.getElementById('durum').value = '';
             document.getElementById('siralama').value = 'date';
-            searchCekler();
+            searchFiltre();
         }
 
 function updateCeklerTablosu(cekler) {

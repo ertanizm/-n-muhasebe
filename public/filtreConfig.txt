@@ -1,0 +1,38 @@
+<!-- Filtreler -->
+            <%- include('../filtre', {
+                showIsimArama: true,
+                cekNo: true,
+                isimAramaLabel: 'Cari Kodu/Adı',
+                isimAramaPlaceholder: 'Cari ara...',
+                showTarih: true,
+                showIslemTuru: true,
+                showDurum: true,
+                showSirala: true
+            }) %>
+
+*Bu kısmı fitre istediğimiz yere koyuyoruz.
+
+const defaults = {
+    showIsimArama: false,
+    cekNo: false,
+    showTarih: false,
+    showHareketTuru: false,
+    showMusteriTuru: false,
+    showIslemTuru: false,
+    showDurum: false,
+    showStokGrup: false,
+    showDepo: false,
+    showBakiye: false,
+    showSirala: false,
+    isimAramaLabel: 'Kodu/Adı',
+    isimAramaPlaceholder: 'ara...'
+};
+
+
+*Bu alanlardan görünmesini istediğin alana true yazıyorsun olmayanlar default false gelecek.
+
+
+*Eğer aradığın alan burada yoksa yeni alan eklemen gerekiyor.
+filtre.ejs içerisinde yeni alanı diğerlerine bakarak ekle. 
+Sonra ayarlamada oluşturduğun alanı buraya ekleyerek güncelleki senden sonrakilerde yapabilsin.
+ 

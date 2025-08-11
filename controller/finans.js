@@ -201,21 +201,40 @@ router.get('/cekler', async (req, res) => {
                 [cari_id,kasa_banka_id,cek_no,vade,tutar,islem_tipi,durum,aciklama,kullaniciId,id]
             );
         }
-        else {
-            // Insert
-
-            console.log(cari_id,cari_islem_tipi,1,cek_no,Date.now,giris_miktar,cikis_miktar,giris_miktar+cikis_miktar,aciklama,kullaniciId);
+        else 
+        {// Insert
             await conn.execute(
                 `INSERT INTO cekler (
                     cari_id,kasa_banka_id,cek_no,vade,tutar,islem_tipi,durum,aciklama,kaydeden_kullanici,guncelleyenkullanicikayitno
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [cari_id,kasa_banka_id,cek_no,vade,tutar,islem_tipi,durum,aciklama,kullaniciId,kullaniciId]
             );
+
+
+            const [bakiye] = await conn.execute(
+                `SELECT bakiye 
+                 FROM cari_hareketler 
+                 WHERE cari_id = ? 
+                 ORDER BY kayit_tarihi DESC, id DESC 
+                 LIMIT 1`,
+                [cari_id]
+            );
+
+            let sonBakiye = 0;
+            if (bakiye.length > 0) {
+                sonBakiye = bakiye[0].bakiye;
+            }
+
+            const yeniBakiye = Number(sonBakiye) + Number(giris_miktar) - Number(cikis_miktar);
+
+            console.log(yeniBakiye,sonBakiye,giris_miktar,cikis_miktar);
+
+
             await conn.execute(
                 `INSERT INTO cari_hareketler (
-                cari_id,hareket_turu_id,depo_id,belge_no,tarih,giris_miktar,cikis_miktar,bakiye,aciklama,kaydeden_kullanici
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [cari_id,cari_islem_tipi,1,cek_no,vade,giris_miktar,cikis_miktar,giris_miktar+cikis_miktar,aciklama,kullaniciId]
+                cari_id,hareket_turu_id,depo_id,belge_no,giris_miktar,cikis_miktar,bakiye,aciklama,kaydeden_kullanici
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [cari_id,cari_islem_tipi,1,cek_no,giris_miktar,cikis_miktar,yeniBakiye,aciklama,kullaniciId]
             );
         }
             await conn.end();
@@ -243,7 +262,7 @@ router.get('/cekler', async (req, res) => {
     });
 
     // Çek arama/filtreleme
-router.post('/cekler/search', async (req, res) => {
+    router.post('/cekler/search', async (req, res) => {
     try {
         const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
         const {

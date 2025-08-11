@@ -30,101 +30,21 @@
                 </div>
             </div>
 
-            <div class="filter-card">
-                <div class="filter-header">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
-                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
-                    </button>
-                </div>
-                <div class="filter-content" id="filterContent">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Stok Kodu/Adı</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control " id="stokArama" placeholder="Stok ara...">
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">Tarih Aralığı</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
-                                </div>
-                                <span class="mx-1">-</span>
-                                <div class="input-group input-group-lg">
-                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label fw-bold">Stok Grubu</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                <select class="form-select " id="stokGrubu">
-                                    <option value="">Tümü</option>
-                                    <option value="elektronik">Elektronik</option>
-                                    <option value="giyim">Giyim</option>
-                                    <option value="ev">Ev & Yaşam</option>
-                                    <option value="spor">Spor</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label fw-bold">Depo</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
-                                <select class="form-select " id="depoId">
-                                    <option value="">Tümü</option>
-                                    <option value="1">Ana Depo</option>
-                                    <option value="2">Şube Depo</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">Fiyat Aralığı</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
-                                    <input type="number" class="form-control " id="baslangicBakiye" placeholder="0" value="0" min="0">
-                                </div>
-                                <span class="mx-1">-</span>
-                                <div class="input-group input-group-lg">
-                                <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
-                                <input type="number" class="form-control " id="bitisBakiye" placeholder="0" value="999999" min="0">
-                                </div>
-                            </div>
-                        </div>
-                      
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Sıralama</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text"><i class="fas fa-sort"></i></span>
-                                <select class="form-select " id="siralama">
-                                    <option value="date">Tarih</option>
-                                    <option value="stok">Stok Kodu</option>
-                                    <option value="quantity">Miktar</option>
-                                    <option value="value">Değer</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4 justify-content-end d-flex align-items-end">
-                            <button class="btn btn-primary me-2 btn-lg" onclick="searchStoklar()">
-                                <i class="fas fa-search"></i> Ara
-                            </button>
-                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
-                                <i class="fas fa-times"></i> Temizle
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Filtreler -->
+            <%- include('../filtre', {
+                showIsimArama: true,
+                isimAramaLabel: 'Stok Kodu/Adı',
+                isimAramaPlaceholder: 'Stok ara...',
+                showHareketTuru: false,
+                showMusteriTuru: false,
+                showStokGrup: true,
+                showDepo: true,
+                showTarih: true,
+                showBakiye: true,
+                showSirala: true
+            }) %>
 
+            
             <div class="products-table">
                 <div class="products-tabs mt-4">
                     <ul class="nav nav-tabs" id="stokTab" role="tablist">
@@ -498,7 +418,7 @@
         }
         
         // Enter tuşu ile arama
-        document.querySelectorAll('#stokArama, #baslangicBakiye, #bitisBakiye').forEach(input => {
+        document.querySelectorAll('#isimArama, #baslangicBakiye, #bitisBakiye').forEach(input => {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     searchStokHareketler();
@@ -508,7 +428,7 @@
         
         // Filtreleri temizle
         function clearFilters() {
-            document.getElementById('stokArama').value = '';
+            document.getElementById('isimArama').value = '';
             document.getElementById('stokGrubu').value = '';
             document.getElementById('depoId').value = '';
             document.getElementById('baslangicTarih').value = '2025-01-01';
@@ -516,11 +436,12 @@
             document.getElementById('baslangicBakiye').value = '0';
             document.getElementById('bitisBakiye').value = '999999';
             document.getElementById('siralama').value = 'date';
+            searchFiltre();
         }
 
-        function searchStoklar() {
+        function searchFiltre() {
             const filters = {
-                stok_arama: document.getElementById('stokArama').value,
+                stok_arama: document.getElementById('isimArama').value,
                 stok_grup: document.getElementById('stokGrubu').value,
                 depo: document.getElementById('depoId').value,
                 baslangic_tarih: document.getElementById('baslangicTarih').value,

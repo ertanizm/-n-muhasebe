@@ -110,7 +110,7 @@ router.get('/cariekstre', async (req, res) => {
         const [hareketler] = await conn.execute(`
             SELECT 
                 ch.id,
-                ch.tarih,
+                ch.kayit_tarihi,
                 ht.tur_adi as hareket_turu,
                 ch.belge_no,
                 c.unvan as cari_adi,
@@ -125,7 +125,7 @@ router.get('/cariekstre', async (req, res) => {
             LEFT JOIN hareket_turleri ht ON ch.hareket_turu_id = ht.id
             LEFT JOIN cariler c ON ch.cari_id = c.id
             LEFT JOIN depokarti d ON ch.depo_id = d.id
-            ORDER BY ch.tarih DESC
+            ORDER BY ch.kayit_tarihi DESC
             LIMIT 50
         `);
 
@@ -188,7 +188,7 @@ router.post('/cariekstre/search', async (req, res) => {
         }
 
         if (baslangic_tarih && bitis_tarih) {
-            whereConditions.push('ch.tarih BETWEEN ? AND ?');
+            whereConditions.push('ch.kayit_tarihi BETWEEN ? AND ?');
             params.push(baslangic_tarih, bitis_tarih);
         }
 
@@ -202,7 +202,7 @@ router.post('/cariekstre/search', async (req, res) => {
             params.push(bitis_bakiye);
         }
 
-        let orderBy = 'ch.tarih DESC';
+        let orderBy = 'ch.kayit_tarihi ASC';
         if (siralama === 'type') {
             orderBy = 'ht.tur_adi ASC';
         } else if (siralama === 'quantity') {
@@ -214,7 +214,7 @@ router.post('/cariekstre/search', async (req, res) => {
         const [hareketler] = await conn.execute(`
             SELECT 
                 ch.id,
-                ch.tarih,
+                ch.kayit_tarihi,
                 ht.tur_adi as hareket_turu,
                 ht.tur_kodu,
                 ch.belge_no,
@@ -234,7 +234,6 @@ router.post('/cariekstre/search', async (req, res) => {
             ORDER BY ${orderBy}
             LIMIT 100
         `, params);
-
         // Özet bilgileri hesapla
         const toplamGiris = hareketler.reduce((sum, h) => {
             const miktar = parseFloat(h.giris_miktar) || 0;
@@ -244,7 +243,7 @@ router.post('/cariekstre/search', async (req, res) => {
             const miktar = parseFloat(h.cikis_miktar) || 0;
             return sum + miktar;
         }, 0);
-        const mevcutStok = hareketler.length > 0 ? (parseFloat(hareketler[0].bakiye) || 0) : 0;
+        const mevcutStok = toplamGiris-toplamCikis; //hareketler.length > 0 ? (parseFloat(hareketler[0].bakiye) || 0) : 0;
         const hareketSayisi = hareketler.length;
         const stokDegeri = hareketler.reduce((sum, h) => {
             const tutar = parseFloat(h.toplam_tutar) || 0;

@@ -29,56 +29,19 @@
                 </div>
             </div>
 
-            <!-- Filtreler  -->
-            <div class="filter-card">
-                <div class="filter-header">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
-                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
-                    </button>
-                </div>
-                <div class="filter-content" id="filterContent">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Cari Kodu/Adı</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control form-control-md" id="cariArama" placeholder="Cari ara...">
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label fw-bold">Müşteri Türü</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                <select class="form-select form-select-lg" id="cariTuru">
-                                    <option value="">Tümü</option>
-                                    <option value="0">Müşteri</option>
-                                    <option value="1">Tedarikçi</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Sıralama</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-sort"></i></span>
-                                <select class="form-select form-select-lg" id="siralama">
-                                    <option value="">Tarih</option>
-                                    <option value="name">Cari Kodu</option>
-                                    <option value="unvan">Cari Adı</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3 justify-content-end d-flex align-items-end">
-                            <button class="btn btn-primary me-2 btn-lg" onclick="searchCariler()">
-                                <i class="fas fa-search"></i> Ara
-                            </button>
-                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
-                                <i class="fas fa-times"></i> Temizle
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+             <!-- Filtreler -->
+             <%- include('../filtre', {
+                showIsimArama: true,
+                isimAramaLabel: 'Cari Kodu/Adı',
+                isimAramaPlaceholder: 'Cari ara...',
+                showHareketTuru: false,
+                showMusteriTuru: true,
+                showStokGrup: false,
+                showDepo: false,
+                showTarih: false,
+                showBakiye: false,
+                showSirala: true
+            }) %>
 
             <div class="customers-table">
                 <table class="table">
@@ -370,16 +333,16 @@
                 }
             
         function clearFilters() {
-            document.getElementById('cariArama').value = "";
+            document.getElementById('isimArama').value = "";
             document.getElementById('cariTuru').value = "";
             document.getElementById('siralama').value = "";
-            searchCariler();
+            searchFiltre();
         } 
 
          // Cari hareket arama
-         function searchCariler() {
+         function searchFiltre() {
             const filters = {
-                cari_arama: document.getElementById('cariArama').value,
+                cari_arama: document.getElementById('isimArama').value,
                 cari_turu: document.getElementById('cariTuru').value,
                 siralama: document.getElementById('siralama').value
             };
@@ -471,10 +434,10 @@
         }
 
         // Enter tuşu ile arama
-        document.querySelectorAll('#cariArama').forEach(input => {
+        document.querySelectorAll('#isimArama').forEach(input => {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    searchCariler();
+                    searchFiltre();
                 }
             });
         });

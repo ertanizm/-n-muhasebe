@@ -292,7 +292,6 @@ await tenantConn.query(`
                 hareket_turu_id INT NOT NULL,
                 depo_id INT,
                 belge_no VARCHAR(100),
-                tarih DATE NOT NULL,
                 giris_miktar DECIMAL(15,2) DEFAULT 0,
                 cikis_miktar DECIMAL(15,2) DEFAULT 0,
                 bakiye DECIMAL(15,2) DEFAULT 0,
@@ -301,6 +300,7 @@ await tenantConn.query(`
                 aciklama TEXT,
                 kaydeden_kullanici INT,
                 kayit_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (cari_id) REFERENCES cariler(id) ON DELETE CASCADE,
                 FOREIGN KEY (hareket_turu_id) REFERENCES hareket_turleri(id),
                 FOREIGN KEY (depo_id) REFERENCES depokarti(id)
