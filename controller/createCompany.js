@@ -12,6 +12,7 @@ const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
 const depoRouter = require('./depoOperation'); // depo router ekle
+const irsaliyeRouter = require('./irsaliye'); // irsaliye router ekle
 
 
 const finansRouter = require('./finans');
@@ -48,6 +49,11 @@ app.use(session({
 // app.use(csrfProtection);
 
 // Add cari routes before the root router
+// API routes should come first
+app.use('/api', express.json());
+app.use('/api', irsaliyeRouter.router);
+
+// Then other routes
 app.use('/cari', cariRouter);
 app.use('/stok', stokRouter);
 app.use('/stok', depoRouter);
@@ -83,9 +89,22 @@ const authMiddleware = async (req, res, next) => {
 
 // Utility to create master_db and tables if not exist
 async function ensureMasterDb() {
-    const conn = await mysql.createConnection({ host, user: masterDbUser, password: masterDbPass });
-    await conn.query(`CREATE DATABASE IF NOT EXISTS \`${masterDbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci`);
-    await conn.query(`USE \`${masterDbName}\``);
+    // İlk olarak master veritabanını oluşturmak için bağlantı kur
+    const initialConn = await mysql.createConnection({
+        host: host,
+        user: masterDbUser,
+        password: masterDbPass,
+        multipleStatements: true // Birden fazla sorgu çalıştırabilmek için
+    });
+
+    // Master veritabanını oluştur
+    await initialConn.query(`CREATE DATABASE IF NOT EXISTS \`${masterDbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci`);
+    
+    // Bağlantıyı kapat
+    await initialConn.end();
+
+    // Master veritabanına yeni bir bağlantı oluştur
+    const conn = await mysql.createConnection(getMasterDbConfig());
 
     await conn.query(`
         CREATE TABLE IF NOT EXISTS companies (
@@ -274,7 +293,7 @@ await tenantConn.query(`
         );`)
 
          // Hareket türleri tablosu
-         await conn.execute(`
+         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS hareket_turleri (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 tur_adi VARCHAR(50) NOT NULL,
@@ -285,7 +304,7 @@ await tenantConn.query(`
         `);
 
         // Cari hareketler tablosu
-        await conn.execute(`
+        await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS cari_hareketler (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 cari_id INT NOT NULL,
@@ -308,7 +327,7 @@ await tenantConn.query(`
         `);
 
         // Varsayılan hareket türlerini ekle
-        await conn.execute(`
+        await tenantConn.query(`
             INSERT IGNORE INTO hareket_turleri (tur_adi, tur_kodu) VALUES 
             ('Alış', 'ALIS'),
             ('Satış', 'SATIS'),
@@ -352,11 +371,10 @@ await tenantConn.query(`
                 kaydedenkullanicikayitno INT,
                 guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (carikayitno) REFERENCES cariler(id),
-                FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
                 FOREIGN KEY (depokayitno) REFERENCES depokarti(id)
             )
         `);
-        await conn.execute(`
+        await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS cekler (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 cari_id INT NOT NULL,

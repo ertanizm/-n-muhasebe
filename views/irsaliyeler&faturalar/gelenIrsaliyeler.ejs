@@ -32,25 +32,9 @@
                     <th style="text-align:right;">İşlemler</th>
                 </tr>
             </thead>
-            <tbody>
-                <% irsaliyeler.forEach(function(irsaliye) { %>              <tr>
-                    <td><%= irsaliye.no %></td>
-                    <td><%= irsaliye.tarih %></td>
-                    <td><%= irsaliye.cari %></td>
-                    <td><%= irsaliye.tutar %> ₺</td>
-                    <td>
-                        <span class="irsaliye-status <%= irsaliye.durum.toLowerCase() %>"><%= irsaliye.durum %></span>
-                    </td>
-                    <td><%= irsaliye.aciklama %></td>
-                    <td style="text-align:right;">
-                        <div class="irsaliye-actions">
-                            <button class="btn btn-light btn-sm"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-light btn-sm"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-light btn-sm"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>
-                <% }); %>        </tbody>
+            <tbody id="irsaliyeTableBody">
+                <!-- İrsaliyeler buraya JavaScript ile yüklenecek -->
+            </tbody>
         </table>
     </div>
 </div>
@@ -787,7 +771,71 @@
     }
 
     // Sayfa yüklendiğinde ilk satırın event'lerini bağla
-    document.addEventListener('DOMContentLoaded', function() {
+    // İrsaliyeleri yükle
+function loadIrsaliyeler() {
+    fetch('/api/irsaliyeler')
+        .then(response => response.json())
+        .then(irsaliyeler => {
+            const tbody = document.getElementById('irsaliyeTableBody');
+            tbody.innerHTML = '';
+            
+            if (!irsaliyeler || irsaliyeler.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Kayıtlı irsaliye bulunamadı</td></tr>';
+                return;
+            }
+
+            irsaliyeler.forEach(irsaliye => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${irsaliye.no || ''}</td>
+                    <td>${irsaliye.tarih || ''}</td>
+                    <td>${irsaliye.cari || ''}</td>
+                    <td>${irsaliye.tutar || '0.00'} ₺</td>
+                    <td>
+                        <span class="irsaliye-status ${irsaliye.durum.toLowerCase()}">${irsaliye.durum}</span>
+                    </td>
+                    <td>${irsaliye.aciklama || ''}</td>
+                    <td style="text-align:right;">
+                        <div class="irsaliye-actions">
+                            <button class="btn btn-light btn-sm" onclick="viewIrsaliye(${irsaliye.id})"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-light btn-sm" onclick="editIrsaliye(${irsaliye.id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-light btn-sm" onclick="deleteIrsaliye(${irsaliye.id})"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('İrsaliyeler yüklenirken hata:', error);
+            const tbody = document.getElementById('irsaliyeTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">İrsaliyeler yüklenirken bir hata oluştu</td></tr>';
+        });
+}
+
+// İrsaliye görüntüleme fonksiyonu
+function viewIrsaliye(id) {
+    // TODO: İrsaliye detay görüntüleme işlemleri
+    console.log('İrsaliye görüntüle:', id);
+}
+
+// İrsaliye düzenleme fonksiyonu
+function editIrsaliye(id) {
+    // TODO: İrsaliye düzenleme işlemleri
+    console.log('İrsaliye düzenle:', id);
+}
+
+// İrsaliye silme fonksiyonu
+function deleteIrsaliye(id) {
+    if (confirm('Bu irsaliyeyi silmek istediğinizden emin misiniz?')) {
+        // TODO: İrsaliye silme işlemleri
+        console.log('İrsaliye sil:', id);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // İrsaliyeleri yükle
+    loadIrsaliyeler();
         const firstRow = document.querySelector('#productTableBody tr');
         if (firstRow) {
             const inputs = firstRow.querySelectorAll('input[type="number"], select');

@@ -39,6 +39,7 @@ router.get('/', csrfProtection, (req, res) => {
         error: null 
     });
 });
+
 // Signup sayfası route
 router.get('/signup', (req, res) => {
     res.render('signup');
@@ -65,6 +66,7 @@ router.get('/hesaplarim', async (req, res) => {
         });
     }
 });
+
 // Homepage sayfası route
 router.get('/anasayfa', (req, res) => {
     res.render('anasayfa', { error: null });
@@ -73,15 +75,12 @@ router.get('/anasayfa', (req, res) => {
 // Cari operations routes
 router.use('/cari', cariOperations);
 
+// İrsaliye sayfaları
 router.get('/irsaliye/gelen', authMiddleware, irsaliyeController.gelenIrsaliyeler);
 router.get('/irsaliye/giden', authMiddleware, irsaliyeController.gidenIrsaliyeler);
 
-// API endpointleri - Auth middleware ile korumalı
-router.get('/api/cariler', apiAuthMiddleware, irsaliyeController.getCariler);
-router.get('/api/depolar', apiAuthMiddleware, irsaliyeController.getDepolar);
-router.get('/api/stoklar', apiAuthMiddleware, irsaliyeController.getStoklar);
-router.post('/api/irsaliye', apiAuthMiddleware, irsaliyeController.createIrsaliye);
-router.post('/api/add-test-data', apiAuthMiddleware, irsaliyeController.addTestData);
+// API routes
+router.use('/api', apiAuthMiddleware, irsaliyeController.router);
 
 router.get('/ceklistesi', (req, res) => {
     res.render('finans/cekler', { error: null });
