@@ -8,6 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="/css/musteriler.css" rel="stylesheet">
+    <link href="/css/filtre.css" rel="stylesheet">
+
 </head>
 <body>
     <%- include('../sidebar') %>
@@ -28,8 +30,99 @@
                 </div>
             </div>
 
-            <div class="search-area">
-                <input type="text" class="form-control search-box" placeholder="Stok Ara...">
+            <div class="filter-card">
+                <div class="filter-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
+                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+                    </button>
+                </div>
+                <div class="filter-content" id="filterContent">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Stok Kodu/Adı</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control " id="stokArama" placeholder="Stok ara...">
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Tarih Aralığı</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
+                                </div>
+                                <span class="mx-1">-</span>
+                                <div class="input-group input-group-lg">
+                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Stok Grubu</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                <select class="form-select " id="stokGrubu">
+                                    <option value="">Tümü</option>
+                                    <option value="elektronik">Elektronik</option>
+                                    <option value="giyim">Giyim</option>
+                                    <option value="ev">Ev & Yaşam</option>
+                                    <option value="spor">Spor</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Depo</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
+                                <select class="form-select " id="depoId">
+                                    <option value="">Tümü</option>
+                                    <option value="1">Ana Depo</option>
+                                    <option value="2">Şube Depo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Fiyat Aralığı</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
+                                    <input type="number" class="form-control " id="baslangicBakiye" placeholder="0" value="0" min="0">
+                                </div>
+                                <span class="mx-1">-</span>
+                                <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
+                                <input type="number" class="form-control " id="bitisBakiye" placeholder="0" value="999999" min="0">
+                                </div>
+                            </div>
+                        </div>
+                      
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Sıralama</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="fas fa-sort"></i></span>
+                                <select class="form-select " id="siralama">
+                                    <option value="date">Tarih</option>
+                                    <option value="stok">Stok Kodu</option>
+                                    <option value="quantity">Miktar</option>
+                                    <option value="value">Değer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 justify-content-end d-flex align-items-end">
+                            <button class="btn btn-primary me-2 btn-lg" onclick="searchStoklar()">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="products-table">
@@ -190,79 +283,7 @@
                       </div>
                   
                     </div>
-                  </div>
-                  
-                <!-- <table class="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Stok Kodu</th>
-                            <th>Stok Adı</th>
-                            <th>Birim</th>
-                            <th>Miktar</th>
-                            <th>Fiyat 1</th>
-                            <th>Fiyat 2</th>
-                            <th>Fiyat 3</th>
-                            <th>Stok Tipi</th>
-                            <th>Aktif</th>
-                            <th>Kaydet K.</th>
-                            <th>Güncelleyen K.</th>
-                            <th>Grup</th>
-                            <th>Vergi</th>
-                            <th>Kayıt Tarihi</th>
-                            <th>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% if (stoklar && stoklar.length > 0) { %>
-                            <% stoklar.forEach(function(c, i) { %>
-                                <tr>
-                                    <td><%= c.id %></td>
-                                    <td><%= c.stok_kodu %></td>
-                                    <td><%= c.stok_adi %></td>
-                                    <td><%= c.birim %></td>
-                                    <td><%= c.miktar %></td>
-                                    <td><%= c.fiyat1 %></td>
-                                    <td><%= c.fiyat2 %></td>
-                                    <td><%= c.fiyat3 %></td>
-                                    <td><%= c.stoktipi %></td>
-                                    <td><%= c.aktif %></td>
-                                    <td><%= c.kaydedenkullanicikayitno %></td>
-                                    <td><%= c.guncelleyenkullanicikayitno %></td>
-                                    <td><%= c.grupkayitno %></td>
-                                    <td><%= c.vergikayitno %></td>
-                                    <td><%= c.kayittarihi %></td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning me-1 edit-btn"
-                                            data-id="<%= c.id %>"
-                                            data-stok_kodu="<%= c.stok_kodu %>"
-                                            data-stok_adi="<%= c.stok_adi %>"
-                                            data-birim="<%= c.birim %>"
-                                            data-miktar="<%= c.miktar %>"
-                                            data-fiyat1="<%= c.fiyat1 %>"
-                                            data-fiyat2="<%= c.fiyat2 %>"
-                                            data-fiyat3="<%= c.fiyat3 %>"
-                                            data-stoktipi="<%= c.stoktipi %>"
-                                            data-aktif="<%= c.aktif %>"
-                                            data-kaydedenkullanicikayitno="<%= c.kaydedenkullanicikayitno %>"
-                                            data-guncelleyenkullanicikayitno="<%= c.guncelleyenkullanicikayitno %>"
-                                            data-grupkayitno="<%= c.grupkayitno %>"
-                                            data-vergikayitno="<%= c.vergikayitno %>"
-                                            data-kayittarihi="<%= c.kayittarihi %>"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete-btn" data-id="<%= c.id %>">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        <% } else { %>
-                            <tr><td colspan="16">Kayıt bulunamadı.</td></tr>
-                        <% } %>
-                    </tbody>
-                </table> -->
+                </div>
             </div>
         </div>
     </div>
@@ -408,35 +429,38 @@
             }
         });
 
-        //  delete endpoint
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Depoyu silmek istediğinize emin misiniz?')) return;
-                
-                const id = btn.dataset.id;
+        // Update delete endpoint
+        document.querySelector('.products-table tbody').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+
+            if (!confirm('Stoğunuzu silmek istediğinize emin misiniz?')) return;
+
+            const id = btn.dataset.id;
                 const response = await fetch(`/stok/stoklar/${id}`, { 
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 });
-                
-                const result = await response.json();
-                if (result.success) {
-                    btn.closest('tr').remove();
-                    alert('Depo başarıyla silindi.');
-                } else {
-                    alert('Silme işlemi başarısız: ' + result.message);
-                }
-            });
+
+            const result = await response.json();
+            if (result.success) {
+                btn.closest('tr').remove();
+                alert('Stok başarıyla silindi.');
+            } else {
+                alert('Silme işlemi başarısız: ' + result.message);
+            }
         });
 
         // Edit butonu için event listener
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
-                const form = document.getElementById('productForm');
-                
-                // Form alanlarını doldur
-                form.id.value = btn.dataset.id;
+        document.querySelector('.products-table tbody').addEventListener('click', (e) => {
+            const btn = e.target.closest('.edit-btn');
+            if (!btn) return;
+
+            const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+            const form = document.getElementById('productForm');
+
+            // Form alanlarını doldur
+            form.id.value = btn.dataset.id;
                 form.stok_kodu.value = btn.dataset.stok_kodu;
                 form.stok_adi.value = btn.dataset.stok_adi;
                 form.birim.value = btn.dataset.birim;
@@ -451,12 +475,149 @@
                 form.stoktipi.value = btn.dataset.stoktipi || "0";
                 form.aktif.value = btn.dataset.aktif || "1";
 
-                // Modal başlığını güncelle
-                document.getElementById('addProductModalLabel').textContent = 'Stok Düzenle';
+            // Modal başlığını güncelle
+            document.getElementById('addProductModalLabel').textContent = 'Stok Düzenle';
                 
-                modal.show();
+            modal.show();
+        });
+   
+          // Filtre toggle fonksiyonu
+        function toggleFilters() {
+            const filterContent = document.getElementById('filterContent');
+            const toggleIcon = document.getElementById('filterToggleIcon');
+            
+            if (filterContent.classList.contains('collapsed')) {
+                filterContent.classList.remove('collapsed');
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                filterContent.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+        
+        // Enter tuşu ile arama
+        document.querySelectorAll('#stokArama, #baslangicBakiye, #bitisBakiye').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchStokHareketler();
+                }
             });
         });
-    </script>
+        
+        // Filtreleri temizle
+        function clearFilters() {
+            document.getElementById('stokArama').value = '';
+            document.getElementById('stokGrubu').value = '';
+            document.getElementById('depoId').value = '';
+            document.getElementById('baslangicTarih').value = '2025-01-01';
+            document.getElementById('bitisTarih').value = '2025-12-31';
+            document.getElementById('baslangicBakiye').value = '0';
+            document.getElementById('bitisBakiye').value = '999999';
+            document.getElementById('siralama').value = 'date';
+        }
+
+        function searchStoklar() {
+            const filters = {
+                stok_arama: document.getElementById('stokArama').value,
+                stok_grup: document.getElementById('stokGrubu').value,
+                depo: document.getElementById('depoId').value,
+                baslangic_tarih: document.getElementById('baslangicTarih').value,
+                bitis_tarih: document.getElementById('bitisTarih').value,
+                baslangic_Bakiye: document.getElementById('baslangicBakiye').value,
+                bitis_Bakiye: document.getElementById('bitisBakiye').value,
+                siralama: document.getElementById('siralama').value
+            };
+
+            fetch('/stok/stoklar/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(filters)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStoklarTablosu(data.stoklar);
+                } else {
+                    alert('Arama sırasında hata oluştu: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Arama sırasında hata oluştu: ' + error.message);
+            });
+        }
+
+        function updateStoklarTablosu(stoklar) {
+            const tbodygenel = document.querySelector('#genel tbody');
+            const tbodysatis = document.querySelector('#satis tbody');
+            const tbodyek = document.querySelector('#ek tbody');
+            tbodygenel.innerHTML = '';
+            tbodysatis.innerHTML = '';
+            tbodyek.innerHTML = '';
+
+            if (!stoklar || stoklar.length === 0) {
+                tbodygenel.innerHTML = '<tr><td colspan="16" class="text-center">Kayıt bulunamadı</td></tr>';
+                return;
+            }
+
+            stoklar.forEach(stok => {
+                const rowgenel = document.createElement('tr');
+                const rowsatis = document.createElement('tr');
+                const rowek = document.createElement('tr');
+
+                rowgenel.innerHTML = `
+                    <td>${stok.id}</td>
+                    <td>${stok.stokText || ''}</td>
+                    <td>${stok.stok_kodu || ''}</td>
+                    <td>${stok.stok_adi || ''}</td>
+                    <td>${stok.grup_adi || ''}</td>
+                    <td>${stok.depo_adi || ''}</td>
+                    <td>${stok.birimText || ''}</td>
+                    <td>${stok.miktar || ''}</td>
+                    <td class="action-buttons no-print">
+                        <button class="btn btn-sm btn-warning me-1 edit-btn"
+                            data-id="${stok.id}"
+                            data-stok_kodu="${stok.stok_kodu}"
+                            data-stok_adi="${stok.stok_adi}"
+                            data-birim="${stok.birim}"
+                            data-miktar="${stok.miktar}"
+                            data-fiyat1="${stok.fiyat1}"
+                            data-fiyat2="${stok.fiyat2}"
+                            data-fiyat3="${stok.fiyat3}"
+                            data-stoktipi="${stok.stoktipi}"
+                            data-aktif="${stok.aktif}"
+                            data-kaydedenkullanicikayitno="${stok.kaydedenkullanicikayitno}"
+                            data-guncelleyenkullanicikayitno="${stok.guncelleyenkullanicikayitno}"
+                            data-grupkayitno="${stok.grupkayitno}"
+                            data-vergikayitno="${stok.vergikayitno}"
+                            data-kayittarihi="${stok.kayittarihi}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${stok.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                rowsatis.innerHTML = `
+                    <td>${stok.fiyat1 || ''}</td>
+                    <td>${stok.fiyat2 || ''}</td>
+                    <td>${stok.fiyat3 || ''}</td>
+                    <td>${stok.vergikayitno || ''}</td>
+                `;
+                rowek.innerHTML = `
+                    <td>${stok.kaydedenkullanicikayitno || ''}</td>
+                    <td>${stok.guncelleyenkullanicikayitno || ''}</td>
+                    <td>${stok.kayittarihi || ''}</td>
+                `;
+                tbodygenel.appendChild(rowgenel);
+                tbodysatis.appendChild(rowsatis);
+                tbodyek.appendChild(rowek);
+            });
+        }
+
+      
+  
+  </script>
 </body>
 </html>

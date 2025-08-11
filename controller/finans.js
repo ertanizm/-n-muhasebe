@@ -140,10 +140,14 @@ router.get('/cekler', async (req, res) => {
         const [hesaplar] = await conn.execute("SELECT id, tanimi FROM hesapkarti ORDER BY tanimi ASC");
         
         await conn.end();
-    
+        const mappedCekler = cekler.map(cek => ({
+            ...cek,
+            islem_tipi_text: islemTipiText(cek.islem_tipi),
+            durum_text: durumText(cek.durum)
+        }));
         res.render('finans/cekler', {
             user: req.session.user,
-            cekler: cekler,
+            cekler: mappedCekler,
             cariler: cariler,
             hesaplar: hesaplar
         });
@@ -238,4 +242,95 @@ router.get('/cekler', async (req, res) => {
         }
     });
 
+    // Çek arama/filtreleme
+router.post('/cekler/search', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        const {
+            cari_arama,
+            islem_tipi,
+            cek_no,
+            durum,
+            baslangic_tarih,
+            bitis_tarih,
+            siralama
+        } = req.body;
+
+        let whereConditions = [];
+        let params = [];
+
+        if (cari_arama) {
+            whereConditions.push('(cariler.unvan LIKE ? OR cariler.carikodu LIKE ?)');
+            params.push(`%${cari_arama}%`, `%${cari_arama}%`);
+        }
+        if (islem_tipi) {
+            whereConditions.push('c.islem_tipi = ?');
+            params.push(islem_tipi);
+        }
+        if (cek_no) {
+            whereConditions.push('c.cek_no LIKE ?');
+            params.push(`%${cek_no}%`);
+        }
+        if (durum) {
+            whereConditions.push('c.durum = ?');
+            params.push(durum);
+        }
+        if (baslangic_tarih && bitis_tarih) {
+            whereConditions.push('c.vade BETWEEN ? AND ?');
+            params.push(baslangic_tarih, bitis_tarih);
+        }
+        let orderBy = 'c.vade DESC';
+        if (siralama === 'type') {
+            orderBy = 'c.islem_tipi ASC';
+        } else if (siralama === 'quantity') {
+            orderBy = 'c.tutar DESC';
+        } else if (siralama === 'amount') {
+            orderBy = 'c.tutar DESC';
+        }
+
+        const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+        const [cekler] = await conn.execute(`
+            SELECT c.*, 
+                cariler.unvan as cari_adi,
+                hesap.tanimi as hesap_adi,
+                DATE_FORMAT(c.vade, '%Y-%m-%d') as vade_formatted
+            FROM cekler c
+            LEFT JOIN cariler ON c.cari_id = cariler.id
+            LEFT JOIN hesapkarti hesap ON c.kasa_banka_id = hesap.id
+            ${whereClause}
+            ORDER BY ${orderBy}
+            LIMIT 100
+        `, params);
+
+        await conn.end();
+        const mappedCekler = cekler.map(cek => ({
+            ...cek,
+            islem_tipi_text: islemTipiText(cek.islem_tipi),
+            durum_text: durumText(cek.durum)
+        }));
+        res.json({ success: true, cekler: mappedCekler });
+    } catch (error) {
+        console.error('Çek arama hatası:', error);
+        res.status(500).json({ success: false, message: 'Çek arama sırasında hata oluştu: ' + error.message });
+    }
+});
+
+
+
+
 module.exports = router;
+
+function islemTipiText(val) {
+    if (val === 0 || val === "0") return "Alış";
+    if (val === 1 || val === "1") return "Çıkış";
+    return "Diğer";
+}
+function durumText(val) {
+    if (val === 0 || val === "0") return "Ciro Edildi";
+    if (val === 1 || val === "1") return "Tahsil Edildi";
+    if (val === 2 || val === "2") return "Portföyde";
+    if (val === 3 || val === "3") return "Karşılıksız";
+    if (val === 4 || val === "4") return "İade";
+    return "Diğer";
+}

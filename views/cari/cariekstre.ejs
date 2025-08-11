@@ -9,6 +9,7 @@
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="/css/musteriler.css" rel="stylesheet">
     <link href="/css/cariekstre.css" rel="stylesheet">
+    <link href="/css/filtre.css" rel="stylesheet">
 </head>
 <body>
     <%- include('../sidebar') %>
@@ -42,18 +43,18 @@
                 </div>
                 <div class="filter-content" id="filterContent">
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Cari Kodu/Adı</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control form-control-sm" id="cariArama" placeholder="Cari ara...">
+                                <input type="text" class="form-control form-control-md" id="cariArama" placeholder="Cari ara...">
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-bold">Hareket Türü</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                <select class="form-select form-select-sm" id="hareketTuru">
+                                <select class="form-select form-select-lg" id="hareketTuru">
                                     <option value="">Tümü</option>
                                     <% if (typeof hareketTurleri !== 'undefined') { %>
                                         <% hareketTurleri.forEach(function(tur) { %>
@@ -67,7 +68,7 @@
                             <label class="form-label fw-bold">Depo</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
-                                <select class="form-select form-select-sm" id="depoId">
+                                <select class="form-select form-select-lg" id="depoId">
                                     <option value="">Tümü</option>
                                     <% if (typeof depolar !== 'undefined') { %>
                                         <% depolar.forEach(function(depo) { %>
@@ -77,15 +78,15 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Tarih Aralığı</label>
                             <div class="d-flex align-items-center gap-2"> <!-- buraya d-flex eklendi -->
-                                <div class="input-group input-group-sm">
+                                <div class="input-group input-group-md">
                                     <span class="input-group-text"><i class="fas fa-calendar"></i></span>
                                     <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
                                 </div>
                                 <span class="mx-1">-</span> <!-- araya tire işareti -->
-                                <div class="input-group input-group-sm">
+                                <div class="input-group input-group-md">
                                     <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
                                     <span class="input-group-text"><i class="fas fa-calendar"></i></span>
                                 </div>
@@ -98,21 +99,21 @@
                             <label class="form-label fw-bold">Başlangıç Bakiyesi</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                                <input type="number" class="form-control form-control-sm" id="baslangicBakiye" placeholder="0" value="0" min="0">
+                                <input type="number" class="form-control form-control-md" id="baslangicBakiye" placeholder="0" value="0" min="0">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Bitiş Bakiyesi</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                                <input type="number" class="form-control form-control-sm" id="bitisBakiye" placeholder="0" value="999999" min="0">
+                                <input type="number" class="form-control form-control-md" id="bitisBakiye" placeholder="0" value="999999" min="0">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Sıralama</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-sort"></i></span>
-                                <select class="form-select form-select-sm" id="siralama">
+                                <select class="form-select form-select-lg" id="siralama">
                                     <option value="date">Tarih</option>
                                     <option value="type">Hareket Türü</option>
                                     <option value="quantity">Miktar</option>
@@ -120,15 +121,12 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3 d-flex align-items-end align-items-center ">
-                            <button class="btn btn-primary btn-sm me-2" onclick="searchHareketler()">
+                        <div class="col-md-3 justify-content-end d-flex align-items-end">
+                            <button class="btn btn-primary me-2 btn-lg" onclick="searchHareketler()">
                                 <i class="fas fa-search"></i> Ara
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
                                 <i class="fas fa-times"></i> Temizle
-                            </button>
-                            <button class="btn btn-outline-info btn-sm ms-2" onclick="exportFilters()">
-                                <i class="fas fa-download"></i> Dışa Aktar
                             </button>
                         </div>
                     </div>
@@ -160,7 +158,7 @@
             </div>
 
             <!-- Stok Hareketleri Tablosu -->
-            <div class="movement-table">
+            <div id="printArea" class="movement-table">
                 <table class="table table-hover" id="hareketTablosu">
                     <thead>
                         <tr>
@@ -173,7 +171,7 @@
                             <th>Çıkış</th>
                             <th>Bakiye</th>
                             <th>Açıklama</th>
-                            <th>İşlemler</th>
+                            <th class="no-print">İşlemler</th>
                         </tr>
                     </thead>
                     <tbody id="hareketTablosuBody">
@@ -298,7 +296,7 @@
                     <td class="quantity-negative">${cikisText}</td>
                     <td class="balance-positive">${bakiyeText}</td>
                     <td>${hareket.aciklama || '-'}</td>
-                    <td>
+                    <td class="no-print">
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteHareket(${hareket.id})">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -350,8 +348,8 @@
             document.getElementById('cariArama').value = '';
             document.getElementById('hareketTuru').value = '';
             document.getElementById('depoId').value = '';
-            document.getElementById('baslangicTarih').value = '2024-01-01';
-            document.getElementById('bitisTarih').value = '2024-12-31';
+            document.getElementById('baslangicTarih').value = '2025-01-01';
+            document.getElementById('bitisTarih').value = '2025-12-31';
             document.getElementById('baslangicBakiye').value = '0';
             document.getElementById('bitisBakiye').value = '999999';
             document.getElementById('siralama').value = 'date';

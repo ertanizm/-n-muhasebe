@@ -371,7 +371,6 @@ await tenantConn.query(`
                 kasa_banka_id INT NOT NULL,
                 cek_no VARCHAR(100),
                 vade DATE,
-                tarih DATE NOT NULL,    
                 tutar DECIMAL(15,2) DEFAULT 0,
                 aciklama TEXT,
                 islem_tipi int DEFAULT 0,

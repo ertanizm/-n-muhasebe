@@ -9,6 +9,7 @@
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="/css/musteriler.css" rel="stylesheet">
     <link href="/css/stokekstre.css" rel="stylesheet">
+    <link href="/css/filtre.css" rel="stylesheet">
 </head>
 <body>
     <%- include('../sidebar') %>
@@ -44,16 +45,30 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Stok Kodu/Adı</label>
-                            <div class="input-group">
+                            <div class="input-group input-group-lg">
                                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control form-control-sm" id="stokArama" placeholder="Stok ara...">
+                                <input type="text" class="form-control " id="stokArama" placeholder="Stok ara...">
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Tarih Aralığı</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
+                                </div>
+                                <span class="mx-1">-</span>
+                                <div class="input-group input-group-lg">
+                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-bold">Stok Grubu</label>
-                            <div class="input-group">
+                            <div class="input-group input-group-lg">
                                 <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                <select class="form-select form-select-sm" id="stokGrubu">
+                                <select class="form-select " id="stokGrubu">
                                     <option value="">Tümü</option>
                                     <option value="elektronik">Elektronik</option>
                                     <option value="giyim">Giyim</option>
@@ -64,50 +79,36 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-bold">Depo</label>
-                            <div class="input-group">
+                            <div class="input-group input-group-lg">
                                 <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
-                                <select class="form-select form-select-sm" id="depoId">
+                                <select class="form-select " id="depoId">
                                     <option value="">Tümü</option>
                                     <option value="1">Ana Depo</option>
                                     <option value="2">Şube Depo</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">Tarih Aralığı</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
-                                </div>
-                                <span class="mx-1">-</span>
-                                <div class="input-group input-group-sm">
-                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
-                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Başlangıç Bakiyesi</label>
-                            <div class="input-group">
+                            <div class="input-group input-group-lg">
                                 <span class="input-group-text"><i class="fas fa-boxes"></i></span>
-                                <input type="number" class="form-control form-control-sm" id="baslangicBakiye" placeholder="0" value="0" min="0">
+                                <input type="number" class="form-control " id="baslangicBakiye" placeholder="0" value="0" min="0">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Bitiş Bakiyesi</label>
-                            <div class="input-group">
+                            <div class="input-group input-group-lg">
                                 <span class="input-group-text"><i class="fas fa-boxes"></i></span>
-                                <input type="number" class="form-control form-control-sm" id="bitisBakiye" placeholder="0" value="999999" min="0">
+                                <input type="number" class="form-control " id="bitisBakiye" placeholder="0" value="999999" min="0">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Sıralama</label>
-                            <div class="input-group">
+                            <div class="input-group input-group-lg">
                                 <span class="input-group-text"><i class="fas fa-sort"></i></span>
-                                <select class="form-select form-select-sm" id="siralama">
+                                <select class="form-select " id="siralama">
                                     <option value="date">Tarih</option>
                                     <option value="stok">Stok Kodu</option>
                                     <option value="quantity">Miktar</option>
@@ -115,15 +116,12 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-primary btn-sm me-2" onclick="searchStokHareketler()">
+                        <div class="col-md-3 justify-content-end d-flex align-items-end">
+                            <button class="btn btn-primary me-2 btn-lg" onclick="searchStokHareketler()">
                                 <i class="fas fa-search"></i> Ara
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
                                 <i class="fas fa-times"></i> Temizle
-                            </button>
-                            <button class="btn btn-outline-info btn-sm ms-2" onclick="exportFilters()">
-                                <i class="fas fa-download"></i> Dışa Aktar
                             </button>
                         </div>
                     </div>

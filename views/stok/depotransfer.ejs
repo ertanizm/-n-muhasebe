@@ -9,6 +9,7 @@
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="/css/musteriler.css" rel="stylesheet">
     <link href="/css/depotransfer.css" rel="stylesheet">
+    <link href="/css/filtre.css" rel="stylesheet">
 </head>
 <body>
     <%- include('../sidebar') %>
@@ -38,74 +39,89 @@
 
             <!-- Filtreler -->
             <div class="filter-card">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label class="form-label">Transfer No</label>
-                        <input type="text" class="form-control form-control-sm" placeholder="Transfer no ara...">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Durum</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="bekliyor">Bekliyor</option>
-                            <option value="onaylandi">Onaylandı</option>
-                            <option value="tamamlandi">Tamamlandı</option>
-                            <option value="iptal">İptal</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Kaynak Depo</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="1">Ana Depo</option>
-                            <option value="2">Şube Depo</option>
-                            <option value="3">Merkez Depo</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Hedef Depo</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="1">Ana Depo</option>
-                            <option value="2">Şube Depo</option>
-                            <option value="3">Merkez Depo</option>
-                        </select>
-                    </div>
+                <div class="filter-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
+                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+                    </button>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Tarih Aralığı</label>
-                        <div class="date-range-picker">
-                            <input type="date" class="form-control form-control-sm" value="2024-01-01">
-                            <span>-</span>
-                            <input type="date" class="form-control form-control-sm" value="2024-12-31">
+                <div class="filter-content" id="filterContent">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="form-label">Transfer No</label>
+                            <input type="text" class="form-control form-control-md" placeholder="Transfer no ara...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Durum</label>
+                            <select class="form-select form-select-lg">
+                                <option value="">Tümü</option>
+                                <option value="bekliyor">Bekliyor</option>
+                                <option value="onaylandi">Onaylandı</option>
+                                <option value="tamamlandi">Tamamlandı</option>
+                                <option value="iptal">İptal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kaynak Depo</label>
+                            <select class="form-select form-select-lg">
+                                <option value="">Tümü</option>
+                                <option value="1">Ana Depo</option>
+                                <option value="2">Şube Depo</option>
+                                <option value="3">Merkez Depo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Hedef Depo</label>
+                            <select class="form-select form-select-lg">
+                                <option value="">Tümü</option>
+                                <option value="1">Ana Depo</option>
+                                <option value="2">Şube Depo</option>
+                                <option value="3">Merkez Depo</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Sorumlu</label>
-                        <select class="form-select form-select-sm">
-                            <option value="">Tümü</option>
-                            <option value="1">Ahmet Yılmaz</option>
-                            <option value="2">Fatma Demir</option>
-                            <option value="3">Mehmet Kaya</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Sıralama</label>
-                        <select class="form-select form-select-sm">
-                            <option value="date">Tarih</option>
-                            <option value="status">Durum</option>
-                            <option value="source">Kaynak Depo</option>
-                            <option value="target">Hedef Depo</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button class="btn btn-primary btn-sm me-2">
-                            <i class="fas fa-search"></i> Ara
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-times"></i> Temizle
-                        </button>
+                
+                    <div class="row mt-4">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Tarih Aralığı</label>
+                            <div class="d-flex align-items-center gap-2"> <!-- buraya d-flex eklendi -->
+                                <div class="input-group input-group-md">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
+                                </div>
+                                <span class="mx-1">-</span> <!-- araya tire işareti -->
+                                <div class="input-group input-group-md">
+                                    <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Sorumlu</label>
+                            <select class="form-select form-select-lg">
+                                <option value="">Tümü</option>
+                                <option value="1">Ahmet Yılmaz</option>
+                                <option value="2">Fatma Demir</option>
+                                <option value="3">Mehmet Kaya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Sıralama</label>
+                            <select class="form-select form-select-lg">
+                                <option value="date">Tarih</option>
+                                <option value="status">Durum</option>
+                                <option value="source">Kaynak Depo</option>
+                                <option value="target">Hedef Depo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 justify-content-end d-flex align-items-end">
+                            <button class="btn btn-primary me-2 btn-lg" onclick="searchStoklar()">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Temizle
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -575,6 +591,23 @@
                 }
             });
         });
+
+        function toggleFilters() {
+            const filterContent = document.getElementById('filterContent');
+            const toggleIcon = document.getElementById('filterToggleIcon');
+            
+            if (filterContent.classList.contains('collapsed')) {
+                filterContent.classList.remove('collapsed');
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                filterContent.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+
     </script>
 </body>
 </html> 
