@@ -13,6 +13,7 @@ const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
 const depoRouter = require('./depoOperation'); // depo router ekle
 const irsaliyeRouter = require('./irsaliye'); // irsaliye router ekle
+const posRouter = require('./pos'); // POS router
 
 
 const finansRouter = require('./finans');
@@ -52,6 +53,7 @@ app.use(session({
 // API routes should come first
 app.use('/api', express.json());
 app.use('/api', irsaliyeRouter.router);
+app.use('/api', posRouter);
 
 // Then other routes
 app.use('/cari', cariRouter);
@@ -440,6 +442,18 @@ await tenantConn.query(`
         FOREIGN KEY (stokkayitno) REFERENCES stoklar(id)
     )
 `);
+
+        // POS hızlı tuş atamaları tablosu
+        await tenantConn.query(`
+            CREATE TABLE IF NOT EXISTS pos_quick_buttons (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                button_index INT NOT NULL,
+                stokkayitno INT NULL,
+                UNIQUE KEY uniq_user_button (user_id, button_index),
+                FOREIGN KEY (stokkayitno) REFERENCES stoklar(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
 
 
        

@@ -86,4 +86,12 @@ router.get('/ceklistesi', (req, res) => {
     res.render('finans/cekler', { error: null });
 });
 
+// Hızlı Satış sayfası
+router.get('/hizlisatis', authMiddleware, (req, res) => {
+    res.render('hizlisatis/hizlisatis', { 
+        user: req.session.user,
+        error: null 
+    });
+});
+
 module.exports = router;

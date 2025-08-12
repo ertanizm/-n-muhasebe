@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hızlı Satış - POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/hizlisatis.css">
+    
+</head>
+<body>
+    <%- include('../sidebar') %>
+
+    <div class="pos-container">
+        <!-- Sol Taraf - Ürünler -->
+        <div class="products-section">
+            <div class="search-bar">
+                <input id="productSearch" type="text" class="form-control" placeholder="Ürün Ara / Barkod..." oninput="searchProducts(this.value)" onkeydown="onProductSearchKey(event)">
+            </div>
+            
+            <!-- Hızlı Tuşlar (100 adet, 4 sütun, scroll) -->
+            
+            <!-- <div class="categories">
+                <button class="category-button active" onclick="filterByCategory('all')">Tümü</button>
+                 Kategoriler dinamik olarak eklenecek
+            </div> -->
+
+            <div class="products-group">
+                <div class="products-group-header">Hızlı Stoklar</div>
+                <div class="products-group-body">
+                    <div class="products-grid" id="productsGrid">
+                        <!-- Ürünler dinamik olarak eklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Taraf - Sepet -->
+        <div class="cart-section">
+            <div class="customer-search">
+                <input type="text" id="customerInput" placeholder="Müşteri Seç" readonly>
+                <span class="search-icon" onclick="openCustomerModal()">🔍</span>
+            </div>
+
+            <div class="cart-items" id="cartItems">
+                <!-- Sepet öğeleri buraya eklenecek -->
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Ara Toplam:</span>
+                    <span id="subtotal">0.00 ₺</span>
+                </div>
+                <div class="summary-row">
+                    <span>KDV:</span>
+                    <span id="tax">0.00 ₺</span>
+                </div>
+                <div  class="summary-row" style="font-weight: bold; font-size: 1.2em;">
+                    <span style="font-size:larger;">Toplam:</span>
+                    <span style="font-size:xx-large;" id="total">0.00 ₺</span>
+                </div>
+
+                <div class="payment-buttons">
+                    <button class="payment-button cash-button" onclick="showPaymentModal('cash')">
+                        <i class="fas fa-money-bill-wave"></i> Nakit
+                    </button>
+                    <button class="payment-button card-button" onclick="showPaymentModal('card')">
+                        <i class="fas fa-credit-card"></i> Kart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ödeme Modal -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="modal-content">
+            <h4 id="paymentTitle">Ödeme</h4>
+            <div class="form-group">
+                <label>Ödenecek Tutar</label>
+                <input type="text" id="amountToPay" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>Ödenen</label>
+                <input type="text" id="amountPaid" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>Para Üstü</label>
+                <input type="text" id="changeAmount" class="form-control" readonly>
+            </div>
+
+            <div class="numeric-keypad">
+                <button class="keypad-button" onclick="addNumber('1')">1</button>
+                <button class="keypad-button" onclick="addNumber('2')">2</button>
+                <button class="keypad-button" onclick="addNumber('3')">3</button>
+                <button class="keypad-button" onclick="addNumber('4')">4</button>
+                <button class="keypad-button" onclick="addNumber('5')">5</button>
+                <button class="keypad-button" onclick="addNumber('6')">6</button>
+                <button class="keypad-button" onclick="addNumber('7')">7</button>
+                <button class="keypad-button" onclick="addNumber('8')">8</button>
+                <button class="keypad-button" onclick="addNumber('9')">9</button>
+                <button class="keypad-button" onclick="addNumber('.')">.</button>
+                <button class="keypad-button" onclick="addNumber('0')">0</button>
+                <button class="keypad-button" onclick="clearAmount()">C</button>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closePaymentModal()">İptal</button>
+                <button class="btn btn-primary" onclick="completePayment()">Ödemeyi Tamamla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Müşteri Seçim Modal -->
+    <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Müşteri Seç</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-3" placeholder="Müşteri Ara...">
+                    <div class="customer-list">
+                        <!-- Müşteriler buraya listelenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let cart = [];
+        let selectedCustomer = null;
+        let currentPaymentMethod = null;
+        let taxCodes = [];
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            renderQuickButtons();
+            loadQuickButtonAssignments();
+            loadTaxCodes();
+        });
+        async function loadTaxCodes(){
+            try{
+                const res = await fetch('/api/tax-codes');
+                const json = await res.json();
+                if(json.success){
+                    taxCodes = json.data || [];
+                }
+            }catch(e){ console.error('Vergi kodları alınamadı', e); }
+        }
+
+        // Products grid içine 100 adet sabit, 4 sütun düzeninde boş buton render et
+        function renderQuickButtons() {
+            const grid = document.getElementById('productsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < 100; i += 1) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'quick-button';
+                btn.dataset.index = i;
+                btn.onclick = () => onQuickButtonClick(i);
+                fragment.appendChild(btn);
+            }
+            grid.appendChild(fragment);
+        }
+
+        // Quick button state
+        const quickButtonStocks = {}; // {index: {id, stokKodu, stokAdi}}
+
+        async function loadQuickButtonAssignments() {
+            try {
+                const res = await fetch('/api/quick-buttons');
+                const json = await res.json();
+                if (!json.success) return;
+                json.data.forEach(assign => {
+                    const { buttonIndex, stokId, stokKodu, stokAdi, fiyat1, fiyat2 } = assign;
+                    if (stokId) {
+                        quickButtonStocks[buttonIndex] = { id: stokId, stokKodu, stokAdi, fiyat1: Number(fiyat1||0), fiyat2: Number(fiyat2||0) };
+                        const btn = document.querySelector(`.quick-button[data-index="${buttonIndex}"]`);
+                        if (btn) btn.textContent = stokAdi || stokKodu || '';
+                    }
+                });
+            } catch (e) {
+                console.error('Hızlı tuşlar yüklenemedi', e);
+            }
+        }
+
+        // Modal: stok seçimi
+        let activeQuickButtonIndex = null;
+        function onQuickButtonClick(index) {
+            // Eğer butona atanmış stok varsa, sepete ekle
+            if (quickButtonStocks[index]) {
+                const s = quickButtonStocks[index];
+                // Hızlı butondan eklerken fiyat1/fiyat2'yi de aktar
+                addToCart({ id: s.id, stok_adi: s.stokAdi, fiyat1: s.fiyat1 || 0, fiyat2: s.fiyat2 || 0 });
+                return;
+            }
+            // Yoksa stok seçme modalı aç
+            activeQuickButtonIndex = index;
+            openStockPickerModal();
+        }
+
+        function openStockPickerModal() {
+            const modalEl = document.getElementById('stockPickerModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+            bsModal.show();
+            loadActiveStocksIntoPicker();
+        }
+
+        async function loadActiveStocksIntoPicker() {
+            const tbody = document.querySelector('#stockPickerTable tbody');
+            tbody.innerHTML = '<tr><td colspan="2">Yükleniyor...</td></tr>';
+            try {
+                const res = await fetch('/api/stoklar');
+                const stocks = await res.json();
+                tbody.innerHTML = '';
+                stocks.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${s.stok_kodu || ''}</td><td>${s.stok_adi}</td>`;
+                    tr.style.cursor = 'pointer';
+                    tr.onclick = () => assignStockToQuickButton(s.id, s.stok_adi);
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="2">Stoklar yüklenemedi</td></tr>';
+            }
+        }
+
+        async function assignStockToQuickButton(stokId, stokAdi) {
+            if (activeQuickButtonIndex == null) return;
+            await fetch(`/api/quick-buttons/${activeQuickButtonIndex}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stokkayitno: stokId })
+            });
+            // UI güncelle
+            quickButtonStocks[activeQuickButtonIndex] = { id: stokId, stokAdi };
+            const btn = document.querySelector(`.quick-button[data-index="${activeQuickButtonIndex}"]`);
+            if (btn) btn.textContent = stokAdi;
+            bootstrap.Modal.getInstance(document.getElementById('stockPickerModal')).hide();
+            activeQuickButtonIndex = null;
+        }
+
+        // Ürünleri yükle
+        function loadProducts() {
+            fetch('/api/stoklar')
+                .then(response => response.json())
+                .then(products => {
+                    const productsGrid = document.getElementById('productsGrid');
+                    productsGrid.innerHTML = '';
+                    
+                    products.forEach(product => {
+                        const card = document.createElement('div');
+                        card.className = 'product-card';
+                        card.onclick = () => addToCart(product);
+                        card.innerHTML = `
+                            <img src="/images/product-placeholder.png" alt="${product.stok_adi}">
+                            <div>${product.stok_adi}</div>
+                            <div>${Number(product.fiyat1||0).toFixed(2)} ₺</div>
+                        `;
+                        productsGrid.appendChild(card);
+                    });
+                })
+                .catch(error => console.error('Ürünler yüklenirken hata:', error));
+        }
+
+        // Geçici: Kategoriler kullanılmıyorsa no-op fonksiyon
+        function loadCategories() {}
+
+        // Sepete ürün ekle
+        function addToCart(product) {
+            const existingItem = cart.find(item => item.id === product.id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+                existingItem.total = existingItem.quantity * (Number(existingItem.price)||0);
+            } else {
+                const fiyat1 = Number(product.fiyat1 ?? 0);
+                const fiyat2 = Number(product.fiyat2 ?? 0);
+                // Kural:
+                // - Yalnız fiyat1 varsa: priceMode=fiyat1, price=fiyat1
+                // - Yalnız fiyat2 varsa: priceMode=fiyat2, price=fiyat2
+                // - Her ikisi de varsa: default MANUEL, price=0 (kullanıcı seçer)
+                // - İkisi de yoksa: MANUEL 0
+                let priceMode = 'manual';
+                let priceNum = 0;
+                if (fiyat1 > 0 && fiyat2 <= 0) { priceMode = 'fiyat1'; priceNum = fiyat1; }
+                else if (fiyat2 > 0 && fiyat1 <= 0) { priceMode = 'fiyat2'; priceNum = fiyat2; }
+                else if (fiyat1 > 0 && fiyat2 > 0) { priceMode = 'manual'; priceNum = 0; }
+                cart.push({
+                    id: product.id,
+                    name: product.stok_adi,
+                    price: priceNum,
+                    fiyat1: fiyat1,
+                    fiyat2: fiyat2,
+                    priceMode: priceMode,
+                    quantity: 1,
+                    tax: 0,
+                    percent: 0,
+                    total: priceNum
+                });
+            }
+            
+            updateCartDisplay();
+        }
+
+        // Sepeti güncelle
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cartItems');
+            cartItems.innerHTML = '';
+            
+            let subtotal = 0;
+            let totalKdv = 0;
+            
+            cart.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'cart-item';
+                // Vergi combobox'ını vergi kartından doldur
+                const taxOptions = (taxCodes && taxCodes.length)
+                    ? taxCodes.map(t => `<option value="${t.oran}" ${Number(item.tax||0)===Number(t.oran)?'selected':''}>${t.vergikodu}</option>`).join('')
+                    : `<option value="0">KDV</option>`;
+
+                const labelF1 = Number(item.fiyat1||0) > 0 ? formatPrice(item.fiyat1) : 'Satış Fiyatı 1';
+                const labelF2 = Number(item.fiyat2||0) > 0 ? formatPrice(item.fiyat2) : 'Satış Fiyatı 2';
+
+                itemElement.innerHTML = `
+                    <div>${item.name}</div>
+                    <div class="quantity-controls">
+                        <button onclick="updateQuantity(${item.id}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.id}, 1)">+</button>
+                    </div>
+                    <div>
+                        <select onchange="changePriceMode(${item.id}, this.value)" style="margin-right:6px">
+                            <option value="manual" ${item.priceMode==='manual'?'selected':''}>Manuel</option>
+                            <option value="fiyat1" ${item.priceMode==='fiyat1'?'selected':''}>${labelF1}</option>
+                            <option value="fiyat2" ${item.priceMode==='fiyat2'?'selected':''}>${labelF2}</option>
+                        </select>
+                        <input type="number" step="0.01" value="${Number(item.price||0).toFixed(2)}" onchange="changePrice(${item.id}, this.value)" style="width:90px" placeholder="Fiyat" /> ₺
+                    </div>
+                    <div>
+                        <select onchange="changeTax(${item.id}, this.value)">${taxOptions}</select>
+                    </div>
+                    <div>
+                        <select onchange="changePercent(${item.id}, this.value)">
+                            <option value="0" ${Number(item.percent||0)===0?'selected':''}>%0</option>
+                            <option value="1" ${Number(item.percent||0)===1?'selected':''}>%1</option>
+                            <option value="10" ${Number(item.percent||0)===10?'selected':''}>%10</option>
+                            <option value="20" ${Number(item.percent||0)===20?'selected':''}>%20</option>
+                        </select>
+                        <button aria-label="Satırı Sil" onclick="removeItem(${item.id})" style="margin-left:8px;background:#dc3545;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer">×</button>
+                    </div>
+                `;
+                cartItems.appendChild(itemElement);
+
+                // Satır toplamını hesapla (elle girilmiş fiyat ve seçilen KDV üzerinden)
+                const price = Number(item.price)||0;
+                const qty = Number(item.quantity)||0;
+                const lineSubtotal = qty * price;
+                const lineKdv = lineSubtotal * (Number(item.tax||0)/100);
+                const lineWithPercent = lineSubtotal + (lineSubtotal * (Number(item.percent||0)/100));
+                const lineTotal = lineWithPercent + lineKdv;
+                item.total = lineTotal;
+                subtotal += item.total;
+                totalKdv += lineKdv;
+            });
+            
+            const tax = totalKdv; // seçilen oranlara göre toplanan KDV
+            const total = subtotal; // item.total zaten KDV dahil
+            
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' ₺';
+            document.getElementById('tax').textContent = tax.toFixed(2) + ' ₺';
+            document.getElementById('total').textContent = total.toFixed(2) + ' ₺';
+        }
+
+        function formatPrice(val){
+            const n = Number(val)||0;
+            if (Number.isInteger(n)) return n.toString();
+            return n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Ürün miktarını güncelle
+        function updateQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.id !== productId);
+                } else {
+                    item.total = item.quantity * item.price;
+                }
+                updateCartDisplay();
+            }
+        }
+
+        function changePrice(productId, value){
+            const item = cart.find(i=>i.id===productId);
+            if(!item) return;
+            item.price = parseFloat(value)||0;
+            updateCartDisplay();
+        }
+
+        function changeTax(productId, value){
+            const item = cart.find(i=>i.id===productId);
+            if(!item) return;
+            item.tax = parseFloat(value)||0;
+            updateCartDisplay();
+        }
+
+        function changePercent(productId, value){
+            const item = cart.find(i=>i.id===productId);
+            if(!item) return;
+            item.percent = parseFloat(value)||0;
+            updateCartDisplay();
+        }
+
+        function removeItem(productId){
+            cart = cart.filter(i => i.id !== productId);
+            updateCartDisplay();
+        }
+
+        function changePriceMode(productId, mode){
+            const item = cart.find(i=>i.id===productId);
+            if(!item) return;
+            item.priceMode = mode;
+            if(mode==='fiyat1') item.price = Number(item.fiyat1||0);
+            else if(mode==='fiyat2') item.price = Number(item.fiyat2||0);
+            // manuel ise kullanıcı inputu belirler, mevcut price korunur
+            updateCartDisplay();
+        }
+
+        // Ödeme modalını göster
+        function showPaymentModal(method) {
+            if (cart.length === 0) {
+                alert('Sepet boş!');
+                return;
+            }
+            
+            currentPaymentMethod = method;
+            const total = calculateTotal();
+            
+            document.getElementById('paymentTitle').textContent = 
+                method === 'cash' ? 'Nakit Ödeme' : 'Kart ile Ödeme';
+            document.getElementById('amountToPay').value = total.toFixed(2);
+            document.getElementById('amountPaid').value = '';
+            document.getElementById('changeAmount').value = '';
+            
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        // Ödeme modalını kapat
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        // Toplam tutarı hesapla (satır toplamları zaten KDV dahil)
+        function calculateTotal() {
+            return cart.reduce((sum, item) => sum + (Number(item.total)||0), 0);
+        }
+
+        // Ödemeyi tamamla
+        function completePayment() {
+            const total = calculateTotal();
+            const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
+            
+            if (currentPaymentMethod === 'cash' && paid < total) {
+                alert('Yetersiz ödeme!');
+                return;
+            }
+
+            // İrsaliye oluştur – satırlardan KDV ve ara toplamı hesapla
+            let aratoplam = 0;
+            let kdvtoplam = 0;
+            cart.forEach(item => {
+                const price = Number(item.price)||0;
+                const qty = Number(item.quantity)||0;
+                const base = qty * price;
+                const percent = Number(item.percent||0)/100;
+                const taxRate = Number(item.tax||0)/100;
+                const baseWithPercent = base + (base * percent);
+                const lineKdv = base * taxRate; // KDV'nin baz alacağı kısım: base
+                aratoplam += baseWithPercent;
+                kdvtoplam += lineKdv;
+            });
+            const irsaliyeData = {
+                carikayitno: selectedCustomer ? selectedCustomer.id : null,
+                depokayitno: 1,
+                fis_tipi: 1,
+                aratoplam: Number(aratoplam.toFixed(2)),
+                kdvtoplam: Number(kdvtoplam.toFixed(2)),
+                geneltoplam: Number((aratoplam + kdvtoplam).toFixed(2)),
+                durum: 1,
+                tipi: 1,
+                urunler: cart.map(item => ({
+                    urun_adi: item.name,
+                    miktar: item.quantity,
+                    birim: 'Adet',
+                    kdvorani: Number(item.tax||0),
+                    tutar: Number(item.total||0),
+                    stokkayitno: item.id
+                }))
+            };
+
+            // İrsaliyeyi kaydet
+            fetch('/api/irsaliye', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(irsaliyeData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Satış başarıyla tamamlandı!');
+                    cart = [];
+                    updateCartDisplay();
+                    closePaymentModal();
+                } else {
+                    alert('Satış kaydedilirken bir hata oluştu: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Satış kaydedilirken hata:', error);
+                alert('Satış kaydedilirken bir hata oluştu.');
+            });
+        }
+
+        // Tuş takımı işlemleri
+        function addNumber(num) {
+            const input = document.getElementById('amountPaid');
+            if (num === '.' && input.value.includes('.')) return;
+            input.value = input.value + num;
+            updateChange();
+        }
+
+        function clearAmount() {
+            document.getElementById('amountPaid').value = '';
+            document.getElementById('changeAmount').value = '';
+        }
+
+        function updateChange() {
+            const total = calculateTotal();
+            const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
+            const change = paid - total;
+            document.getElementById('changeAmount').value = change >= 0 ? change.toFixed(2) : '0.00';
+        }
+
+        // Müşteri modalı
+        function openCustomerModal() {
+            const modal = new bootstrap.Modal(document.getElementById('customerModal'));
+            loadCustomers();
+            modal.show();
+        }
+
+        function loadCustomers() {
+            fetch('/api/cariler')
+                .then(response => response.json())
+                .then(customers => {
+                    const customerList = document.querySelector('.customer-list');
+                    customerList.innerHTML = '';
+                    
+                    customers.forEach(customer => {
+                        const div = document.createElement('div');
+                        div.className = 'customer-item p-2 border-bottom';
+                        div.style.cursor = 'pointer';
+                        div.onclick = () => selectCustomer(customer);
+                        div.innerHTML = `
+                            <div>${customer.unvan}</div>
+                            <small class="text-muted">${customer.carikodu}</small>
+                        `;
+                        customerList.appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Müşteriler yüklenirken hata:', error));
+        }
+
+        function selectCustomer(customer) {
+            selectedCustomer = customer;
+            document.getElementById('customerInput').value = customer.unvan;
+            bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+        }
+
+        // Ürün arama
+        function searchProducts(query) {
+            const products = document.querySelectorAll('.product-card');
+            query = query.toLowerCase();
+            
+            products.forEach(product => {
+                const name = product.querySelector('div').textContent.toLowerCase();
+                product.style.display = name.includes(query) ? '' : 'none';
+            });
+        }
+
+        async function onProductSearchKey(e){
+            if(e.key !== 'Enter') return;
+            const val = (document.getElementById('productSearch').value||'').trim();
+            if(!val) return;
+            try{
+                const res = await fetch(`/api/stock/by-barcode?code=${encodeURIComponent(val)}`);
+                const json = await res.json();
+                if(json.success){
+                    const s = json.data;
+                    addToCart({ id: s.id, stok_adi: s.stok_adi, fiyat1: s.fiyat1||0 });
+                    document.getElementById('productSearch').value='';
+                } else {
+                    alert(json.message||'Barkod bulunamadı');
+                }
+            }catch(err){
+                console.error(err);
+                alert('Barkod aramada hata');
+            }
+        }
+    </script>
+
+    <!-- Stok Seçim Modalı -->
+    <div class="modal fade" id="stockPickerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Stok Seç</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover" id="stockPickerTable">
+                        <thead>
+                            <tr>
+                                <th>Stok Kodu</th>
+                                <th>Stok Adı</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
