@@ -110,7 +110,7 @@ router.get('/cariekstre', async (req, res) => {
         const [hareketler] = await conn.execute(`
             SELECT 
                 ch.id,
-                ch.tarih,
+                ch.kayit_tarihi,
                 ht.tur_adi as hareket_turu,
                 ch.belge_no,
                 c.unvan as cari_adi,
@@ -125,7 +125,7 @@ router.get('/cariekstre', async (req, res) => {
             LEFT JOIN hareket_turleri ht ON ch.hareket_turu_id = ht.id
             LEFT JOIN cariler c ON ch.cari_id = c.id
             LEFT JOIN depokarti d ON ch.depo_id = d.id
-            ORDER BY ch.tarih DESC
+            ORDER BY ch.kayit_tarihi DESC
             LIMIT 50
         `);
 
@@ -188,7 +188,7 @@ router.post('/cariekstre/search', async (req, res) => {
         }
 
         if (baslangic_tarih && bitis_tarih) {
-            whereConditions.push('ch.tarih BETWEEN ? AND ?');
+            whereConditions.push('ch.kayit_tarihi BETWEEN ? AND ?');
             params.push(baslangic_tarih, bitis_tarih);
         }
 
@@ -202,7 +202,7 @@ router.post('/cariekstre/search', async (req, res) => {
             params.push(bitis_bakiye);
         }
 
-        let orderBy = 'ch.tarih DESC';
+        let orderBy = 'ch.kayit_tarihi ASC';
         if (siralama === 'type') {
             orderBy = 'ht.tur_adi ASC';
         } else if (siralama === 'quantity') {
@@ -214,7 +214,7 @@ router.post('/cariekstre/search', async (req, res) => {
         const [hareketler] = await conn.execute(`
             SELECT 
                 ch.id,
-                ch.tarih,
+                ch.kayit_tarihi,
                 ht.tur_adi as hareket_turu,
                 ht.tur_kodu,
                 ch.belge_no,
@@ -234,7 +234,6 @@ router.post('/cariekstre/search', async (req, res) => {
             ORDER BY ${orderBy}
             LIMIT 100
         `, params);
-
         // Özet bilgileri hesapla
         const toplamGiris = hareketler.reduce((sum, h) => {
             const miktar = parseFloat(h.giris_miktar) || 0;
@@ -244,7 +243,7 @@ router.post('/cariekstre/search', async (req, res) => {
             const miktar = parseFloat(h.cikis_miktar) || 0;
             return sum + miktar;
         }, 0);
-        const mevcutStok = hareketler.length > 0 ? (parseFloat(hareketler[0].bakiye) || 0) : 0;
+        const mevcutStok = toplamGiris-toplamCikis; //hareketler.length > 0 ? (parseFloat(hareketler[0].bakiye) || 0) : 0;
         const hareketSayisi = hareketler.length;
         const stokDegeri = hareketler.reduce((sum, h) => {
             const tutar = parseFloat(h.toplam_tutar) || 0;
@@ -389,6 +388,101 @@ router.get('/musteriler', async (req, res) => {
     }
 });
 
+router.post('/musteriler/search', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        const {
+            cari_arama,
+            cari_turu,
+            siralama
+        } = req.body;
+
+        let whereConditions = [];
+        let params = [];
+
+        if (cari_arama) {
+            whereConditions.push('(carikodu LIKE ? OR unvan LIKE ?)');
+            params.push(`%${cari_arama}%`, `%${cari_arama}%`);
+        }
+
+        if (cari_turu) {
+            whereConditions.push('type = ?');
+            params.push(cari_turu);
+        }
+
+        let orderBy = 'kayittarihi ASC';
+        if (siralama === 'name') {
+            orderBy = 'carikodu ASC';
+        } else if (siralama === 'unvan') {
+            orderBy = 'unvan ASC';
+        }
+
+        const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+        const [cariler] = await conn.execute(`
+            SELECT 
+                id,
+                carikodu,
+                unvan,
+                aktif,
+                il,
+                ilce,
+                adres,
+                resmi,
+                vadeopsiyonu,
+                bakiye,
+                alacak,
+                borc,
+                kayittarihi,
+                guncelleme_tarihi,
+                guncelleyenkullanicikayitno,
+                kaydedenkullanicikayitno,
+                efatura,
+                efaturasenaryo,
+                efaturalicietiketi,
+                vergi_dairesi,
+                vergi_no,
+                telefon,
+                email,
+                type
+            FROM cariler
+            ${whereClause}
+            ORDER BY ${orderBy}
+            LIMIT 100
+        `, params);
+
+       
+        await conn.end();
+
+        res.json({
+            success: true,
+            cariler: cariler,
+        });
+
+    } catch (error) {
+        console.error('Cari  arama hatası:', error);
+        console.error('Hata detayı:', error.message);
+        console.error('Stack trace:', error.stack);
+        
+        // Daha detaylı hata mesajı
+        let errorMessage = 'Arama sırasında hata oluştu';
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            errorMessage = 'Veritabanı tabloları bulunamadı. Lütfen veritabanı yapısını kontrol edin.';
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = 'Veritabanı bağlantısı kurulamadı.';
+        } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+            errorMessage = 'Veritabanı erişim hatası.';
+        }
+        
+        res.status(500).json({ 
+            success: false, 
+            message: errorMessage,
+            error: error.message
+        });
+    }
+});
+
 // Müşteri ekleme/güncelleme - POST endpoint
 router.post('/musteriler', async (req, res) => {
     try {
@@ -482,24 +576,48 @@ router.get('/musteriler/export', async (req, res) => {
 
         await conn.end();
 
-        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename=musteriler.csv');
 
-        const csvContent = [
-            ['ID', 'Cari Kodu', 'Unvan', 'Aktif', 'İl', 'İlçe', 'Adres', 'Resmi', 'Vade Opsiyonu', 'Bakiye', 'Alacak', 'Borç', 'Günc. Kullanıcı', 'Kaydeden Kullanıcı', 'e-Fatura', 'e-Fatura Senaryo', 'e-Fatura Etiketi', 'Vergi Dairesi', 'Vergi No', 'Telefon', 'Email'],
-            ...customers.map(c => [
-                c.id, c.carikodu, c.unvan, c.aktif, c.il, c.ilce, c.adres, c.resmi, c.vadeopsiyonu, c.bakiye, c.alacak, c.borc,
-                c.guncelleyenkullanicikayitno, c.kaydedenkullanicikayitno, c.efatura, c.efaturasenaryo, c.efaturalicietiketi,
-                c.vergi_dairesi, c.vergi_no, c.telefon, c.email
-            ])
-        ].map(row => row.join(',')).join('\n');
+        // Başlıklar
+        const headers = [
+            'ID', 'Cari Kodu', 'Unvan', 'Aktif', 'İl', 'İlçe', 'Adres', 'Resmi',
+            'Vade Opsiyonu', 'Bakiye', 'Alacak', 'Borç',
+            'Günc. Kullanıcı', 'Kaydeden Kullanıcı',
+            'e-Fatura', 'e-Fatura Senaryo', 'e-Fatura Etiketi',
+            'Vergi Dairesi', 'Vergi No', 'Telefon', 'Email'
+        ];
 
-        res.send('\uFEFF' + csvContent); // UTF-8 BOM ekle
+        // Hücreyi çift tırnakla güvenli hale getir
+        const escapeCell = (cell) => {
+            if (cell == null) return '""';
+            const str = String(cell).replace(/"/g, '""'); // içteki tırnakları escape et
+            return `"${str}"`;
+        };
+
+        // Satırları oluştur
+        const csvRows = [
+            headers.map(escapeCell).join(','), // başlık satırı
+            ...customers.map(c =>
+                [
+                    c.id, c.carikodu, c.unvan, c.aktif, c.il, c.ilce, c.adres, c.resmi,
+                    c.vadeopsiyonu, c.bakiye, c.alacak, c.borc,
+                    c.guncelleyenkullanicikayitno, c.kaydedenkullanicikayitno,
+                    c.efatura, c.efaturasenaryo, c.efaturalicietiketi,
+                    c.vergi_dairesi, c.vergi_no, c.telefon, c.email
+                ].map(escapeCell).join(',')
+            )
+        ];
+
+        // BOM + CSV içeriği
+        const csvContent = '\uFEFF' + csvRows.join('\n');
+        res.send(csvContent);
 
     } catch (error) {
         console.error('CSV export hatası:', error);
         res.status(500).send('CSV dosyası oluşturulamadı');
     }
 });
+
 
 module.exports = router;

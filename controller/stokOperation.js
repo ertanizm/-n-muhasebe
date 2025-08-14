@@ -85,6 +85,100 @@ router.get('/stoklar', async (req, res) => {
     }
 });
 
+//Stok Filtre   
+router.post('/stoklar/search', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        const {
+            stok_arama,
+            stok_grup,
+            depo,
+            baslangic_tarih,
+            bitis_tarih,
+            baslangic_Bakiye,
+            bitis_Bakiye,
+            siralama
+        } = req.body;
+
+        let whereConditions = [];
+        let params = [];
+
+        if (stok_arama) {
+            whereConditions.push('(s.stok_adi LIKE ? OR s.stok_kodu LIKE ?)');
+            params.push(`%${stok_arama}%`, `%${stok_arama}%`);
+        }
+        if (stok_grup) {
+            whereConditions.push('s.grupkayitno = ?');
+            params.push(stok_grup);
+        }
+        if (depo) {
+            whereConditions.push('s.depokayitno = ?');
+            params.push(depo);
+        }
+        if (baslangic_Bakiye && bitis_Bakiye) {
+            whereConditions.push('s.fiyat1 BETWEEN ? AND ?');
+            params.push(baslangic_Bakiye, bitis_Bakiye);
+        }
+        if (baslangic_tarih && bitis_tarih) {
+            whereConditions.push('s.kayittarihi BETWEEN ? AND ?');
+            params.push(baslangic_tarih, bitis_tarih);
+        }
+        let orderBy = 's.kayittarihi DESC';
+        if (siralama === 'type') {
+            orderBy = 's.stok_kodu ASC';
+        } else if (siralama === 'quantity') {
+            orderBy = 's.fiyat1 DESC';
+        } else if (siralama === 'amount') {
+            orderBy = 's.fiyat1 DESC';
+        }
+
+        const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+        const [stoklar] = await conn.execute(`
+            SELECT s.*, 
+                sgk.grup_adi as grup_adi,
+                dk.depo_adi as depo_adi
+            FROM stoklar s
+            LEFT JOIN stokgrupkarti sgk ON s.grupkayitno = sgk.id
+            LEFT JOIN depokarti dk  ON s.depokayitno = dk.id
+            ${whereClause}
+            ORDER BY ${orderBy}
+            LIMIT 100
+        `, params);
+
+        const birimTexts = ['Adet', 'Kilogram', 'Litre', 'Paket','Metre','Koli','Kutu'];
+        const stokTexts = ['Ürün', 'Hizmet'];
+        
+         stoklar.forEach(stok => {
+            stok.birimText = birimTexts[stok.birim] || 'Bilinmeyen';
+            stok.stokText = stokTexts[stok.stoktipi] || 'Bilinmeyen';
+
+            // Tarihi formatla
+            if (stok.kayittarihi) {
+                const tarih = new Date(stok.kayittarihi);
+                stok.kayittarihiFormatted = tarih.toLocaleDateString('tr-TR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        });
+
+        await conn.end();
+        // const mappedCekler = cekler.map(cek => ({
+        //     ...cek,
+        //     islem_tipi_text: islemTipiText(cek.islem_tipi),
+        //     durum_text: durumText(cek.durum)
+        // }));
+        res.json({ success: true, stoklar: stoklar });
+    } catch (error) {
+        console.error('Çek arama hatası:', error);
+        res.status(500).json({ success: false, message: 'Çek arama sırasında hata oluştu: ' + error.message });
+    }
+});
+
 // Stok ekleme/güncelleme
 router.post('/stoklar', async (req, res) => {
     try {
@@ -506,6 +600,47 @@ router.get('/depotransfer', async (req, res) => {
         });
     }
 });
+
+
+router.get('/depotransfer', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        // Stokları çek
+        //const [vergi] = await conn.execute("SELECT * FROM vergikarti ORDER BY id ASC");
+        
+        await conn.end();
+      
+        
+        res.render('stok/depotransfer', {
+            user: req.session.user,
+            //vergi: vergi
+        });
+    } catch (error) {
+        console.error('Depo transfer listesi alınamadı:', error);
+        res.render('stok/depotransfer', {
+            user: req.session.user,
+            //stokgrup: [],
+            error: 'Depo transfer listesi alınamadı'
+        });
+    }
+});
+
+
+function depoText(val) {
+    if (val === 0 || val === "0") return "Alış";
+    if (val === 1 || val === "1") return "Çıkış";
+    return "Diğer";
+}
+function stokGrupText(val) {
+    if (val === 0 || val === "0") return "Ciro Edildi";
+    if (val === 1 || val === "1") return "Tahsil Edildi";
+    if (val === 2 || val === "2") return "Portföyde";
+    if (val === 3 || val === "3") return "Karşılıksız";
+    if (val === 4 || val === "4") return "İade";
+    return "Diğer";
+}
+
 
 module.exports = router;
 

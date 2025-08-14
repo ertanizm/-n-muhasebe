@@ -659,3 +659,23 @@ body {
   .menu-toggle.open .toggle-icon {
     transform: rotate(180deg); /* veya yukarı ok için class değişimi */
   }
+
+  @media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea, #printArea * {
+        visibility: visible;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}

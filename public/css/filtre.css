@@ -1,0 +1,40 @@
+.input-group {
+    margin-bottom: 10px;
+}
+
+.input-group-text {
+    background: #e9ecef;
+    border-color: #ced4da;
+    color: #6c757d;
+    font-size: 12px;
+}
+.filter-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.filter-header h5 {
+    color: #495057;
+    font-weight: 600;
+}
+
+.filter-content {
+    transition: all 0.3s ease;
+}
+
+.filter-content.collapsed {
+    display: none;
+}

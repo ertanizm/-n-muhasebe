@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gün Sonu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <style>
+        .gunsonu-wrap { margin-left: 250px; padding: 20px; }
+        .filters { display:flex; gap:10px; align-items:center; margin-bottom: 16px; }
+        .totals { display:flex; gap: 16px; margin: 8px 0 16px; }
+        .totals .card { padding: 10px 14px; border:1px solid #e5e7eb; border-radius: 10px; background:#fff; }
+        .tab-pane { padding-top: 10px; }
+        .table thead th { white-space: nowrap; }
+    </style>
+    </head>
+<body>
+    <%- include('../sidebar') %>
+    <div class="gunsonu-wrap">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="m-0">Gün Sonu</h3>
+            <div>
+                <a href="/hizlisatis" class="btn btn-outline-secondary"><i class="fa fa-arrow-left"></i> Hızlı Satış</a>
+            </div>
+        </div>
+
+        <!-- Filtreler -->
+        <div class="filters">
+            <div>
+                <label class="form-label m-0">Başlangıç</label>
+                <input id="fStart" type="date" class="form-control" style="min-width: 180px;">
+            </div>
+            <div>
+                <label class="form-label m-0">Bitiş</label>
+                <input id="fEnd" type="date" class="form-control" style="min-width: 180px;">
+            </div>
+            <div>
+                <label class="form-label m-0">Saat</label>
+                <div class="d-flex" style="gap:6px">
+                    <input id="fStartTime" type="time" class="form-control" style="min-width:140px;">
+                    <input id="fEndTime" type="time" class="form-control" style="min-width:140px;">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="loadAllTabs()"><i class="fa fa-search"></i> Listele</button>
+        </div>
+
+        <!-- Sekmeler -->
+        <ul class="nav nav-tabs" id="gsTabs" role="tablist">
+            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGenel" type="button">Genel</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabKart" type="button">Kredi Kartı</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabNakit" type="button">Nakit</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabVeresiye" type="button">Veresiye</button></li>
+        </ul>
+
+        <div class="tab-content" id="gsContent">
+            <div class="tab-pane fade show active" id="tabGenel"></div>
+            <div class="tab-pane fade" id="tabKart"></div>
+            <div class="tab-pane fade" id="tabNakit"></div>
+            <div class="tab-pane fade" id="tabVeresiye"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const yyyy_mm_dd = today.toISOString().slice(0,10);
+            document.getElementById('fStart').value = yyyy_mm_dd;
+            document.getElementById('fEnd').value = yyyy_mm_dd;
+            document.getElementById('fStartTime').value = '00:00';
+            document.getElementById('fEndTime').value = '23:59';
+            loadAllTabs();
+        });
+
+        function buildRangeQuery(type){
+            const s = document.getElementById('fStart').value;
+            const e = document.getElementById('fEnd').value;
+            // Saat şu anlık bilgi amaçlı; istenirse backend sorgusuna dahil edilebilir
+            const t = type ? `&type=${encodeURIComponent(type)}` : '';
+            return `?start=${encodeURIComponent(s)}&end=${encodeURIComponent(e)}${t}`;
+        }
+
+        async function fetchLines(type){
+            const q = buildRangeQuery(type);
+            const r = await fetch(`/api/gunsonu-lines${q}`);
+            const j = await r.json();
+            if(!j.success) throw new Error('Veri alınamadı');
+            return j.data || [];
+        }
+
+        function summarize(lines){
+            let toplam = 0; let adet = 0;
+            for(const l of lines){ toplam += Number(l.tutar||0); adet += Number(l.miktar||0); }
+            return { toplam, adet };
+        }
+
+        function renderTable(lines){
+            const head = `<thead><tr>
+                <th>Fiş No</th><th>Tarih</th><th>Cari</th>
+                <th>Ürün</th><th class="text-end">Miktar</th><th>Birim</th>
+                <th class="text-end">KDV%</th><th class="text-end">Tutar</th><th>Ödeme</th>
+                <th class="text-end">Nakit</th><th class="text-end">Kart</th>
+            </tr></thead>`;
+            const rows = (lines||[]).map(l=>`<tr>
+                <td>${l.fis_no||''}</td>
+                <td>${new Date(l.tarih).toLocaleDateString('tr-TR')}</td>
+                <td>${l.cari||''}</td>
+                <td>${l.urun_adi||''}</td>
+                <td class="text-end">${Number(l.miktar||0)}</td>
+                <td>${l.birim||''}</td>
+                <td class="text-end">${Number(l.kdvorani||0)}</td>
+                <td class="text-end">${Number(l.tutar||0).toFixed(2)}
+                    ${Number(l.iskontotutar||0)>0?`<div class='text-danger small'>- ${Number(l.iskontotutar||0).toFixed(2)} ₺ ${Number(l.iskontorani||0)>0?`(%${Number(l.iskontorani)})`:''}</div>`:''}
+                </td>
+                <td>${l.satirtipi==1?'Kredi Kartı':(l.satirtipi==0?'Nakit':'Veresiye')}</td>
+                <td class="text-end">${Number(l.nakittoplam||0).toFixed(2)}</td>
+                <td class="text-end">${Number(l.bankatoplam||0).toFixed(2)}</td>
+            </tr>`).join('');
+            return `<table class="table table-striped table-sm">${head}<tbody>${rows}</tbody></table>`;
+        }
+
+        async function loadAllTabs(){
+            // Genel
+            const genel = await fetchLines('genel');
+            const sumG = summarize(genel);
+            document.getElementById('tabGenel').innerHTML = `
+                <div class="totals">
+                    <div class="card">Toplam Satır: <b>${genel.length}</b></div>
+                    <div class="card">Toplam Miktar: <b>${sumG.adet}</b></div>
+                    <div class="card">Toplam Tutar: <b>${sumG.toplam.toFixed(2)} ₺</b></div>
+                </div>
+                ${renderTable(genel)}
+            `;
+            // Kart
+            const kart = await fetchLines('kart');
+            const sumK = summarize(kart);
+            document.getElementById('tabKart').innerHTML = `
+                <div class="totals">
+                    <div class="card">Toplam Satır: <b>${kart.length}</b></div>
+                    <div class="card">Toplam Miktar: <b>${sumK.adet}</b></div>
+                    <div class="card">Toplam Tutar: <b>${sumK.toplam.toFixed(2)} ₺</b></div>
+                </div>
+                ${renderTable(kart)}
+            `;
+            // Nakit
+            const nakit = await fetchLines('nakit');
+            const sumN = summarize(nakit);
+            document.getElementById('tabNakit').innerHTML = `
+                <div class="totals">
+                    <div class="card">Toplam Satır: <b>${nakit.length}</b></div>
+                    <div class="card">Toplam Miktar: <b>${sumN.adet}</b></div>
+                    <div class="card">Toplam Tutar: <b>${sumN.toplam.toFixed(2)} ₺</b></div>
+                </div>
+                ${renderTable(nakit)}
+            `;
+            // Veresiye
+            const veresiye = await fetchLines('veresiye');
+            const sumV = summarize(veresiye);
+            document.getElementById('tabVeresiye').innerHTML = `
+                <div class="totals">
+                    <div class="card">Toplam Satır: <b>${veresiye.length}</b></div>
+                    <div class="card">Toplam Miktar: <b>${sumV.adet}</b></div>
+                    <div class="card">Toplam Tutar: <b>${sumV.toplam.toFixed(2)} ₺</b></div>
+                </div>
+                ${renderTable(veresiye)}
+            `;
+        }
+    </script>
+</body>
+</html>
+
+

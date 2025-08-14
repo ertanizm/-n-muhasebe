@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="/css/musteriler.css" rel="stylesheet">
+    <link href="/css/filtre.css" rel="stylesheet">
 </head>
 <body>
     <%- include('../sidebar') %>
@@ -28,9 +29,19 @@
                 </div>
             </div>
 
-            <div class="search-area">
-                <input type="text" class="form-control search-box" placeholder="Cari Ara...">
-            </div>
+             <!-- Filtreler -->
+             <%- include('../filtre', {
+                showIsimArama: true,
+                isimAramaLabel: 'Cari Kodu/Adı',
+                isimAramaPlaceholder: 'Cari ara...',
+                showHareketTuru: false,
+                showMusteriTuru: true,
+                showStokGrup: false,
+                showDepo: false,
+                showTarih: false,
+                showBakiye: false,
+                showSirala: true
+            }) %>
 
             <div class="customers-table">
                 <table class="table">
@@ -248,58 +259,190 @@
         });
 
         // Update delete endpoint
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Müşteriyi silmek istediğinize emin misiniz?')) return;
-                
-                const id = btn.dataset.id;
-                const response = await fetch(`/cari/musteriler/${id}`, {  // Update API endpoint
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    btn.closest('tr').remove();
-                    alert('Müşteri başarıyla silindi.');
+        document.querySelector('.customers-table tbody').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+
+            if (!confirm('Müşteriyi silmek istediğinize emin misiniz?')) return;
+
+            const id = btn.dataset.id;
+            const response = await fetch(`/cari/musteriler/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                btn.closest('tr').remove();
+                alert('Müşteri başarıyla silindi.');
+            } else {
+                alert('Silme işlemi başarısız: ' + result.message);
+            }
+        });
+
+
+        // Edit butonu için event listener
+        document.querySelector('.customers-table tbody').addEventListener('click', (e) => {
+            const btn = e.target.closest('.edit-btn');
+            if (!btn) return;
+
+            const modal = new bootstrap.Modal(document.getElementById('addCustomerModal'));
+            const form = document.getElementById('customerForm');
+
+            // Form alanlarını doldur
+            form.id.value = btn.dataset.id || '';
+            form.carikodu.value = btn.dataset.carikodu || '';
+            form.unvan.value = btn.dataset.unvan || '';
+            form.aktif.value = btn.dataset.aktif || 'false';
+            form.type.value = btn.dataset.type || '0';
+            form.il.value = btn.dataset.il || '';
+            form.ilce.value = btn.dataset.ilce || '';
+            form.adres.value = btn.dataset.adres || '';
+            form.vergi_dairesi.value = btn.dataset.vergi_dairesi || '';
+            form.vergi_no.value = btn.dataset.vergi_no || '';
+            form.telefon.value = btn.dataset.telefon || '';
+            form.email.value = btn.dataset.email || '';
+            form.resmi.value = btn.dataset.resmi || '';
+            form.vadeopsiyonu.value = btn.dataset.vadeopsiyonu || '';
+            form.bakiye.value = btn.dataset.bakiye || '';
+            form.efatura.value = btn.dataset.efatura || '';
+            form.efaturasenaryo.value = btn.dataset.efaturasenaryo || '';
+            form.efaturalicietiketi.value = btn.dataset.efaturalicietiketi || '';
+
+            // Modal başlığını güncelle
+            document.getElementById('addCustomerModalLabel').textContent = 'Müşteri Düzenle';
+
+            modal.show();
+        });
+
+
+        // Filtre toggle fonksiyonu
+        function toggleFilters() {
+                    const filterContent = document.getElementById('filterContent');
+                    const toggleIcon = document.getElementById('filterToggleIcon');
+                    
+                    if (filterContent.classList.contains('collapsed')) {
+                        filterContent.classList.remove('collapsed');
+                        toggleIcon.classList.remove('fa-chevron-down');
+                        toggleIcon.classList.add('fa-chevron-up');
+                    } else {
+                        filterContent.classList.add('collapsed');
+                        toggleIcon.classList.remove('fa-chevron-up');
+                        toggleIcon.classList.add('fa-chevron-down');
+                    }
+                }
+            
+        function clearFilters() {
+            document.getElementById('isimArama').value = "";
+            document.getElementById('cariTuru').value = "";
+            document.getElementById('siralama').value = "";
+            searchFiltre();
+        } 
+
+         // Cari hareket arama
+         function searchFiltre() {
+            const filters = {
+                cari_arama: document.getElementById('isimArama').value,
+                cari_turu: document.getElementById('cariTuru').value,
+                siralama: document.getElementById('siralama').value
+            };
+
+            fetch('/cari/musteriler/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(filters)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCariTablosu(data.cariler);
                 } else {
-                    alert('Silme işlemi başarısız: ' + result.message);
+                    console.error('Backend hatası:', data);
+                    alert('Arama sırasında hata oluştu: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Arama hatası:', error);
+                console.error('Hata detayı:', error.message);
+                alert('Arama sırasında hata oluştu: ' + error.message);
+            });
+        }
+
+        // Hareket tablosunu güncelle
+        function updateCariTablosu(cariler) {
+            const tbody = document.querySelector('.customers-table tbody');
+            tbody.innerHTML = '';
+
+            if (cariler.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center">Hareket bulunamadı</td></tr>';
+                return;
+            }
+
+            cariler.forEach(c => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', c.id);
+                
+                row.innerHTML = `
+                    <td>${c.id}</td>
+                    <td>${c.carikodu}</td>
+                    <td>${c.unvan}</td>
+                    <td>${c.aktif ? 'Evet' : 'Hayır'}</td>
+                    <td>${c.il || '-'}</td>
+                    <td>${c.ilce || '-'}</td>
+                    <td>${c.adres || '-'}</td>
+                    <td>${c.vergi_dairesi || '-'}</td>
+                    <td>${c.vergi_no || '-'}</td>
+                    <td>${c.telefon || '-'}</td>
+                    <td>${c.email || '-'}</td>
+                    <td class="no-print">
+                        <button class="btn btn-sm btn-warning me-1 edit-btn"
+                            data-id="${c.id}"
+                            data-carikodu="${c.carikodu}"
+                            data-unvan="${c.unvan}"
+                            data-aktif="${c.aktif}"
+                            data-type="${c.type}"
+                            data-il="${c.il}"
+                            data-ilce="${c.ilce}"
+                            data-adres="${c.adres}"
+                            data-vergi_dairesi="${c.vergi_dairesi}"
+                            data-vergi_no="${c.vergi_no}"
+                            data-telefon="${c.telefon}"
+                            data-email="${c.email}"
+                            data-resmi="${c.resmi}"
+                            data-vadeopsiyonu="${c.vadeopsiyonu}"
+                            data-bakiye="${c.bakiye}"
+                            data-alacak="${c.alacak}"
+                            data-borc="${c.borc}"
+                            data-guncelleyenkullanicikayitno="${c.guncelleyenkullanicikayitno}"
+                            data-kaydedenkullanicikayitno="${c.kaydedenkullanicikayitno}"
+                            data-efatura="${c.efatura}"
+                            data-efaturasenaryo="${c.efaturasenaryo}"
+                            data-efaturalicietiketi="${c.efaturalicietiketi}"
+                        >
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${c.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Enter tuşu ile arama
+        document.querySelectorAll('#isimArama').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchFiltre();
                 }
             });
         });
 
-        // Edit butonu için event listener
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const modal = new bootstrap.Modal(document.getElementById('addCustomerModal'));
-                const form = document.getElementById('customerForm');
-                
-                // Form alanlarını doldur
-                form.id.value = btn.dataset.id;
-                form.carikodu.value = btn.dataset.carikodu;
-                form.unvan.value = btn.dataset.unvan;
-                form.aktif.value = btn.dataset.aktif;
-                form.type.value = btn.dataset.type || "0";
-                form.il.value = btn.dataset.il;
-                form.ilce.value = btn.dataset.ilce;
-                form.adres.value = btn.dataset.adres;
-                form.vergi_dairesi.value = btn.dataset.vergi_dairesi;
-                form.vergi_no.value = btn.dataset.vergi_no;
-                form.telefon.value = btn.dataset.telefon;
-                form.email.value = btn.dataset.email;
-                form.resmi.value = btn.dataset.resmi;
-                form.vadeopsiyonu.value = btn.dataset.vadeopsiyonu;
-                form.bakiye.value = btn.dataset.bakiye;
-                form.efatura.value = btn.dataset.efatura;
-                form.efaturasenaryo.value = btn.dataset.efaturasenaryo;
-                form.efaturalicietiketi.value = btn.dataset.efaturalicietiketi;
 
-                // Modal başlığını güncelle
-                document.getElementById('addCustomerModalLabel').textContent = 'Müşteri Düzenle';
-                
-                modal.show();
-            });
-        });
     </script>
 </body>
 </html>

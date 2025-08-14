@@ -94,4 +94,12 @@ router.get('/hizlisatis', authMiddleware, (req, res) => {
     });
 });
 
+// Gün Sonu sayfası
+router.get('/gunsonu', authMiddleware, (req, res) => {
+    res.render('raporlar/gunsonu', {
+        user: req.session.user,
+        error: null
+    });
+});
+
 module.exports = router;

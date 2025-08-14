@@ -1,0 +1,228 @@
+<!-- /views/partials/filtreler.ejs -->
+
+<%
+/* =====================
+   Varsayılan Parametreler
+   ===================== */
+const defaults = {
+    showIsimArama: false,
+    cekNo: false,
+    showTarih: false,
+    showHareketTuru: false,
+    showMusteriTuru: false,
+    showIslemTuru: false,
+    showDurum: false,
+    showStokGrup: false,
+    showDepo: false,
+    showBakiye: false,
+    showSirala: false,
+    isimAramaLabel: 'Kodu/Adı',
+    isimAramaPlaceholder: 'ara...'
+};
+
+// Parametreleri varsayılanlarla birleştir
+const {
+    showIsimArama,
+    cekNo,
+    showTarih,
+    showHareketTuru,
+    showMusteriTuru,
+    showIslemTuru,
+    showDurum,
+    showStokGrup,
+    showDepo,
+    showBakiye,
+    showSirala,
+    isimAramaLabel,
+    isimAramaPlaceholder
+} = Object.assign({}, defaults, locals);
+%>
+
+<div class="filter-card">
+    <div class="filter-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+        <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
+            <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+        </button>
+    </div>
+
+    <div class="filter-content" id="filterContent">
+        <div class="row g-3">
+
+            <% if (showIsimArama) { %>
+            <div class="col-md-4">
+                <label class="form-label fw-bold"><%= isimAramaLabel %></label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control form-control-md" id="isimArama" placeholder="<%= isimAramaPlaceholder %>">
+                </div>
+            </div>
+            <% } %>
+
+            <% if (cekNo) { %>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Çek No</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="cek_no" placeholder="Çek No ara...">
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showTarih) { %>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Tarih Aralığı</label>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="input-group input-group-md">
+                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                        <input type="date" class="form-control" id="baslangicTarih" value="2025-01-01">
+                    </div>
+                    <span class="mx-1">-</span>
+                    <div class="input-group input-group-md">
+                        <input type="date" class="form-control" id="bitisTarih" value="2025-12-31">
+                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showHareketTuru) { %>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Hareket Türü</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                    <select class="form-select form-select-lg" id="hareketTuru">
+                        <option value="">Tümü</option>
+                        <% if (typeof hareketTurleri !== 'undefined') { %>
+                            <% hareketTurleri.forEach(function(tur) { %>
+                                <option value="<%= tur.tur_kodu %>"><%= tur.tur_adi %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showMusteriTuru) { %>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Müşteri Türü</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                    <select class="form-select form-select-lg" id="cariTuru">
+                        <option value="">Tümü</option>
+                        <option value="0">Müşteri</option>
+                        <option value="1">Tedarikçi</option>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showIslemTuru) { %>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">İşlem Tipi</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                    <select class="form-select form-select-lg" id="islem_tipi">
+                        <option value="">Tümü</option>
+                        <option value="0">Alış</option>
+                        <option value="1">Çıkış</option>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showDurum) { %>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Durum</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                    <select class="form-select form-select-lg" id="durum">
+                        <option value="">Tümü</option>
+                        <option value="1">Ciro Edildi</option>
+                        <option value="2">Tahsis Edildi</option>
+                        <option value="3">Portföyde</option>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showStokGrup) { %>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Stok Grubu</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                    <select class="form-select" id="stokGrubu">
+                        <option value="">Tümü</option>
+                        <% if (typeof gruplar !== 'undefined') { %>
+                            <% gruplar.forEach(function(grup) { %>
+                                <option value="<%= grup.id %>"><%= grup.grup_adi %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showDepo) { %>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Depo</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-warehouse"></i></span>
+                    <select class="form-select form-select-lg" id="depoId">
+                        <option value="">Tümü</option>
+                        <% if (typeof depolar !== 'undefined') { %>
+                            <% depolar.forEach(function(depo) { %>
+                                <option value="<%= depo.id %>"><%= depo.depo_adi %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showBakiye) { %>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Başlangıç Bakiyesi</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                    <input type="number" class="form-control form-control-md" id="baslangicBakiye" placeholder="0" value="-999999">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Bitiş Bakiyesi</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                    <input type="number" class="form-control form-control-md" id="bitisBakiye" placeholder="0" value="999999">
+                </div>
+            </div>
+            <% } %>
+
+            <% if (showSirala) { %>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Sıralama</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-sort"></i></span>
+                    <select class="form-select form-select-lg" id="siralama">
+                        <option value="date">Tarih</option>
+                        <option value="type">Hareket Türü</option>
+                        <option value="quantity">Miktar</option>
+                        <option value="amount">Tutar</option>
+                    </select>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Butonlar -->
+            <div class="col-md-3 d-flex align-items-end justify-content-end">
+                <button class="btn btn-primary me-2 btn-lg" onclick="searchFiltre()">
+                    <i class="fas fa-search"></i> Ara
+                </button>
+                <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Temizle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
