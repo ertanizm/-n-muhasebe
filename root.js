@@ -58,17 +58,8 @@ router.get('/anasayfa', (req, res) => {
 // Cari operations routes
 router.use('/cari', cariOperations);
 
-
-
-
-
 router.get('/irsaliye/gelen', irsaliyeController.gelenIrsaliyeler);
 router.get('/irsaliye/giden', irsaliyeController.gidenIrsaliyeler);
-
-
-
-
-
 
 router.get('/ceklistesi', (req, res) => {
     res.render('finans/cekler', { error: null });

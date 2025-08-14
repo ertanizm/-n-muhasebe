@@ -530,9 +530,19 @@ app.post('/login', loginLimiter, csrfMiddleware, async (req, res) => {
         res.redirect('/anasayfa');
 
     } catch (error) {
-        console.error(error);
-        res.render('anasayfa', { 
-            error: 'Bir hata oluştu!',
+        console.error('Login error:', error);
+        
+        // Veritabanı bağlantı hatası kontrolü
+        if (error.code === 'ECONNREFUSED') {
+            return res.render('login', { 
+                error: 'Veritabanı bağlantısı kurulamadı. Lütfen daha sonra tekrar deneyin.',
+                csrfToken: req.csrfToken() 
+            });
+        }
+        
+        // Diğer hatalar için
+        return res.render('login', { 
+            error: 'Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.',
             csrfToken: req.csrfToken() 
         });
     }
