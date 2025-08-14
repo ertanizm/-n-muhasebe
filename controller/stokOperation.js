@@ -568,7 +568,32 @@ router.get('/stokekstresi', async (req, res) => {
         });
     } catch (error) {
         console.error('Grup listesi alınamadı:', error);
-        res.render('stok/vergi', {
+        res.render('stok/stokekstresi', {
+            user: req.session.user,
+            //stokgrup: [],
+            error: 'Grup listesi alınamadı'
+        });
+    }
+});
+
+//Depo Transfer Listesi
+router.get('/depotransfer', async (req, res) => {
+    try {
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        // Stokları çek
+        //const [vergi] = await conn.execute("SELECT * FROM vergikarti ORDER BY id ASC");
+        
+        await conn.end();
+      
+        
+        res.render('stok/depotransfer', {
+            user: req.session.user,
+            //vergi: vergi
+        });
+    } catch (error) {
+        console.error('Grup listesi alınamadı:', error);
+        res.render('stok/depotransfer', {
             user: req.session.user,
             //stokgrup: [],
             error: 'Grup listesi alınamadı'
@@ -618,3 +643,4 @@ function stokGrupText(val) {
 
 
 module.exports = router;
+

@@ -2,11 +2,26 @@ const express = require('express');
 const csrf = require('csurf');
 const router = express.Router();
 const path = require('path');
-const { authMiddleware } = require('./controller/createCompany');
 const mysql = require('mysql2/promise');
 const { getTenantDbConfig } = require('./controller/db');
 const irsaliyeController = require('./controller/irsaliye');
 const cariOperations = require('./controller/cariOperations');
+
+// Auth middleware for page routes
+const authMiddleware = (req, res, next) => {
+    if (!req.session || !req.session.user) {
+        return res.redirect('/');
+    }
+    next();
+};
+
+// Auth middleware for API routes
+const apiAuthMiddleware = (req, res, next) => {
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Oturum geçersiz' });
+    }
+    next();
+};
 
 // Update views directory path
 router.use((req, res, next) => {
@@ -24,6 +39,7 @@ router.get('/', csrfProtection, (req, res) => {
         error: null 
     });
 });
+
 // Signup sayfası route
 router.get('/signup', (req, res) => {
     res.render('signup');
@@ -50,6 +66,7 @@ router.get('/hesaplarim', async (req, res) => {
         });
     }
 });
+
 // Homepage sayfası route
 router.get('/anasayfa', (req, res) => {
     res.render('anasayfa', { error: null });
@@ -58,14 +75,21 @@ router.get('/anasayfa', (req, res) => {
 // Cari operations routes
 router.use('/cari', cariOperations);
 
-router.get('/irsaliye/gelen', irsaliyeController.gelenIrsaliyeler);
-router.get('/irsaliye/giden', irsaliyeController.gidenIrsaliyeler);
+router.get('/irsaliye/gelen', authMiddleware, irsaliyeController.gelenIrsaliyeler);
+router.get('/irsaliye/giden', authMiddleware, irsaliyeController.gidenIrsaliyeler);
 
+// API routes
+router.use('/api', apiAuthMiddleware, irsaliyeController.router);
 router.get('/ceklistesi', (req, res) => {
     res.render('finans/cekler', { error: null });
 });
 
-
-
-
+// Hızlı Satış sayfası
+router.get('/hizlisatis', authMiddleware, (req, res) => {
+    res.render('hizlisatis/hizlisatis', { 
+        user: req.session.user,
+        error: null 
+    });
+});
+//ben burda sadece boşlukları sildim satır olarak ona patlıoy heralde
 module.exports = router;

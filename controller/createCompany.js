@@ -12,6 +12,8 @@ const rootRouter = require('../root');
 const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
 const depoRouter = require('./depoOperation'); // depo router ekle
+const irsaliyeRouter = require('./irsaliye'); // irsaliye router ekle
+const posRouter = require('./pos'); // POS router
 
 
 const finansRouter = require('./finans');
@@ -48,6 +50,12 @@ app.use(session({
 // app.use(csrfProtection);
 
 // Add cari routes before the root router
+// API routes should come first
+app.use('/api', express.json());
+app.use('/api', irsaliyeRouter.router);
+app.use('/api', posRouter);
+
+// Then other routes
 app.use('/cari', cariRouter);
 app.use('/stok', stokRouter);
 app.use('/stok', depoRouter);
@@ -83,9 +91,22 @@ const authMiddleware = async (req, res, next) => {
 
 // Utility to create master_db and tables if not exist
 async function ensureMasterDb() {
-    const conn = await mysql.createConnection({ host, user: masterDbUser, password: masterDbPass });
-    await conn.query(`CREATE DATABASE IF NOT EXISTS \`${masterDbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci`);
-    await conn.query(`USE \`${masterDbName}\``);
+    // İlk olarak master veritabanını oluşturmak için bağlantı kur
+    const initialConn = await mysql.createConnection({
+        host: host,
+        user: masterDbUser,
+        password: masterDbPass,
+        multipleStatements: true // Birden fazla sorgu çalıştırabilmek için
+    });
+
+    // Master veritabanını oluştur
+    await initialConn.query(`CREATE DATABASE IF NOT EXISTS \`${masterDbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci`);
+    
+    // Bağlantıyı kapat
+    await initialConn.end();
+
+    // Master veritabanına yeni bir bağlantı oluştur
+    const conn = await mysql.createConnection(getMasterDbConfig());
 
     await conn.query(`
         CREATE TABLE IF NOT EXISTS companies (
@@ -274,7 +295,7 @@ await tenantConn.query(`
         );`)
 
          // Hareket türleri tablosu
-         await conn.execute(`
+         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS hareket_turleri (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 tur_adi VARCHAR(50) NOT NULL,
@@ -285,7 +306,7 @@ await tenantConn.query(`
         `);
 
         // Cari hareketler tablosu
-        await conn.execute(`
+        await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS cari_hareketler (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 cari_id INT NOT NULL,
@@ -308,7 +329,7 @@ await tenantConn.query(`
         `);
 
         // Varsayılan hareket türlerini ekle
-        await conn.execute(`
+        await tenantConn.query(`
             INSERT IGNORE INTO hareket_turleri (tur_adi, tur_kodu) VALUES 
             ('Alış', 'ALIS'),
             ('Satış', 'SATIS'),
@@ -336,35 +357,26 @@ await tenantConn.query(`
                 faturabelgeno VARCHAR(50) NULL,
                 tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 carikayitno INT NOT NULL,
-                stokkayitno INT NOT NULL,
                 depokayitno INT NOT NULL,
                 fis_tipi INT NOT NULL DEFAULT 0,
-                kdv_orani DECIMAL(5,2) NOT NULL,
-                tutar DECIMAL(10,2) NOT NULL,
                 aratoplam DECIMAL(10,2) NOT NULL,
                 kdvtoplam DECIMAL(10,2) NOT NULL,
                 geneltoplam DECIMAL(10,2) NOT NULL,
-                dovizkayitno INT NULL,
-                iskontorani DECIMAL(5,2) NULL,
-                iskontotutar DECIMAL(10,2) NULL,
                 teslimalan VARCHAR(50)  NULL,
                 teslimeden VARCHAR(50)  NULL,
                 plaka VARCHAR(50)  NULL,
                 earsiv TINYINT(1) DEFAULT 0 NULL,
                 durum INT NOT NULL DEFAULT 0,
                 tipi INT NOT NULL DEFAULT 0,
-                miktar DECIMAL(10,2) NOT NULL,
-                birim VARCHAR(10) NOT NULL,
                 aciklama TEXT,
                 guncelleyenkullanicikayitno INT,
                 kaydedenkullanicikayitno INT,
                 guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (carikayitno) REFERENCES cariler(id),
-                FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
                 FOREIGN KEY (depokayitno) REFERENCES depokarti(id)
             )
         `);
-        await conn.execute(`
+        await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS cekler (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 cari_id INT NOT NULL,
@@ -391,36 +403,56 @@ await tenantConn.query(`
         faturabelgono VARCHAR(50) NULL,
         tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
         carikayitno INT NOT NULL,
-        stokkayitno INT NOT NULL,
         depokayitno INT NOT NULL,
         fis_tipi INT NOT NULL DEFAULT 0,
-        kdv_orani DECIMAL(5,2) NOT NULL,
-        tutar DECIMAL(10,2) NOT NULL,
         aratoplam DECIMAL(10,2) NOT NULL,
         kdvtoplam DECIMAL(10,2) NOT NULL,
         geneltoplam DECIMAL(10,2) NOT NULL,
-        dovizkayitno INT NULL,
         faturakayitno INT NULL,
-        iskontorani DECIMAL(5,2) NULL,
-        iskontotutar DECIMAL(10,2) NULL,
         teslimalan VARCHAR(50)  NULL,
         teslimeden VARCHAR(50)  NULL,
         plaka VARCHAR(50)  NULL,
         durum INT NOT NULL DEFAULT 0,
         tipi INT NOT NULL DEFAULT 0,
-        miktar DECIMAL(10,2) NOT NULL,
-        birim VARCHAR(10) NOT NULL,
         aciklama TEXT,
         guncelleyenkullanicikayitno INT,
         kaydedenkullanicikayitno INT,
         guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (carikayitno) REFERENCES cariler(id),
-        FOREIGN KEY (stokkayitno) REFERENCES stoklar(id),
         FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
-        FOREIGN KEY (dovizkayitno) REFERENCES dovizkarti(id),
         FOREIGN KEY (faturakayitno) REFERENCES faturalar(id)
     )
 `);
+await tenantConn.query(`
+    CREATE TABLE IF NOT EXISTS irsaliyefatura_detaylar (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        irsaliye_id INT NOT NULL,
+        urun_adi VARCHAR(255) NOT NULL,
+        miktar DECIMAL(10,2) NOT NULL,
+        birim VARCHAR(50) NOT NULL,
+        iskontorani DECIMAL(5,2) NULL,
+        iskontotutar DECIMAL(10,2) NULL,
+        kdvorani DECIMAL(5,2) NOT NULL,
+        dovizkayitno INT NULL,
+        tutar DECIMAL(10,2) NOT NULL,
+        stokkayitno INT NULL,
+        FOREIGN KEY (irsaliye_id) REFERENCES irsaliyeler(id) ON DELETE CASCADE,
+        FOREIGN KEY (dovizkayitno) REFERENCES dovizkarti(id),
+        FOREIGN KEY (stokkayitno) REFERENCES stoklar(id)
+    )
+`);
+
+        // POS hızlı tuş atamaları tablosu
+        await tenantConn.query(`
+            CREATE TABLE IF NOT EXISTS pos_quick_buttons (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                button_index INT NOT NULL,
+                stokkayitno INT NULL,
+                UNIQUE KEY uniq_user_button (user_id, button_index),
+                FOREIGN KEY (stokkayitno) REFERENCES stoklar(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
 
 
        

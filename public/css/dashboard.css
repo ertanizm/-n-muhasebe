@@ -22,7 +22,7 @@ body {
 
 /* Sidebar Styles */
 .sidebar {
-    width: 280px;
+    width: 250px;
     background-color: var(--sidebar-bg);
     color: white;
     padding: 20px 0;
@@ -33,13 +33,13 @@ body {
     height: 100%;
     left: 0;
     top: 0;
-    transition: transform 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
     z-index: 1000;
 }
 
 @media (max-width: 768px) {
     .sidebar {
-        transform: translateX(-280px);
+        transform: translateX(-250px);
     }
     .sidebar.show {
         transform: translateX(0);
@@ -258,7 +258,7 @@ body {
 /* Main Content Styles */
 .main-content {
     flex-grow: 1;
-    margin-left: 280px; /* Sidebar genişliği kadar boşluk bırakır */
+    margin-left: 250px; /* Sidebar genişliği kadar boşluk bırakır */
     padding: 20px;
     transition: margin-left 0.3s ease-in-out;
 }
