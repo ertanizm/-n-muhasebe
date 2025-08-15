@@ -91,5 +91,5 @@ router.get('/hizlisatis', authMiddleware, (req, res) => {
         error: null 
     });
 });
-//ben burda sadece boşlukları sildim satır olarak ona patlıoy heralde
+
 module.exports = router;
