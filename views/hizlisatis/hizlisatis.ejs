@@ -16,7 +16,10 @@
         <!-- Sol Taraf - Ürünler -->
         <div class="products-section">
             <div class="search-bar">
-                <input id="productSearch" type="text" class="form-control" placeholder="Ürün Ara / Barkod..." oninput="searchProducts(this.value)" onkeydown="onProductSearchKey(event)">
+                <div class="customer-search">
+                    <input id="productSearch" type="text" class="form-control" placeholder="Ürün Ara / Barkod..." oninput="searchProducts(this.value)" onkeydown="onProductSearchKey(event)">
+                    <span class="search-icon" title="Stok Listesi" onclick="openStockListModal()"><i class="fa fa-search"></i></span>
+                </div>
             </div>
             
             <!-- Hızlı Tuşlar (100 adet, 4 sütun, scroll) -->
@@ -48,11 +51,11 @@
             </div>
 
             <div class="cart-summary">
-                <div class="summary-row">
+                <div class="summary-row hidden">
                     <span>Ara Toplam:</span>
                     <span id="subtotal">0.00 ₺</span>
                 </div>
-                <div class="summary-row">
+                <div class="summary-row hidden">
                     <span>KDV:</span>
                     <span id="tax">0.00 ₺</span>
                 </div>
@@ -62,11 +65,26 @@
                 </div>
 
                 <div class="payment-buttons">
+                    <button class="payment-button card-button" onclick="showPaymentModal('card')">
+                        <i class="fas fa-credit-card"></i> Kart
+                    </button>
                     <button class="payment-button cash-button" onclick="showPaymentModal('cash')">
                         <i class="fas fa-money-bill-wave"></i> Nakit
                     </button>
-                    <button class="payment-button card-button" onclick="showPaymentModal('card')">
-                        <i class="fas fa-credit-card"></i> Kart
+                    <a class="payment-button" style="color:white;background:linear-gradient(135deg,#e0ac00,#ffc400);display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="/gunsonu">
+                        <i class="fa fa-calendar-day"></i>&nbsp;Gün Sonu
+                    </a>
+                    <button class="payment-button" style="color:white;background:linear-gradient(135deg,#228dcd,#0ea5e9)" onclick="openPartialPaymentDialog()">
+                        <i class="fa fa-columns"></i> Parçalı Ödeme
+                    </button>
+                    <button class="payment-button" style="color:white;background:linear-gradient(135deg,#a855f7,#7c3aed)" onclick="openSalesList()">
+                        <i class="fa fa-list"></i> Satış Listesi
+                    </button>
+                    <button class="payment-button" style="color:white;background:linear-gradient(135deg,#06b6d4,#0891b2)" onclick="openHoldList()">
+                        <i class="fa fa-clock"></i> Bekleme Listesi
+                    </button>
+                    <button class="payment-button" style="color:white;background:linear-gradient(135deg,#f97316,#ea580c)" onclick="holdCurrentSale()">
+                        <i class="fa fa-pause"></i> Beklet
                     </button>
                 </div>
             </div>
@@ -80,6 +98,16 @@
             <div class="form-group">
                 <label>Ödenecek Tutar</label>
                 <input type="text" id="amountToPay" class="form-control" readonly>
+            </div>
+            <div class="d-flex align-items-center justify-content-between" style="gap:10px;margin-top:8px;margin-bottom:4px">
+                <div class="flex-grow-1">
+                    <small class="text-muted">Uygulanan İndirim</small>
+                    <div id="discountSummary" class="fw-semibold">- 0.00 ₺</div>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="openDiscountDialog()"><i class="fa fa-percent"></i> İndirim</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="clearDiscount()">Temizle</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Ödenen</label>
@@ -137,13 +165,27 @@
         let selectedCustomer = null;
         let currentPaymentMethod = null;
         let taxCodes = [];
+        let globalDiscount = { type: 'none', value: 0 }; // type: none|percent|amount
 
         // Sayfa yüklendiğinde
         document.addEventListener('DOMContentLoaded', function() {
             renderQuickButtons();
             loadQuickButtonAssignments();
             loadTaxCodes();
+            autoSelectCashCustomer();
         });
+
+        async function autoSelectCashCustomer(){
+            try {
+                const res = await fetch('/api/cariler');
+                const list = await res.json();
+                const pesin = (list || []).find(c => (c.carikodu||'').toUpperCase() === 'PEŞİN');
+                if (pesin) {
+                    selectedCustomer = pesin;
+                    document.getElementById('customerInput').value = pesin.unvan || pesin.carikodu;
+                }
+            } catch(e) { /* sessiz geç */ }
+        }
         async function loadTaxCodes(){
             try{
                 const res = await fetch('/api/tax-codes');
@@ -327,8 +369,8 @@
                     ? taxCodes.map(t => `<option value="${t.oran}" ${Number(item.tax||0)===Number(t.oran)?'selected':''}>${t.vergikodu}</option>`).join('')
                     : `<option value="0">KDV</option>`;
 
-                const labelF1 = Number(item.fiyat1||0) > 0 ? formatPrice(item.fiyat1) : 'Satış Fiyatı 1';
-                const labelF2 = Number(item.fiyat2||0) > 0 ? formatPrice(item.fiyat2) : 'Satış Fiyatı 2';
+                const labelF1 =/* Number(item.fiyat1||0) > 0 ? formatPrice(item.fiyat1) : */'Satış Fiyatı 1';
+                const labelF2 =/* Number(item.fiyat2||0) > 0 ? formatPrice(item.fiyat2) : */'Satış Fiyatı 2';
 
                 itemElement.innerHTML = `
                     <div>${item.name}</div>
@@ -363,10 +405,12 @@
                 // Satır toplamını hesapla (elle girilmiş fiyat ve seçilen KDV üzerinden)
                 const price = Number(item.price)||0;
                 const qty = Number(item.quantity)||0;
-                const lineSubtotal = qty * price;
-                const lineKdv = lineSubtotal * (Number(item.tax||0)/100);
-                const lineWithPercent = lineSubtotal + (lineSubtotal * (Number(item.percent||0)/100));
-                const lineTotal = lineWithPercent + lineKdv;
+                const base = qty * price;
+                const lineWithPercent = base + (base * (Number(item.percent||0)/100));
+                const discount = Number(item.discountAmount||0);
+                const netBase = Math.max(0, lineWithPercent - discount);
+                const lineKdv = netBase * (Number(item.tax||0)/100);
+                const lineTotal = netBase + lineKdv;
                 item.total = lineTotal;
                 subtotal += item.total;
                 totalKdv += lineKdv;
@@ -378,6 +422,20 @@
             document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' ₺';
             document.getElementById('tax').textContent = tax.toFixed(2) + ' ₺';
             document.getElementById('total').textContent = total.toFixed(2) + ' ₺';
+            // Ödeme modalı açıkken indirim özetini güncelle
+            const discountSum = cart.reduce((s,i)=> s + Number(i.discountAmount||0), 0);
+            const ds = document.getElementById('discountSummary');
+            if (ds) ds.textContent = `- ${discountSum.toFixed(2)} ₺`;
+            // Ödeme modalı açıksa ödenecek tutarı da güncelle
+            const atp = document.getElementById('amountToPay');
+            if (atp) {
+                atp.value = total.toFixed(2);
+                // Para üstünü de canlı güncelle
+                const paidVal = parseFloat(document.getElementById('amountPaid')?.value || '0') || 0;
+                const change = paidVal - total;
+                const ch = document.getElementById('changeAmount');
+                if (ch) ch.value = change >= 0 ? change.toFixed(2) : '0.00';
+            }
         }
 
         function formatPrice(val){
@@ -439,7 +497,7 @@
         // Ödeme modalını göster
         function showPaymentModal(method) {
             if (cart.length === 0) {
-                alert('Sepet boş!');
+                Swal.fire({ icon: 'warning', title: 'Sepet boş', timer: 1500, showConfirmButton: false });
                 return;
             }
             
@@ -453,6 +511,9 @@
             document.getElementById('changeAmount').value = '';
             
             document.getElementById('paymentModal').style.display = 'flex';
+            // indirim özeti güncelle
+            const discountSum = cart.reduce((s,i)=> s + Number(i.discountAmount||0), 0);
+            document.getElementById('discountSummary').textContent = `- ${discountSum.toFixed(2)} ₺`;
         }
 
         // Ödeme modalını kapat
@@ -469,9 +530,18 @@
         function completePayment() {
             const total = calculateTotal();
             const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
-            
-            if (currentPaymentMethod === 'cash' && paid < total) {
-                alert('Yetersiz ödeme!');
+            // parçalı ödeme girişleri
+            const pCash = window.__partialPayment ? Number(window.__partialPayment.cash||0) : 0;
+            const pCard = window.__partialPayment ? Number(window.__partialPayment.card||0) : 0;
+            const partsTotal = pCash + pCard;
+
+            if (partsTotal > 0) {
+                if (Math.abs(partsTotal - total) > 0.009) {
+                    Swal.fire({ icon: 'error', title: 'Parçalı ödeme toplamı yanlış', text: 'Parçalı ödeme toplamı genel toplamla aynı olmalı.' });
+                    return;
+                }
+            } else if (currentPaymentMethod === 'cash' && paid < total) {
+                Swal.fire({ icon: 'error', title: 'Yetersiz ödeme', text: 'Nakit tutar toplamdan az olamaz.' });
                 return;
             }
 
@@ -485,8 +555,10 @@
                 const percent = Number(item.percent||0)/100;
                 const taxRate = Number(item.tax||0)/100;
                 const baseWithPercent = base + (base * percent);
-                const lineKdv = base * taxRate; // KDV'nin baz alacağı kısım: base
-                aratoplam += baseWithPercent;
+                const discount = Number(item.discountAmount||0);
+                const netBase = Math.max(0, baseWithPercent - discount);
+                const lineKdv = netBase * taxRate;
+                aratoplam += netBase;
                 kdvtoplam += lineKdv;
             });
             const irsaliyeData = {
@@ -498,14 +570,21 @@
                 geneltoplam: Number((aratoplam + kdvtoplam).toFixed(2)),
                 durum: 1,
                 tipi: 1,
+                odeme_tipi: (currentPaymentMethod === 'card') ? 'kart' : 'nakit',
                 urunler: cart.map(item => ({
                     urun_adi: item.name,
                     miktar: item.quantity,
                     birim: 'Adet',
                     kdvorani: Number(item.tax||0),
+                    iskontorani: Number(item.discountRate||0),
+                    iskontotutar: Number(item.discountAmount||0),
                     tutar: Number(item.total||0),
                     stokkayitno: item.id
-                }))
+                })),
+                odemeler: (partsTotal>0) ? [
+                    ...(pCash>0?[{ tip:'nakit', tutar:Number(pCash.toFixed(2)) }]:[]),
+                    ...(pCard>0?[{ tip:'kart', tutar:Number(pCard.toFixed(2)) }]:[])
+                ] : undefined
             };
             console.log(irsaliyeData);
             // İrsaliyeyi kaydet
@@ -519,17 +598,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Satış başarıyla tamamlandı!');
+                    Swal.fire({ icon: 'success', title: 'Satış tamamlandı', timer: 1500, showConfirmButton: false });
                     cart = [];
                     updateCartDisplay();
                     closePaymentModal();
                 } else {
-                    alert('Satış kaydedilirken bir hata oluştu: ' + data.message);
+                    Swal.fire({ icon: 'error', title: 'Hata', text: 'Satış kaydedilemedi: ' + (data.message||'') });
                 }
             })
             .catch(error => {
                 console.error('Satış kaydedilirken hata:', error);
-                alert('Satış kaydedilirken bir hata oluştu.');
+                Swal.fire({ icon: 'error', title: 'Hata', text: 'Satış kaydedilirken bir hata oluştu.' });
             });
         }
 
@@ -551,6 +630,263 @@
             const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
             const change = paid - total;
             document.getElementById('changeAmount').value = change >= 0 ? change.toFixed(2) : '0.00';
+        }
+
+        // Parçalı ödeme modalı
+        function openPartialPaymentDialog(){
+            const total = calculateTotal();
+            Swal.fire({
+                title: 'Parçalı Ödeme',
+                width: 700,
+                html: `
+                    <div class="text-start">
+                        <div class="mb-2"><b>Toplam:</b> ${total.toFixed(2)} ₺</div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label">Nakit (₺)</label>
+                                <input id="ppCash" type="number" step="0.01" class="form-control" placeholder="0.00">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Kart (₺)</label>
+                                <input id="ppCard" type="number" step="0.01" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-3">
+                            <div>
+                                <button class="btn btn-outline-secondary btn-sm" id="ppHalfBtn">%50 / %50</button>
+                                <button class="btn btn-outline-secondary btn-sm" id="ppAllCash">Hepsi Nakit</button>
+                                <button class="btn btn-outline-secondary btn-sm" id="ppAllCard">Hepsi Kart</button>
+                            </div>
+                            <div class="text-muted" id="ppInfo"></div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Kaydet',
+                cancelButtonText: 'Vazgeç',
+                didOpen: () => {
+                    const cash = document.getElementById('ppCash');
+                    const card = document.getElementById('ppCard');
+                    const info = document.getElementById('ppInfo');
+                    const recalc = () => {
+                        const c = parseFloat(cash.value)||0; const k = parseFloat(card.value)||0;
+                        const sum = c + k; const diff = total - sum;
+                        info.textContent = `Kalan: ${diff.toFixed(2)} ₺`;
+                    };
+                    cash.addEventListener('input', recalc);
+                    card.addEventListener('input', recalc);
+                    document.getElementById('ppHalfBtn').addEventListener('click', () => { cash.value=(total/2).toFixed(2); card.value=(total/2).toFixed(2); recalc(); });
+                    document.getElementById('ppAllCash').addEventListener('click', () => { cash.value=total.toFixed(2); card.value='0.00'; recalc(); });
+                    document.getElementById('ppAllCard').addEventListener('click', () => { card.value=total.toFixed(2); cash.value='0.00'; recalc(); });
+                    recalc();
+                },
+                preConfirm: () => {
+                    const cash = parseFloat(document.getElementById('ppCash').value)||0;
+                    const card = parseFloat(document.getElementById('ppCard').value)||0;
+                    if (Math.abs((cash + card) - total) > 0.009) {
+                        Swal.showValidationMessage('Parçalı ödeme toplamı genel toplamla aynı olmalı.');
+                        return false;
+                    }
+                    return { cash, card };
+                }
+            }).then(res => {
+                if (!res.isConfirmed || !res.value) return;
+                // ödeme modalı kapalı olsa bile kaydı taşıyacağız; completePayment çağrısında kullanılır
+                window.__partialPayment = { cash: Number(res.value.cash.toFixed(2)), card: Number(res.value.card.toFixed(2)) };
+                Swal.fire({ icon:'success', title:'Parçalı ödeme kaydedildi', timer: 1200, showConfirmButton:false });
+            });
+        }
+
+        // İndirim işlemleri
+        function openDiscountDialog(){
+            Swal.fire({
+                title: 'İndirim',
+                html: `
+                    <div style="text-align:left">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="discType" id="discPercent" value="percent" checked>
+                            <label class="form-check-label" for="discPercent">Yüzde (%)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="discType" id="discAmount" value="amount">
+                            <label class="form-check-label" for="discAmount">Tutar (₺)</label>
+                        </div>
+                        <input id="discValue" type="number" step="0.01" class="swal2-input" placeholder="Değer">
+                    </div>
+                `,
+                focusConfirm: false,
+                preConfirm: () => {
+                    const type = (document.getElementById('discAmount').checked ? 'amount' : 'percent');
+                    const value = parseFloat(document.getElementById('discValue').value)||0;
+                    return { type, value };
+                }
+            }).then(res=>{
+                if(!res.value) return;
+                setDiscount(res.value.type, res.value.value);
+            });
+        }
+
+        function setDiscount(type, value){
+            globalDiscount = { type, value: Math.max(0, value) };
+            // önce tüm satırların indirimlerini sıfırla
+            cart.forEach(it=>{ it.discountRate = 0; it.discountAmount = 0; });
+            // her satırın yüzdeli ara toplamını bul
+            const bases = cart.map(it=>{
+                const base = Number(it.quantity||0) * Number(it.price||0);
+                return base + base * (Number(it.percent||0)/100);
+            });
+            const subtotal = bases.reduce((s,v)=>s+v,0);
+            if (subtotal <= 0) { updateCartDisplay(); return; }
+            if (type === 'percent'){
+                cart.forEach((it,idx)=>{
+                    it.discountRate = value;
+                    it.discountAmount = Number((bases[idx] * value / 100).toFixed(2));
+                });
+            } else if (type === 'amount'){
+                let remaining = value;
+                cart.forEach((it,idx)=>{
+                    let part = Number((value * (bases[idx]/subtotal)).toFixed(2));
+                    // son satıra kalanı bırak
+                    if (idx === cart.length - 1) part = Number(remaining.toFixed(2));
+                    remaining = Number((remaining - part).toFixed(2));
+                    it.discountAmount = Math.min(part, bases[idx]);
+                    it.discountRate = 0;
+                });
+            }
+            updateCartDisplay();
+            // ödeme modalındaki ödenecek tutarı güncelle
+            const total = calculateTotal();
+            const atp = document.getElementById('amountToPay');
+            if (atp) atp.value = total.toFixed(2);
+        }
+
+        function clearDiscount(){
+            globalDiscount = { type: 'none', value: 0 };
+            cart.forEach(it=>{ it.discountRate=0; it.discountAmount=0; });
+            updateCartDisplay();
+        }
+
+        // Gün Sonu ekranı
+        function openDailySummary(){
+            const today = new Date().toISOString().slice(0,10);
+            fetch(`/api/irsaliye/list?start=${today}&end=${today}`)
+                .then(r=>r.json())
+                .then(j=>{
+                    if(!j.success) throw new Error('Liste alınamadı');
+                    const html = renderSalesTable(j.data||[]);
+                    Swal.fire({
+                        title: 'Gün Sonu', width: 900, html,
+                        showCloseButton: true, showConfirmButton: false
+                    });
+                })
+                .catch(()=>Swal.fire({icon:'error',title:'Hata',text:'Gün sonu alınamadı'}));
+        }
+
+        // Satış Listesi ekranı (geliştirilmiş modal ve tasarım)
+        let lastSalesListRange = null;
+        async function openSalesList(){
+            const { value: range } = await Swal.fire({
+                title:'Tarih Aralığı', html:`
+                    <input id="s1" type="date" class="swal2-input">
+                    <input id="s2" type="date" class="swal2-input">`,
+                preConfirm:()=>({ start: (document.getElementById('s1').value||''), end:(document.getElementById('s2').value||'') })
+            });
+            if (!range) return;
+            lastSalesListRange = range;
+            openSalesListWithRange(range);
+        }
+
+        function openSalesListWithRange(range){
+            const q = range?`?start=${range.start}&end=${range.end}`:'';
+            fetch(`/api/irsaliye/list${q}`)
+                .then(r=>r.json())
+                .then(j=>{
+                    if(!j.success) throw new Error();
+                    const html = renderSalesTable(j.data||[]);
+                    Swal.fire({ title:'Satış Listesi', width: 1200, html, showCloseButton:true, showConfirmButton:false });
+                })
+                .catch(()=>Swal.fire({icon:'error',title:'Hata',text:'Satış listesi alınamadı'}));
+        }
+
+        function renderSalesTable(rows){
+            const tbody = rows.map(r=>`
+                <tr class="sale-header-row">
+                    <td style="width:42px"><button class="btn btn-light btn-sm sale-expand" onclick="toggleSaleDetails(${r.id}, this)"><i class='fa fa-plus'></i></button></td>
+                    <td class="text-muted fw-semibold">${r.fis_no}</td>
+                    <td>${new Date(r.tarih).toLocaleDateString('tr-TR')}</td>
+                    <td>${r.cari||''}</td>
+                    <td class="text-end fw-bold">${Number(r.geneltoplam||0).toFixed(2)} ₺</td>
+                    <td class="text-end"><button class="btn btn-sm btn-danger" onclick="deleteSale(${r.id})">Sil</button></td>
+                </tr>
+                <tr class="sale-detail-row"><td colspan="6">
+                    <div class="sale-collapse" id="sale-${r.id}"><div class="sale-loading">Detay yükleniyor...</div></div>
+                </td></tr>
+            `).join('');
+            return `<div class="sale-list">
+                <table class="table table-hover table-sm sale-table">
+                    <thead><tr>
+                        <th></th><th>Fiş No</th><th>Tarih</th><th>Cari</th>
+                        <th class=\"text-end\">Tutar</th><th class=\"text-end\">İşlem</th>
+                    </tr></thead>
+                    <tbody>${tbody}</tbody>
+                </table>
+            </div>`;
+        }
+
+        function toggleSaleDetails(id, btn){
+            const box = document.getElementById(`sale-${id}`);
+            const open = box.classList.contains('open');
+            if (!open){
+                if (!box.dataset.loaded){
+                    fetch(`/api/irsaliye/detaylar?id=${id}`).then(r=>r.json()).then(j=>{
+                        if(!j.success) throw new Error();
+                        box.innerHTML = renderDetailsTable(j.data||[]);
+                        box.dataset.loaded = '1';
+                    }).catch(()=>{ box.innerHTML='<div class="text-danger p-2">Detay yüklenemedi</div>'; });
+                }
+                box.classList.add('open');
+                btn.innerHTML = "<i class='fa fa-minus'></i>";
+            } else {
+                box.classList.remove('open');
+                btn.innerHTML = "<i class='fa fa-plus'></i>";
+            }
+        }
+
+        function renderDetailsTable(items){
+            const rows = items.map(d=>`<tr>
+                <td>${d.urun_adi}</td>
+                <td class="text-end">${Number(d.miktar||0)}</td>
+                <td>${d.birim||''}</td>
+                <td class="text-end">${Number(d.kdvorani||0)}%</td>
+                <td class="text-end">
+                    ${Number(d.tutar||0).toFixed(2)} ₺
+                    ${Number(d.iskontotutar||0)>0?`<div class='text-danger small'>- ${Number(d.iskontotutar||0).toFixed(2)} ₺ ${Number(d.iskontorani||0)>0?`(%${Number(d.iskontorani)})`:''}</div>`:''}
+                </td>
+                <td><span class="badge ${d.satirtipi==1?'bg-primary':'bg-success'}">${d.satirtipi==1?'Kart':'Nakit'}</span></td>
+            </tr>`).join('');
+            return `<div class="p-2">
+                <table class="table table-bordered table-sm sale-detail-table">
+                    <thead><tr>
+                        <th>Ürün</th><th class="text-end">Miktar</th><th>Birim</th><th class="text-end">KDV</th><th class="text-end">Tutar</th><th>Ödeme</th>
+                    </tr></thead>
+                    <tbody>${rows || '<tr><td colspan="6">Detay yok</td></tr>'}</tbody>
+                </table>
+            </div>`;
+        }
+
+        function deleteSale(id){
+            Swal.fire({
+                icon:'warning', title:'Satışı sil?', showCancelButton:true,
+                confirmButtonText:'Evet, sil', cancelButtonText:'Vazgeç'
+            }).then(res=>{
+                if(!res.isConfirmed) return;
+                fetch(`/api/irsaliye/${id}`, { method:'DELETE' })
+                    .then(r=>r.json()).then(j=>{
+                        if(!j.success) throw new Error();
+                        Swal.fire({icon:'success', title:'Silindi', timer:1000, showConfirmButton:false});
+                        if (lastSalesListRange){ openSalesListWithRange(lastSalesListRange); }
+                    }).catch(()=>Swal.fire({icon:'error', title:'Hata', text:'Satış silinemedi'}));
+            });
         }
 
         // Müşteri modalı
@@ -611,11 +947,159 @@
                     addToCart({ id: s.id, stok_adi: s.stok_adi, fiyat1: s.fiyat1||0 });
                     document.getElementById('productSearch').value='';
                 } else {
-                    alert(json.message||'Barkod bulunamadı');
+                    Swal.fire({ icon: 'warning', title: 'Barkod bulunamadı', text: json.message || '' });
                 }
             }catch(err){
                 console.error(err);
-                alert('Barkod aramada hata');
+                Swal.fire({ icon: 'error', title: 'Hata', text: 'Barkod aramada hata' });
+            }
+        }
+
+        // Stok Listesi Modalı
+        function openStockListModal() {
+            const modal = new bootstrap.Modal(document.getElementById('stockListModal'));
+            loadStockList();
+            modal.show();
+        }
+
+        async function loadStockList() {
+            const tbody = document.getElementById('stockListTable').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="8">Yükleniyor...</td></tr>';
+            try {
+                const res = await fetch('/api/stoklar');
+                const stocks = await res.json();
+                tbody.innerHTML = '';
+                stocks.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${s.stok_kodu || ''}</td>
+                        <td>${s.stok_adi}</td>
+                        <td>${Number(s.fiyat1||0).toFixed(2)}</td>
+                        <td>${Number(s.fiyat2||0).toFixed(2)}</td>
+                        <td>${Number(s.fiyat3||0).toFixed(2)}</td>
+                        <td>${Number(s.miktar||0)}</td>
+                        <td>${s.aktifbarkod || ''}</td>
+                        <td><button class="btn btn-sm btn-primary" onclick="addToCartFromStockList(${s.id})">Ekle</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="8">Stoklar yüklenemedi</td></tr>';
+            }
+        }
+ 
+        function addToCartFromStockList(stokId) {
+            fetch(`/api/stock/by-id?id=${stokId}`)
+                .then(response => response.json())
+                .then(json => {
+                    if (json && json.success && json.data) {
+                        const s = json.data;
+                        addToCart({ id: s.id, stok_adi: s.stok_adi, fiyat1: s.fiyat1 || 0, fiyat2: s.fiyat2 || 0 });
+                        Swal.fire({ icon: 'success', title: 'Ürün sepete eklendi', timer: 1500, showConfirmButton: false });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Hata', text: (json && json.message) || 'Ürün eklenemedi' });
+                    }
+                })
+                .catch(error => {
+                    console.error('Ürün eklenirken hata:', error);
+                    Swal.fire({ icon: 'error', title: 'Hata', text: 'Ürün eklenirken bir hata oluştu.' });
+                });
+        }
+
+        function holdCurrentSale(){
+            if (cart.length === 0){
+                Swal.fire({icon:'info', title:'Sepet boş'}); return;
+            }
+            // aratoplam/kdv/genel sistemde zaten KDV dahil hesap mantığımız var
+            let aratoplam = 0; let kdvtoplam = 0;
+            cart.forEach(item => {
+                const price = Number(item.price)||0;
+                const qty = Number(item.quantity)||0;
+                const base = qty * price;
+                const percent = Number(item.percent||0)/100;
+                const taxRate = Number(item.tax||0)/100;
+                const baseWithPercent = base + (base * percent);
+                const discount = Number(item.discountAmount||0);
+                const netBase = Math.max(0, baseWithPercent - discount);
+                const lineKdv = netBase * taxRate;
+                aratoplam += netBase; kdvtoplam += lineKdv;
+            });
+            const payload = {
+                carikayitno: selectedCustomer ? selectedCustomer.id : null,
+                depokayitno: 1,
+                fis_tipi: 1,
+                aratoplam: Number(aratoplam.toFixed(2)),
+                kdvtoplam: Number(kdvtoplam.toFixed(2)),
+                geneltoplam: Number((aratoplam + kdvtoplam).toFixed(2)),
+                beklet: 1,
+                urunler: cart.map(item => ({
+                    urun_adi: item.name,
+                    miktar: item.quantity,
+                    birim: 'Adet',
+                    kdvorani: Number(item.tax||0),
+                    iskontorani: Number(item.discountRate||0),
+                    iskontotutar: Number(item.discountAmount||0),
+                    tutar: Number(item.total||0),
+                    stokkayitno: (Number.isFinite(Number(item.id)) ? Number(item.id) : null)
+                }))
+            };
+            fetch('/api/irsaliye', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+                .then(r=>r.json())
+                .then(j=>{
+                    if(!j.success) throw new Error();
+                    cart = []; updateCartDisplay();
+                    Swal.fire({icon:'success', title:'Fiş beklemeye alındı', timer:1200, showConfirmButton:false});
+                })
+                .catch(()=>Swal.fire({icon:'error', title:'Hata', text:'Beklemeye alınamadı'}));
+        }
+
+        async function openHoldList(){
+            try{
+                const res = await fetch('/api/irsaliye/hold-list');
+                const json = await res.json();
+                if(!json.success) throw new Error();
+                const rows = json.data||[];
+                if(!rows.length){ Swal.fire({icon:'info', title:'Beklemede fiş yok'}); return; }
+                const html = `<div class="sale-list"><table class="table table-hover table-sm"><thead><tr>
+                    <th>Fiş No</th><th>Tarih</th><th>Cari</th><th class="text-end">Tutar</th><th class="text-end">İşlem</th>
+                </tr></thead><tbody>
+                ${rows.map(r=>`<tr>
+                    <td>${r.fis_no}</td>
+                    <td>${new Date(r.tarih).toLocaleDateString('tr-TR')}</td>
+                    <td>${r.cari||''}</td>
+                    <td class="text-end">${Number(r.geneltoplam||0).toFixed(2)} ₺</td>
+                    <td class="text-end"><button class="btn btn-sm btn-primary" onclick="loadHoldToCart(${r.id})">Yükle</button></td>
+                </tr>`).join('')}
+                </tbody></table></div>`;
+                Swal.fire({ title:'Bekleme Listesi', width: 900, html: html, showCloseButton: true, showConfirmButton: false });
+            }catch(e){
+                Swal.fire({icon:'error', title:'Hata', text:'Bekleme listesi getirilemedi'});
+            }
+        }
+
+        async function loadHoldToCart(irsaliyeId){
+            try{
+                const res = await fetch(`/api/irsaliye/detaylar?id=${irsaliyeId}`);
+                const json = await res.json();
+                if(!json.success) throw new Error();
+                cart = [];
+                (json.data||[]).forEach(d=>{
+                    const tempId = (d.stokkayitno==null || d.stokkayitno===undefined) ? `H${d.id}` : d.stokkayitno;
+                    addToCart({ id: tempId, stok_adi: d.urun_adi, fiyat1: 0, fiyat2: 0 });
+                    const item = cart.find(i=>i.id===tempId);
+                    if(item){
+                        item.quantity = Number(d.miktar||1);
+                        item.tax = Number(d.kdvorani||0);
+                        item.percent = Number(d.iskontorani||0);
+                        // satır tutarından birim fiyatı türet
+                        const q = Math.max(1, Number(d.miktar||1));
+                        item.price = Number((Number(d.tutar||0)/q)||0);
+                    }
+                });
+                updateCartDisplay();
+                Swal.close();
+            }catch(e){
+                Swal.fire({icon:'error', title:'Hata', text:'Bekleyen fiş yüklenemedi'});
             }
         }
     </script>
@@ -638,6 +1122,37 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stok Listesi Modal -->
+    <div class="modal fade" id="stockListModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Stok Listesi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm" id="stockListTable">
+                            <thead>
+                                <tr>
+                                    <th style="min-width:120px">Kodu</th>
+                                    <th style="min-width:260px">Adı</th>
+                                    <th style="min-width:120px">Fiyat 1 (Satış)</th>
+                                    <th style="min-width:120px">Fiyat 2 (Satış)</th>
+                                    <th style="min-width:120px">Fiyat 3 (Alış)</th>
+                                    <th style="min-width:100px">Miktar</th>
+                                    <th style="min-width:160px">Barkod</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

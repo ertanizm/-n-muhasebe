@@ -281,6 +281,10 @@ await tenantConn.query(`
             )
         `);
         await tenantConn.query(`
+            INSERT IGNORE INTO cariler (carikodu, unvan)
+VALUES ('PEŞİN', 'PEŞİN SATIŞ');
+`);
+        await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS hesapkarti (
         id INT AUTO_INCREMENT PRIMARY KEY,
         tanimi VARCHAR(255),
@@ -397,36 +401,40 @@ await tenantConn.query(`
         `);
 
         await tenantConn.query(`
-            CREATE TABLE IF NOT EXISTS irsaliyeler (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                fis_no VARCHAR(50) NOT NULL,
-                faturabelgono VARCHAR(50) NULL,
-                tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                carikayitno INT NOT NULL,
-                depokayitno INT NOT NULL,
-                fis_tipi INT NOT NULL DEFAULT 0,
-                aratoplam DECIMAL(10,2) NOT NULL,
-                kdvtoplam DECIMAL(10,2) NOT NULL,
-                geneltoplam DECIMAL(10,2) NOT NULL,
-                faturakayitno INT NULL,
-                teslimalan VARCHAR(50)  NULL,
-                teslimeden VARCHAR(50)  NULL,
-                plaka VARCHAR(50)  NULL,
-                durum INT NOT NULL DEFAULT 0,
-                tipi INT NOT NULL DEFAULT 0,
-                aciklama TEXT,
-                guncelleyenkullanicikayitno INT,
-                kaydedenkullanicikayitno INT,
-                guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (carikayitno) REFERENCES cariler(id),
-                FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
-                FOREIGN KEY (faturakayitno) REFERENCES faturalar(id)
-            )
+    CREATE TABLE IF NOT EXISTS irsaliyeler (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        fis_no VARCHAR(50) NOT NULL,
+        faturabelgono VARCHAR(50) NULL,
+        tarih DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        carikayitno INT NOT NULL,
+        depokayitno INT NOT NULL,
+        fis_tipi INT NOT NULL DEFAULT 0,
+        aratoplam DECIMAL(10,2) NOT NULL,
+        kdvtoplam DECIMAL(10,2) NOT NULL,
+        geneltoplam DECIMAL(10,2) NOT NULL,
+        beklet TINYINT(1) NOT NULL DEFAULT 0
+        nakittoplam DECIMAL(10,2) NOT NULL DEFAULT 0,
+        bankatoplam DECIMAL(10,2) NOT NULL DEFAULT 0,
+        faturakayitno INT NULL,
+        teslimalan VARCHAR(50)  NULL,
+        teslimeden VARCHAR(50)  NULL,
+        plaka VARCHAR(50)  NULL,
+        durum INT NOT NULL DEFAULT 0,
+        tipi INT NOT NULL DEFAULT 0,
+        aciklama TEXT,
+        guncelleyenkullanicikayitno INT,
+        kaydedenkullanicikayitno INT,
+        guncelleme_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (carikayitno) REFERENCES cariler(id),
+        FOREIGN KEY (depokayitno) REFERENCES depokarti(id),
+        FOREIGN KEY (faturakayitno) REFERENCES faturalar(id)
+    )
 `);
 await tenantConn.query(`
     CREATE TABLE IF NOT EXISTS irsaliyefatura_detaylar (
         id INT AUTO_INCREMENT PRIMARY KEY,
         irsaliye_id INT NOT NULL,
+        satirtipi INT NOT NULL DEFAULT 0,
         urun_adi VARCHAR(255) NOT NULL,
         miktar DECIMAL(10,2) NOT NULL,
         birim VARCHAR(50) NOT NULL,

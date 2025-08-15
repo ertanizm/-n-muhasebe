@@ -209,6 +209,18 @@
     margin-bottom: 10px;
     
 }
+.summary-row.hidden { display: none; }
+
+/* Satış listesi modalı ve tablo tasarımı */
+.sale-list { max-height: 60vh; overflow: auto; padding: 6px 2px; }
+.sale-table thead th { position: sticky; top: 0; background: #f8fafc; z-index: 2; }
+.sale-header-row td { vertical-align: middle; }
+.sale-expand { width: 30px; height: 28px; line-height: 1; border-radius: 6px; }
+.sale-detail-row > td { padding: 0; }
+.sale-collapse { display: none; background: #fff; border-top: 1px dashed #e5e7eb; }
+.sale-collapse.open { display: block; animation: fadeIn 160ms ease both; }
+.sale-loading { padding: 10px; color: #64748b; font-size: 14px; }
+.sale-detail-table thead th { background: #f1f5f9; }
 
 .payment-buttons {
     display: grid;
@@ -272,7 +284,7 @@
     align-items: center;
 }
 
-.modal-content {
+.payment-modal .modal-content {
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -605,4 +617,14 @@
     height: 1px;
     background-color: rgba(255,255,255,0.1);
     margin: 20px 0;
+}
+
+/* Stok Listesi Bootstrap modalını genişlet ve ortala */
+#stockListModal .modal-dialog {
+    max-width: 1200px;
+    width: 90vw;
+}
+#stockListModal .modal-body {
+    max-height: 70vh;
+    overflow: auto;
 }

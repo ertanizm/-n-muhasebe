@@ -50,6 +50,32 @@
         font-weight: 700;
         font-size: 1.3em;
         letter-spacing: 1px;
+        /* Görsel kullanımı için kapsayıcı boyutlandırma */
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* Sidebar başlık logosu görseli: header yüksekliğine göre sığdır ve taşmayı engelle */
+    .sidebar-header .logo img {
+        display: block;
+        height: 5rem;           /* 70px header içinde rahat otursun */
+        width: auto;            /* oranı koru */
+        max-width: 100%;        /* yatay taşmayı engelle */
+        object-fit: contain;    /* kırpma yapmadan sığdır */
+        object-position: left center; /* solda, dikey merkez */
+        -webkit-user-drag: none;
+    }
+
+    /* Logo gölge ve taşma ayarları */
+    .sidebar-header .logo { 
+        overflow: visible; /* logonun taşımasına izin ver */
+    }
+    .sidebar-header .logo img {
+        /* Kullanıcı 5rem yüksekliğe ayarladı; oranı koruyoruz */
+        filter: drop-shadow(0 10px 22px rgba(0,0,0,0.28)) drop-shadow(0 4px 10px rgba(0,0,0,0.18));
+        border-radius: 10px; /* görsel kare ise köşeleri yumuşatır */
+        image-rendering: -webkit-optimize-contrast;
+        user-select: none;
     }
 
     .sidebar-menu {
