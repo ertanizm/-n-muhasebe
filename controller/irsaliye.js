@@ -105,7 +105,7 @@ const getStoklar = async (req, res) => {
 
     try {
         const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
-        const [stoklar] = await conn.query('SELECT id, stok_kodu, stok_adi, birim, fiyat1 FROM stoklar WHERE aktif = 1');
+        const [stoklar] = await conn.query('SELECT id, stok_kodu, stok_adi, birim, fiyat1, fiyat2, fiyat3, miktar, aktifbarkod FROM stoklar WHERE aktif = 1');
         await conn.end();
         res.json(stoklar);
     } catch (error) {
@@ -116,96 +116,126 @@ const getStoklar = async (req, res) => {
 
 // İrsaliye oluştur (POS)
 const createIrsaliye = async (req, res) => {
-    if (!req.session || !req.session.user || !req.session.user.dbName) {
-        return res.status(401).json({ success: false, message: 'Oturum bulunamadı' });
-    }
-    try {
-        const { 
-            carikayitno, 
-            depokayitno, 
-                aratoplam, 
-                kdvtoplam, 
-                geneltoplam, 
-            urunler,
-            odeme_tipi
-        } = req.body || {};
+	if (!req.session || !req.session.user || !req.session.user.dbName) {
+		return res.status(401).json({ success: false, message: 'Oturum bulunamadı' });
+	}
+	let conn;
+	try {
+		const { 
+			carikayitno, 
+			depokayitno, 
+				aratoplam, 
+				kdvtoplam, 
+				geneltoplam, 
+			urunler,
+			odeme_tipi,
+			beklet
+		} = req.body || {};
 
-        if (!Array.isArray(urunler) || urunler.length === 0) {
-            return res.status(400).json({ success: false, message: 'Ürün listesi boş' });
-        }
+		if (!Array.isArray(urunler) || urunler.length === 0) {
+			return res.status(400).json({ success: false, message: 'Ürün listesi boş' });
+		}
 
-        const dbName = req.session.user.dbName;
-        const conn = await mysql.createConnection(getTenantDbConfig(dbName));
+		const dbName = req.session.user.dbName;
+		conn = await mysql.createConnection(getTenantDbConfig(dbName));
+		await conn.beginTransaction();
 
-        // İrsaliye ana kaydı
-        const fisNo = 'IRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
-        const [result] = await conn.execute(
-            `INSERT INTO irsaliyeler (
-                fis_no, tarih, carikayitno, depokayitno, fis_tipi, aratoplam, kdvtoplam, geneltoplam, nakittoplam, bankatoplam, durum, tipi
-            ) VALUES (?, CURDATE(), ?, ?, 1, ?, ?, ?, 0, 0, 1, 1)`,
-            [fisNo, carikayitno, depokayitno || 1, aratoplam || 0, kdvtoplam || 0, geneltoplam || 0]
-        );
-        const irsaliyeId = result.insertId;
+		// // beklet kolonu var mı? yoksa ekle
+		// const [colBekletRows] = await conn.execute(
+		// 	`SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'irsaliyeler' AND COLUMN_NAME = 'beklet'`,
+		// 	[dbName]
+		// );
+		// if (Number(colBekletRows[0].cnt) === 0) {
+		// 	await conn.execute(`ALTER TABLE irsaliyeler ADD COLUMN beklet TINYINT(1) NOT NULL DEFAULT 0`);
+		// }
 
-        // detaya satirtipi kolonu var mı?
-        const [colRows] = await conn.execute(
-            `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'irsaliyefatura_detaylar' AND COLUMN_NAME = 'satirtipi'`,
-            [dbName]
-        );
-        const hasSatirTipi = Number(colRows[0].cnt) > 0;
-        const satirTipiValue = odeme_tipi === 'kart' ? 1 : 0;
+		const fisNo = 'IRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
+		const isBeklet = Number(beklet) === 1;
+		const durumDegeri = isBeklet ? 0 : 1;
 
-        // Ürün detayları
-            for (const urun of urunler) {
-            const params = [
-                    irsaliyeId,
-                urun.urun_adi || '',
-                Number(urun.miktar || 0),
-                    urun.birim || 'Adet',
-                Number(urun.iskontorani || 0),
-                Number(urun.iskontotutar || 0),
-                Number(urun.kdvorani || 0),
-                Number(urun.tutar || 0),
-                    urun.stokkayitno || null
-            ];
-            if (hasSatirTipi) {
-                await conn.execute(
-                    `INSERT INTO irsaliyefatura_detaylar (
-                        irsaliye_id, urun_adi, miktar, birim, iskontorani, iskontotutar, kdvorani, tutar, stokkayitno, satirtipi
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [...params, satirTipiValue]
-                );
-            } else {
-                await conn.execute(
-                    `INSERT INTO irsaliyefatura_detaylar (
-                        irsaliye_id, urun_adi, miktar, birim, iskontorani, iskontotutar, kdvorani, tutar, stokkayitno
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    params
-                );
-            }
-        }
+		// Başlık kaydı (beklet kolonu ile)
+		const [result] = await conn.execute(
+			`INSERT INTO irsaliyeler (
+				fis_no, tarih, carikayitno, depokayitno, fis_tipi, aratoplam, kdvtoplam, geneltoplam, nakittoplam, bankatoplam, durum, tipi, beklet
+			) VALUES (?, CURDATE(), ?, ?, 1, ?, ?, ?, 0, 0, ?, 1, ?)`,
+			[fisNo, carikayitno, depokayitno || 1, aratoplam || 0, kdvtoplam || 0, geneltoplam || 0, durumDegeri, isBeklet ? 1 : 0]
+		);
+		const irsaliyeId = result.insertId;
 
-        // Ödeme dağılımı (parçalı veya tek tip)
-        let nakitTop = 0, bankaTop = 0;
-        if (Array.isArray(req.body.odemeler) && req.body.odemeler.length > 0) {
-            for (const od of req.body.odemeler) {
-                const tutar = Number(od.tutar||0);
-                if (od.tip === 'kart') bankaTop += tutar;
-                else if (od.tip === 'nakit') nakitTop += tutar;
-                else if (od.tip === 'veresiye') { /* şimdilik veri tutulmuyor */ }
-            }
-        } else {
-            if (odeme_tipi === 'kart') bankaTop = Number(geneltoplam||0);
-            else nakitTop = Number(geneltoplam||0);
-        }
-        await conn.execute(`UPDATE irsaliyeler SET nakittoplam = ?, bankatoplam = ? WHERE id = ?`, [nakitTop, bankaTop, irsaliyeId]);
+		// detaya satirtipi kolonu var mı?
+		const [colRows] = await conn.execute(
+			`SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'irsaliyefatura_detaylar' AND COLUMN_NAME = 'satirtipi'`,
+			[dbName]
+		);
+		const hasSatirTipi = Number(colRows[0].cnt) > 0;
+		const satirTipiValue = odeme_tipi === 'kart' ? 1 : 0;
 
-        await conn.end();
-        res.status(201).json({ success: true, fisNo: fisNo, irsaliyeId });
-    } catch (error) {
-        console.error('İrsaliye oluşturma hatası:', error);
-        res.status(500).json({ success: false, message: 'İrsaliye oluşturulamadı' });
-    }
+		// Ürün detayları + stok düşümü
+		for (const urun of urunler) {
+			const params = [
+					irsaliyeId,
+				urun.urun_adi || '',
+				Number(urun.miktar || 0),
+					urun.birim || 'Adet',
+				Number(urun.iskontorani || 0),
+				Number(urun.iskontotutar || 0),
+				Number(urun.kdvorani || 0),
+				Number(urun.tutar || 0),
+					urun.stokkayitno || null
+			];
+			if (hasSatirTipi) {
+				await conn.execute(
+					`INSERT INTO irsaliyefatura_detaylar (
+						irsaliye_id, urun_adi, miktar, birim, iskontorani, iskontotutar, kdvorani, tutar, stokkayitno, satirtipi
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					[...params, satirTipiValue]
+				);
+			} else {
+				await conn.execute(
+					`INSERT INTO irsaliyefatura_detaylar (
+						irsaliye_id, urun_adi, miktar, birim, iskontorani, iskontotutar, kdvorani, tutar, stokkayitno
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					params
+				);
+			}
+
+			// İlgili stoktan miktar düş
+			if (urun.stokkayitno && Number(urun.miktar || 0) > 0) {
+				await conn.execute(
+					'UPDATE stoklar SET miktar = miktar - ? WHERE id = ?',
+					[Number(urun.miktar || 0), urun.stokkayitno]
+				);
+			}
+		}
+
+		// Beklet değilse ödeme dağılımı
+		if (!isBeklet) {
+			let nakitTop = 0, bankaTop = 0;
+			if (Array.isArray(req.body.odemeler) && req.body.odemeler.length > 0) {
+				for (const od of req.body.odemeler) {
+					const tutar = Number(od.tutar||0);
+					if (od.tip === 'kart') bankaTop += tutar;
+					else if (od.tip === 'nakit') nakitTop += tutar;
+					else if (od.tip === 'veresiye') { /* şimdilik veri tutulmuyor */ }
+				}
+			} else {
+				if (odeme_tipi === 'kart') bankaTop = Number(geneltoplam||0);
+				else nakitTop = Number(geneltoplam||0);
+			}
+			await conn.execute(`UPDATE irsaliyeler SET nakittoplam = ?, bankatoplam = ? WHERE id = ?`, [nakitTop, bankaTop, irsaliyeId]);
+		}
+
+		await conn.commit();
+		await conn.end();
+		res.status(201).json({ success: true, fisNo: fisNo, irsaliyeId });
+	} catch (error) {
+		console.error('İrsaliye oluşturma hatası:', error);
+		if (conn) {
+			try { await conn.rollback(); } catch (e) {}
+			try { await conn.end(); } catch (e) {}
+		}
+		res.status(500).json({ success: false, message: 'İrsaliye oluşturulamadı' });
+	}
 };
 // Router tanımlamaları
 router.get('/irsaliyeler', getIrsaliyeler);
@@ -248,7 +278,7 @@ router.get('/irsaliye/detaylar', async (req, res) => {
         const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
         const [rows] = await conn.execute(
             `SELECT d.id, d.urun_adi, d.miktar, d.birim, d.kdvorani, d.tutar, d.satirtipi,
-                    d.iskontorani, d.iskontotutar
+                    d.iskontorani, d.iskontotutar, d.stokkayitno
                FROM irsaliyefatura_detaylar d
               WHERE d.irsaliye_id = ?
               ORDER BY d.id ASC`,
@@ -309,6 +339,36 @@ router.get('/gunsonu-lines', async (req, res) => {
         console.error('gunsonu-lines error:', e);
         res.status(500).json({ success: false });
     }
+});
+
+// Bekleme listesi: beklet=1 olan başlıklar
+router.get('/irsaliye/hold-list', async (req, res) => {
+	if (!req.session || !req.session.user || !req.session.user.dbName) {
+		return res.status(401).json({ success: false, message: 'Oturum bulunamadı' });
+	}
+	try {
+		const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+		// Kolon var mı güvenceye al
+		const [colBeklet] = await conn.execute(
+			`SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'irsaliyeler' AND COLUMN_NAME = 'beklet'`,
+			[req.session.user.dbName]
+		);
+		if (Number(colBeklet[0].cnt) === 0) {
+			await conn.execute(`ALTER TABLE irsaliyeler ADD COLUMN beklet TINYINT(1) NOT NULL DEFAULT 0`);
+		}
+		const [rows] = await conn.execute(
+			`SELECT i.id, i.fis_no, i.tarih, i.geneltoplam, c.unvan as cari, i.carikayitno
+			   FROM irsaliyeler i
+			   LEFT JOIN cariler c ON c.id = i.carikayitno
+			  WHERE i.beklet = 1
+			  ORDER BY i.tarih DESC, i.id DESC`
+		);
+		await conn.end();
+		res.json({ success: true, data: rows });
+	} catch (e) {
+		console.error('hold-list error:', e);
+		res.status(500).json({ success: false });
+	}
 });
 
 module.exports = {

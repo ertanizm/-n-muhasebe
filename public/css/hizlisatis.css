@@ -284,7 +284,7 @@
     align-items: center;
 }
 
-.modal-content {
+.payment-modal .modal-content {
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -617,4 +617,14 @@
     height: 1px;
     background-color: rgba(255,255,255,0.1);
     margin: 20px 0;
+}
+
+/* Stok Listesi Bootstrap modalını genişlet ve ortala */
+#stockListModal .modal-dialog {
+    max-width: 1200px;
+    width: 90vw;
+}
+#stockListModal .modal-body {
+    max-height: 70vh;
+    overflow: auto;
 }

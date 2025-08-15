@@ -283,7 +283,7 @@ await tenantConn.query(`
         await tenantConn.query(`
             INSERT IGNORE INTO cariler (carikodu, unvan)
 VALUES ('PEŞİN', 'PEŞİN SATIŞ');
-        );`)
+`);
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS hesapkarti (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -412,6 +412,7 @@ VALUES ('PEŞİN', 'PEŞİN SATIŞ');
         aratoplam DECIMAL(10,2) NOT NULL,
         kdvtoplam DECIMAL(10,2) NOT NULL,
         geneltoplam DECIMAL(10,2) NOT NULL,
+        beklet TINYINT(1) NOT NULL DEFAULT 0
         nakittoplam DECIMAL(10,2) NOT NULL DEFAULT 0,
         bankatoplam DECIMAL(10,2) NOT NULL DEFAULT 0,
         faturakayitno INT NULL,
