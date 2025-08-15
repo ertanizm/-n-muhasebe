@@ -7,59 +7,79 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="/css/musteriler.css" rel="stylesheet">
+    <link href="/css/cariekstre.css" rel="stylesheet">
     <style>
         .gunsonu-wrap { margin-left: 250px; padding: 20px; }
         .filters { display:flex; gap:10px; align-items:center; margin-bottom: 16px; }
-        .totals { display:flex; gap: 16px; margin: 8px 0 16px; }
-        .totals .card { padding: 10px 14px; border:1px solid #e5e7eb; border-radius: 10px; background:#fff; }
+        /* summary-cards stili cariekstre.css'den yüklenecek */
         .tab-pane { padding-top: 10px; }
         .table thead th { white-space: nowrap; }
     </style>
-    </head>
+</head>
+
 <body>
     <%- include('../sidebar') %>
-    <div class="gunsonu-wrap">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="m-0">Gün Sonu</h3>
-            <div>
-                <a href="/hizlisatis" class="btn btn-outline-secondary"><i class="fa fa-arrow-left"></i> Hızlı Satış</a>
-            </div>
-        </div>
 
-        <!-- Filtreler -->
-        <div class="filters">
-            <div>
-                <label class="form-label m-0">Başlangıç</label>
-                <input id="fStart" type="date" class="form-control" style="min-width: 180px;">
-            </div>
-            <div>
-                <label class="form-label m-0">Bitiş</label>
-                <input id="fEnd" type="date" class="form-control" style="min-width: 180px;">
-            </div>
-            <div>
-                <label class="form-label m-0">Saat</label>
-                <div class="d-flex" style="gap:6px">
-                    <input id="fStartTime" type="time" class="form-control" style="min-width:140px;">
-                    <input id="fEndTime" type="time" class="form-control" style="min-width:140px;">
+
+    <div class="gunsonu-wrap main-content">
+        <div class="gunsonu-container">
+            <div class="page-header">
+                <h1 class="page-title">Gün Sonu</h1>
+                <div class="action-buttons">
+                    <div class="export-buttons">
+                        <a href="/hizlisatis" class="btn btn-outline-secondary"><i class="fa fa-arrow-left"></i> Hızlı Satış</a>
+
+                        <button class="btn btn-outline-success btn-export" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-outline-danger btn-export" onclick="exportToPDF()">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn btn-outline-primary btn-export" onclick="printReport()">
+                            <i class="fas fa-print"></i> Yazdır
+                        </button>
+                    </div>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="loadAllTabs()"><i class="fa fa-search"></i> Listele</button>
-        </div>
 
-        <!-- Sekmeler -->
-        <ul class="nav nav-tabs" id="gsTabs" role="tablist">
-            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGenel" type="button">Genel</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabKart" type="button">Kredi Kartı</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabNakit" type="button">Nakit</button></li>
-            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabVeresiye" type="button">Veresiye</button></li>
-        </ul>
+            <!-- Filtreler -->
+            <div class="filters">
+                <div>
+                    <label class="form-label m-0">Başlangıç</label>
+                    <input id="fStart" type="date" class="form-control" style="min-width: 180px;">
+                </div>
+                <div>
+                    <label class="form-label m-0">Bitiş</label>
+                    <input id="fEnd" type="date" class="form-control" style="min-width: 180px;">
+                </div>
+                <div>
+                    <label class="form-label m-0">Saat</label>
+                    <div class="d-flex" style="gap:6px">
+                        <input id="fStartTime" type="time" class="form-control" style="min-width:140px;">
+                        <input id="fEndTime" type="time" class="form-control" style="min-width:140px;">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="loadAllTabs()"><i class="fa fa-search"></i> Listele</button>
+            </div>
 
-        <div class="tab-content" id="gsContent">
-            <div class="tab-pane fade show active" id="tabGenel"></div>
-            <div class="tab-pane fade" id="tabKart"></div>
-            <div class="tab-pane fade" id="tabNakit"></div>
-            <div class="tab-pane fade" id="tabVeresiye"></div>
-        </div>
+
+            <!-- Sekmeler -->
+            <ul class="nav nav-tabs" id="gsTabs" role="tablist">
+                <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGenel" type="button">Genel</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabKart" type="button">Kredi Kartı</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabNakit" type="button">Nakit</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabVeresiye" type="button">Veresiye</button></li>
+            </ul>
+            <div id="summaryHolder" class="mt-2"></div>
+
+            <div class="tab-content" id="gsContent">
+                <div class="tab-pane fade show active" id="tabGenel"></div>
+                <div class="tab-pane fade" id="tabKart"></div>
+                <div class="tab-pane fade" id="tabNakit"></div>
+                <div class="tab-pane fade" id="tabVeresiye"></div>
+            </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -121,54 +141,74 @@
             return `<table class="table table-striped table-sm">${head}<tbody>${rows}</tbody></table>`;
         }
 
-        async function loadAllTabs(){
-            // Genel
-            const genel = await fetchLines('genel');
-            const sumG = summarize(genel);
-            document.getElementById('tabGenel').innerHTML = `
-                <div class="totals">
-                    <div class="card">Toplam Satır: <b>${genel.length}</b></div>
-                    <div class="card">Toplam Miktar: <b>${sumG.adet}</b></div>
-                    <div class="card">Toplam Tutar: <b>${sumG.toplam.toFixed(2)} ₺</b></div>
+        function renderSummary(count, adet, toplam){
+            return `
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="value">${count}</div>
+                        <div class="label">Toplam Satır</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${adet}</div>
+                        <div class="label">Toplam Miktar</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${Number(toplam||0).toFixed(2)} ₺</div>
+                        <div class="label">Toplam Tutar</div>
+                    </div>
                 </div>
-                ${renderTable(genel)}
-            `;
-            // Kart
-            const kart = await fetchLines('kart');
-            const sumK = summarize(kart);
-            document.getElementById('tabKart').innerHTML = `
-                <div class="totals">
-                    <div class="card">Toplam Satır: <b>${kart.length}</b></div>
-                    <div class="card">Toplam Miktar: <b>${sumK.adet}</b></div>
-                    <div class="card">Toplam Tutar: <b>${sumK.toplam.toFixed(2)} ₺</b></div>
-                </div>
-                ${renderTable(kart)}
-            `;
-            // Nakit
-            const nakit = await fetchLines('nakit');
-            const sumN = summarize(nakit);
-            document.getElementById('tabNakit').innerHTML = `
-                <div class="totals">
-                    <div class="card">Toplam Satır: <b>${nakit.length}</b></div>
-                    <div class="card">Toplam Miktar: <b>${sumN.adet}</b></div>
-                    <div class="card">Toplam Tutar: <b>${sumN.toplam.toFixed(2)} ₺</b></div>
-                </div>
-                ${renderTable(nakit)}
-            `;
-            // Veresiye
-            const veresiye = await fetchLines('veresiye');
-            const sumV = summarize(veresiye);
-            document.getElementById('tabVeresiye').innerHTML = `
-                <div class="totals">
-                    <div class="card">Toplam Satır: <b>${veresiye.length}</b></div>
-                    <div class="card">Toplam Miktar: <b>${sumV.adet}</b></div>
-                    <div class="card">Toplam Tutar: <b>${sumV.toplam.toFixed(2)} ₺</b></div>
-                </div>
-                ${renderTable(veresiye)}
             `;
         }
+
+        let gsSummaries = {};
+
+        async function loadAllTabs(){
+            const [genel, kart, nakit, veresiye] = await Promise.all([
+                fetchLines('genel'),
+                fetchLines('kart'),
+                fetchLines('nakit'),
+                fetchLines('veresiye')
+            ]);
+
+            const sumG = summarize(genel);
+            const sumK = summarize(kart);
+            const sumN = summarize(nakit);
+            const sumV = summarize(veresiye);
+
+            document.getElementById('tabGenel').innerHTML = `${renderTable(genel)}`;
+            document.getElementById('tabKart').innerHTML = `${renderTable(kart)}`;
+            document.getElementById('tabNakit').innerHTML = `${renderTable(nakit)}`;
+            document.getElementById('tabVeresiye').innerHTML = `${renderTable(veresiye)}`;
+
+            gsSummaries = {
+                tabGenel: { count: genel.length, adet: sumG.adet, toplam: sumG.toplam },
+                tabKart: { count: kart.length, adet: sumK.adet, toplam: sumK.toplam },
+                tabNakit: { count: nakit.length, adet: sumN.adet, toplam: sumN.toplam },
+                tabVeresiye: { count: veresiye.length, adet: sumV.adet, toplam: sumV.toplam }
+            };
+
+            updateSummaryForTab('tabGenel');
+        }
+
+        function updateSummaryForTab(tabId){
+            const holder = document.getElementById('summaryHolder');
+            const s = gsSummaries[tabId];
+            if(!s){ holder.innerHTML = ''; return; }
+            holder.innerHTML = renderSummary(s.count, s.adet, s.toplam);
+        }
+
+        // Sekme değişiminde özet kartları güncelle
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('#gsTabs button[data-bs-toggle="tab"]').forEach(btn => {
+                btn.addEventListener('shown.bs.tab', (e) => {
+                    const targetId = e.target.getAttribute('data-bs-target').replace('#','');
+                    updateSummaryForTab(targetId);
+                });
+            });
+        });
     </script>
 </body>
+
 </html>
 
 
