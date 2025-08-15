@@ -9,9 +9,10 @@
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="/css/musteriler.css" rel="stylesheet">
     <link href="/css/cariekstre.css" rel="stylesheet">
+    <link href="/css/filtre.css" rel="stylesheet">
     <style>
         .gunsonu-wrap { margin-left: 250px; padding: 20px; }
-        .filters { display:flex; gap:10px; align-items:center; margin-bottom: 16px; }
+        /* filtre.css'den yüklenecek */
         /* summary-cards stili cariekstre.css'den yüklenecek */
         .tab-pane { padding-top: 10px; }
         .table thead th { white-space: nowrap; }
@@ -44,23 +45,57 @@
             </div>
 
             <!-- Filtreler -->
-            <div class="filters">
-                <div>
-                    <label class="form-label m-0">Başlangıç</label>
-                    <input id="fStart" type="date" class="form-control" style="min-width: 180px;">
+            <div class="filter-card">
+                <div class="filter-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Gün Sonu Filtreleri</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()">
+                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+                    </button>
                 </div>
-                <div>
-                    <label class="form-label m-0">Bitiş</label>
-                    <input id="fEnd" type="date" class="form-control" style="min-width: 180px;">
-                </div>
-                <div>
-                    <label class="form-label m-0">Saat</label>
-                    <div class="d-flex" style="gap:6px">
-                        <input id="fStartTime" type="time" class="form-control" style="min-width:140px;">
-                        <input id="fEndTime" type="time" class="form-control" style="min-width:140px;">
+
+                <div class="filter-content" id="filterContent">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Tarih Aralığı</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-md">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" id="fStart">
+                                </div>
+                                <span class="mx-1">-</span>
+                                <div class="input-group input-group-md">
+                                    <input type="date" class="form-control" id="fEnd">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Saat Aralığı</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-md">
+                                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                    <input type="time" class="form-control" id="fStartTime">
+                                </div>
+                                <span class="mx-1">-</span>
+                                <div class="input-group input-group-md">
+                                    <input type="time" class="form-control" id="fEndTime">
+                                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="col-md-4 d-flex align-items-end justify-content-end">
+                            <button class="btn btn-primary me-2 btn-lg" onclick="loadAllTabs()">
+                                <i class="fas fa-search"></i> Listele
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Temizle
+                            </button>
+                            </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="loadAllTabs()"><i class="fa fa-search"></i> Listele</button>
             </div>
 
 
@@ -206,6 +241,33 @@
                 });
             });
         });
+
+        // Filtre toggle fonksiyonu
+        function toggleFilters() {
+            const filterContent = document.getElementById('filterContent');
+            const toggleIcon = document.getElementById('filterToggleIcon');
+            
+            if (filterContent.classList.contains('collapsed')) {
+                filterContent.classList.remove('collapsed');
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                filterContent.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Filtreleri temizle
+        function clearFilters() {
+            const today = new Date();
+            const yyyy_mm_dd = today.toISOString().slice(0,10);
+            document.getElementById('fStart').value = yyyy_mm_dd;
+            document.getElementById('fEnd').value = yyyy_mm_dd;
+            document.getElementById('fStartTime').value = '00:00';
+            document.getElementById('fEndTime').value = '23:59';
+            loadAllTabs();
+        }
     </script>
 </body>
 
