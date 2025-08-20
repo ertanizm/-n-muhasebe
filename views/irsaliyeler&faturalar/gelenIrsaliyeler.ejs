@@ -773,28 +773,28 @@
     // Sayfa yüklendiğinde ilk satırın event'lerini bağla
     // İrsaliyeleri yükle
 function loadIrsaliyeler() {
-    fetch('/api/irsaliyeler')
+    fetch('/api/irsaliye/list')
         .then(response => response.json())
-        .then(irsaliyeler => {
+        .then(data => {
             const tbody = document.getElementById('irsaliyeTableBody');
             tbody.innerHTML = '';
             
-            if (!irsaliyeler || irsaliyeler.length === 0) {
+            if (!data.success || !data.data || data.data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Kayıtlı irsaliye bulunamadı</td></tr>';
                 return;
             }
 
-            irsaliyeler.forEach(irsaliye => {
+            data.data.forEach(irsaliye => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${irsaliye.no || ''}</td>
-                    <td>${irsaliye.tarih || ''}</td>
+                    <td>${irsaliye.fis_no || ''}</td>
+                    <td>${irsaliye.tarih ? new Date(irsaliye.tarih).toLocaleDateString('tr-TR') : ''}</td>
                     <td>${irsaliye.cari || ''}</td>
-                    <td>${irsaliye.tutar || '0.00'} ₺</td>
+                    <td>${Number(irsaliye.geneltoplam || 0).toFixed(2)} ₺</td>
                     <td>
-                        <span class="irsaliye-status ${irsaliye.durum.toLowerCase()}">${irsaliye.durum}</span>
+                        <span class="irsaliye-status">Aktif</span>
                     </td>
-                    <td>${irsaliye.aciklama || ''}</td>
+                    <td></td>
                     <td style="text-align:right;">
                         <div class="irsaliye-actions">
                             <button class="btn btn-light btn-sm" onclick="viewIrsaliye(${irsaliye.id})"><i class="fas fa-eye"></i></button>

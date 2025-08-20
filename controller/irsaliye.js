@@ -252,13 +252,27 @@ router.get('/irsaliye/list', async (req, res) => {
     try {
         const { start, end } = req.query;
         const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        let whereClause = '';
+        let params = [];
+        
+        if (start && end) {
+            whereClause = 'WHERE DATE(i.tarih) BETWEEN ? AND ?';
+            params = [start, end];
+        } else if (start) {
+            whereClause = 'WHERE DATE(i.tarih) >= ?';
+            params = [start];
+        } else if (end) {
+            whereClause = 'WHERE DATE(i.tarih) <= ?';
+            params = [end];
+        }
+        
         const [rows] = await conn.execute(
             `SELECT i.id, i.fis_no, i.tarih, i.geneltoplam, c.unvan as cari
                FROM irsaliyeler i
                LEFT JOIN cariler c ON c.id = i.carikayitno
-              WHERE DATE(i.tarih) BETWEEN COALESCE(?, DATE(i.tarih)) AND COALESCE(?, DATE(i.tarih))
+              ${whereClause}
               ORDER BY i.tarih DESC, i.id DESC`,
-            [start || null, end || null]
+            params
         );
         await conn.end();
         res.json({ success: true, data: rows });
