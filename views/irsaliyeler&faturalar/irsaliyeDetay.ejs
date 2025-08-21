@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İrsaliye Detayı</title>
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/irsaliyeDetay.css" rel="stylesheet">
+  
+</head>
+<body>
+<%- include('../sidebar') %>
+
+<div class="irsaliye-detail-container">
+    <!-- Header -->
+    <div class="detail-header">
+        <h2><i class="fas fa-file-invoice"></i> İrsaliye Detayı</h2>
+        <div class="header-actions">
+            <button class="btn-action btn-edit" onclick="editIrsaliye()">
+                <i class="fas fa-edit"></i> Düzenle
+            </button>
+            <button class="btn-action btn-print" onclick="printIrsaliye()">
+                <i class="fas fa-print"></i> Yazdır
+            </button>
+            <button class="btn-action btn-back" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Geri
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="detail-content">
+        <!-- Info Cards -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h4><i class="fas fa-info-circle"></i> İrsaliye Bilgileri</h4>
+                <div class="info-row">
+                    <span class="info-label">İrsaliye No:</span>
+                    <span class="info-value" id="fisNo">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tarih:</span>
+                    <span class="info-value" id="tarih">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Belge No:</span>
+                    <span class="info-value" id="belgeNo">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Durum:</span>
+                    <span class="info-value">
+                        <span class="status-badge status-beklemede" id="durum">Beklemede</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h4><i class="fas fa-user"></i> Tedarikçi Bilgileri</h4>
+                <div class="info-row">
+                    <span class="info-label">Tedarikçi:</span>
+                    <span class="info-value" id="cariUnvan">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Depo:</span>
+                    <span class="info-value" id="depoAdi">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Araç Plakası:</span>
+                    <span class="info-value" id="plaka">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Şoför:</span>
+                    <span class="info-value" id="sofor">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Ürün/Hizmet</th>
+                    <th>Miktar</th>
+                    <th>Birim</th>
+                    <th>Birim Fiyat</th>
+                    <th>KDV %</th>
+                    <th>Toplam</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                <!-- Ürünler buraya yüklenecek -->
+            </tbody>
+        </table>
+
+        <!-- Total Section -->
+        <div class="total-section">
+            <div class="total-card">
+                <div class="total-row">
+                    <span>Ara Toplam:</span>
+                    <span id="araToplam">0,00 ₺</span>
+                </div>
+                <div class="total-row">
+                    <span>KDV Toplam:</span>
+                    <span id="kdvToplam">0,00 ₺</span>
+                </div>
+                <div class="total-row final">
+                    <span>Genel Toplam:</span>
+                    <span id="genelToplam">0,00 ₺</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- E-Fatura Preview -->
+        <div class="efatura-preview">
+            <div class="efatura-header">
+                <div class="company-info">
+                    <h3>MÜTABIK YAZILIM A.Ş.</h3>
+                    <p>Teknoloji Geliştirme Bölgesi, İnovasyon Cad. No: 123</p>
+                    <p>34000 İstanbul / TÜRKİYE</p>
+                    <p>VKN: 1234567890 | Tel: +90 212 123 45 67</p>
+                    <p>E-posta: info@mutabik.com.tr</p>
+                </div>
+                <div class="qr-code">
+                    <canvas id="qrCanvas" width="100" height="100"></canvas>
+                </div>
+            </div>
+
+            <div class="efatura-details">
+                <div>
+                    <h5><strong>SAYIN</strong></h5>
+                    <p id="efaturaTedarikci">-</p>
+                    <p>Adres: Belirtilmemiş</p>
+                    <p>VKN: -</p>
+                </div>
+                <div>
+                    <h5><strong>FATURA BİLGİLERİ</strong></h5>
+                    <p><strong>Fatura No:</strong> <span id="efaturaNo">-</span></p>
+                    <p><strong>Fatura Tarihi:</strong> <span id="efaturaTarih">-</span></p>
+                    <p><strong>Fatura Tipi:</strong> ALIŞ</p>
+                    <p><strong>Para Birimi:</strong> TRY</p>
+                </div>
+            </div>
+
+            <table class="efatura-table">
+                <thead>
+                    <tr>
+                        <th>Sıra</th>
+                        <th>Mal/Hizmet</th>
+                        <th>Miktar</th>
+                        <th>Birim</th>
+                        <th>Birim Fiyat</th>
+                        <th>Tutar</th>
+                        <th>KDV Oranı</th>
+                        <th>KDV Tutarı</th>
+                        <th>Toplam</th>
+                    </tr>
+                </thead>
+                <tbody id="efaturaTableBody">
+                    <!-- E-fatura ürünleri buraya yüklenecek -->
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8f9fa; font-weight: bold;">
+                        <td colspan="8" style="text-align: right;">GENEL TOPLAM:</td>
+                        <td id="efaturaGenelToplam">0,00 TL</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="efatura-footer">
+                <p><strong>Bu belge elektronik ortamda oluşturulmuş olup, elektronik imza ile imzalanmıştır.</strong></p>
+                <p>Fatura sorularınız için: fatura@mutabik.com.tr</p>
+                <p>ETTN: <span id="ettn">12345678-1234-1234-1234-123456789012</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+<script>
+// URL'den irsaliye ID'sini al
+const urlParams = new URLSearchParams(window.location.search);
+const irsaliyeId = urlParams.get('id');
+
+// Sayfa yüklendiğinde irsaliye detaylarını getir
+document.addEventListener('DOMContentLoaded', function() {
+    if (irsaliyeId) {
+        loadIrsaliyeDetails(irsaliyeId);
+    } else {
+        alert('İrsaliye ID bulunamadı!');
+        goBack();
+    }
+});
+
+async function loadIrsaliyeDetails(id) {
+    try {
+        // İrsaliye ana bilgilerini getir
+        const response = await fetch(`/api/irsaliye-detail/${id}`);
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || 'İrsaliye detayları alınamadı');
+        }
+
+        const irsaliye = data.irsaliye;
+        const detaylar = data.detaylar;
+
+        // Ana bilgileri doldur
+        document.getElementById('fisNo').textContent = irsaliye.fis_no || '-';
+        document.getElementById('tarih').textContent = new Date(irsaliye.tarih).toLocaleDateString('tr-TR');
+        document.getElementById('belgeNo').textContent = irsaliye.faturabelgeno || '-';
+        document.getElementById('cariUnvan').textContent = irsaliye.cari_unvan || '-';
+        document.getElementById('depoAdi').textContent = irsaliye.depo_adi || '-';
+        document.getElementById('plaka').textContent = irsaliye.plaka || '-';
+        
+        // Şoför bilgisini açıklama'dan çıkar
+        const soforInfo = irsaliye.aciklama ? irsaliye.aciklama.replace('Şoför: ', '') : '-';
+        document.getElementById('sofor').textContent = soforInfo;
+
+        // Durum badge'ini ayarla
+        const durumElement = document.getElementById('durum');
+        const durumText = getDurumText(irsaliye.durum);
+        durumElement.textContent = durumText;
+        durumElement.className = `status-badge status-${getDurumClass(irsaliye.durum)}`;
+
+        // Ürünleri listele
+        const tbody = document.getElementById('productsTableBody');
+        tbody.innerHTML = '';
+        
+        let araToplam = 0;
+        let kdvToplam = 0;
+
+        detaylar.forEach((detay, index) => {
+            const satirAraToplam = parseFloat(detay.miktar) * parseFloat(detay.tutar) / (1 + parseFloat(detay.kdvorani) / 100);
+            const satirKdv = satirAraToplam * parseFloat(detay.kdvorani) / 100;
+            
+            araToplam += satirAraToplam;
+            kdvToplam += satirKdv;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${detay.urun_adi}</td>
+                <td>${parseFloat(detay.miktar).toFixed(2)}</td>
+                <td>${detay.birim}</td>
+                <td>${parseFloat(detay.tutar).toFixed(2)} ₺</td>
+                <td>%${parseFloat(detay.kdvorani).toFixed(0)}</td>
+                <td>${(satirAraToplam + satirKdv).toFixed(2)} ₺</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        const genelToplam = araToplam + kdvToplam;
+
+        // Toplamları güncelle
+        document.getElementById('araToplam').textContent = araToplam.toFixed(2) + ' ₺';
+        document.getElementById('kdvToplam').textContent = kdvToplam.toFixed(2) + ' ₺';
+        document.getElementById('genelToplam').textContent = genelToplam.toFixed(2) + ' ₺';
+
+        // E-fatura önizlemesini doldur
+        fillEfaturaPreview(irsaliye, detaylar, araToplam, kdvToplam, genelToplam);
+
+    } catch (error) {
+        console.error('İrsaliye detayları yüklenirken hata:', error);
+        alert('İrsaliye detayları yüklenirken bir hata oluştu: ' + error.message);
+        goBack();
+    }
+}
+
+function fillEfaturaPreview(irsaliye, detaylar, araToplam, kdvToplam, genelToplam) {
+    // E-fatura bilgilerini doldur
+    document.getElementById('efaturaTedarikci').textContent = irsaliye.cari_unvan || '-';
+    document.getElementById('efaturaNo').textContent = irsaliye.fis_no || '-';
+    document.getElementById('efaturaTarih').textContent = new Date(irsaliye.tarih).toLocaleDateString('tr-TR');
+    document.getElementById('efaturaGenelToplam').textContent = genelToplam.toFixed(2) + ' TL';
+
+    // ETTN güncelle (örnek)
+    const ettn = generateETTN();
+    document.getElementById('ettn').textContent = ettn;
+
+    // QR Kod oluştur
+    generateQRCode(irsaliye);
+
+    // E-fatura tablosunu doldur
+    const efaturaTableBody = document.getElementById('efaturaTableBody');
+    efaturaTableBody.innerHTML = '';
+
+    detaylar.forEach((detay, index) => {
+        const satirAraToplam = parseFloat(detay.miktar) * parseFloat(detay.tutar) / (1 + parseFloat(detay.kdvorani) / 100);
+        const satirKdv = satirAraToplam * parseFloat(detay.kdvorani) / 100;
+        const satirToplam = satirAraToplam + satirKdv;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${detay.urun_adi}</td>
+            <td>${parseFloat(detay.miktar).toFixed(2)}</td>
+            <td>${detay.birim}</td>
+            <td>${(satirAraToplam / parseFloat(detay.miktar)).toFixed(2)} TL</td>
+            <td>${satirAraToplam.toFixed(2)} TL</td>
+            <td>%${parseFloat(detay.kdvorani).toFixed(0)}</td>
+            <td>${satirKdv.toFixed(2)} TL</td>
+            <td>${satirToplam.toFixed(2)} TL</td>
+        `;
+        efaturaTableBody.appendChild(row);
+    });
+}
+
+function getDurumText(durum) {
+    switch (durum) {
+        case 0: return 'Beklemede';
+        case 1: return 'Onaylandı';
+        case 2: return 'İptal Edildi';
+        default: return 'Bilinmiyor';
+    }
+}
+
+function getDurumClass(durum) {
+    switch (durum) {
+        case 0: return 'beklemede';
+        case 1: return 'onaylandi';
+        case 2: return 'iptal';
+        default: return 'beklemede';
+    }
+}
+
+function generateETTN() {
+    // Örnek ETTN oluştur
+    const chars = '0123456789ABCDEF';
+    let ettn = '';
+    const sections = [8, 4, 4, 4, 12];
+    
+    sections.forEach((length, index) => {
+        if (index > 0) ettn += '-';
+        for (let i = 0; i < length; i++) {
+            ettn += chars[Math.floor(Math.random() * chars.length)];
+        }
+    });
+    
+    return ettn;
+}
+
+function generateQRCode(irsaliye) {
+    const canvas = document.getElementById('qrCanvas');
+    
+    // QR kod içeriği - Sadece müşteri unvanı
+    const qrContent = irsaliye.cari_unvan || 'Müşteri Belirtilmemiş';
+    
+    // Kütüphanenin yüklenmesini bekle
+    const tryGenerateQR = () => {
+        if (typeof QRious !== 'undefined') {
+            try {
+                const qr = new QRious({
+                    element: canvas,
+                    value: qrContent,
+                    size: 100,
+                    foreground: '#000000',
+                    background: '#ffffff'
+                });
+            } catch (error) {
+                console.error('QR kod oluşturulurken hata:', error);
+                // Hata durumunda metin göster
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000';
+                ctx.font = '12px Arial';
+                ctx.fillText('QR Hata', 20, 50);
+            }
+        } else {
+            // 100ms sonra tekrar dene
+            setTimeout(tryGenerateQR, 100);
+        }
+    };
+    
+    tryGenerateQR();
+}
+
+function editIrsaliye() {
+    // Düzenleme sayfasına yönlendir
+    alert('Düzenleme özelliği yakında eklenecek!');
+}
+
+function printIrsaliye() {
+    // Yazdırma işlemi
+    window.print();
+}
+
+function goBack() {
+    // Geri git
+    if (document.referrer.includes('gelen')) {
+        window.location.href = '/irsaliye/gelen';
+    } else if (document.referrer.includes('giden')) {
+        window.location.href = '/irsaliye/giden';
+    } else {
+        window.history.back();
+    }
+}
+</script>
+</body>
+</html> 

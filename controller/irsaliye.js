@@ -44,7 +44,7 @@ const getIrsaliyeler = async (req, res) => {
                 i.aciklama
             FROM irsaliyeler i
             LEFT JOIN cariler c ON i.carikayitno = c.id
-            WHERE i.tipi = 0  -- Gelen irsaliyeler için
+            WHERE i.fis_tipi = 0  -- Gelen irsaliyeler için (Alış irsaliyesi)
             ORDER BY i.tarih DESC
         `);
 
@@ -157,8 +157,8 @@ const createIrsaliye = async (req, res) => {
 		const [result] = await conn.execute(
 			`INSERT INTO irsaliyeler (
 				fis_no, tarih, carikayitno, depokayitno, fis_tipi, aratoplam, kdvtoplam, geneltoplam, nakittoplam, bankatoplam, durum, tipi, beklet
-			) VALUES (?, CURDATE(), ?, ?, 1, ?, ?, ?, 0, 0, ?, 1, ?)`,
-			[fisNo, carikayitno, depokayitno || 1, aratoplam || 0, kdvtoplam || 0, geneltoplam || 0, durumDegeri, isBeklet ? 1 : 0]
+			) VALUES (?, CURDATE(), ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+			[fisNo, carikayitno, depokayitno || 1, 0, aratoplam || 0, kdvtoplam || 0, geneltoplam || 0, durumDegeri, 0, isBeklet ? 1 : 0]
 		);
 		const irsaliyeId = result.insertId;
 
@@ -237,12 +237,335 @@ const createIrsaliye = async (req, res) => {
 		res.status(500).json({ success: false, message: 'İrsaliye oluşturulamadı' });
 	}
 };
+
+// Gelen İrsaliye oluştur (Alış İrsaliyesi)
+const createGelenIrsaliye = async (req, res) => {
+    try {
+        const { 
+            carikayitno, 
+            depokayitno, 
+            belgeno, 
+            fiili_sevk_tarihi, 
+            cikis_adresi, 
+            sevkiyat_adresi, 
+            arac_plakasi, 
+            sofor,
+            urunler,
+            aratoplam,
+            kdvtoplam,
+            geneltoplam
+        } = req.body;
+        
+        const irsaliyeTipi = 0; // Alış irsaliyesi (Gelen)
+        const fisNo = 'GIRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
+
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        // İrsaliye ana kaydını oluştur
+        const [result] = await conn.execute(`
+            INSERT INTO irsaliyeler (
+                fis_no, 
+                faturabelgono, 
+                tarih, 
+                carikayitno, 
+                depokayitno, 
+                fis_tipi, 
+                aratoplam, 
+                kdvtoplam, 
+                geneltoplam, 
+                teslimalan, 
+                teslimeden, 
+                plaka, 
+                durum, 
+                tipi, 
+                aciklama,
+                kaydedenkullanicikayitno
+            ) VALUES (?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+        `, [
+            fisNo,
+            belgeno || null,
+            carikayitno,
+            depokayitno,
+            irsaliyeTipi, // fis_tipi = 0 (Alış irsaliyesi)
+            aratoplam || 0,
+            kdvtoplam || 0,
+            geneltoplam || 0,
+            cikis_adresi || null,
+            sevkiyat_adresi || null,
+            arac_plakasi || null,
+            irsaliyeTipi, // tipi = 0 (Alış)
+            `Şoför: ${sofor || 'Belirtilmemiş'}`,
+            req.session.user.id
+        ]);
+
+        const irsaliyeId = result.insertId;
+
+        // Ürün detaylarını kaydet
+        if (urunler && urunler.length > 0) {
+            for (const urun of urunler) {
+                await conn.execute(`
+                    INSERT INTO irsaliyefatura_detaylar (
+                        irsaliye_id, 
+                        urun_adi, 
+                        miktar, 
+                        birim, 
+                        iskontorani, 
+                        iskontotutar, 
+                        kdvorani, 
+                        tutar, 
+                        stokkayitno
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    irsaliyeId,
+                    urun.urun_adi,
+                    urun.miktar || 0,
+                    urun.birim || 'Adet',
+                    urun.iskontorani || 0,
+                    urun.iskontotutar || 0,
+                    urun.kdvorani || 0,
+                    urun.tutar || 0,
+                    urun.stokkayitno || null
+                ]);
+            }
+        }
+
+        await conn.end();
+        res.status(201).json({ 
+            success: true, 
+            message: 'Gelen irsaliye başarıyla oluşturuldu.',
+            irsaliyeId: irsaliyeId,
+            fisNo: fisNo
+        });
+    } catch (error) {
+        console.error('Gelen irsaliye oluşturma hatası:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Gelen irsaliye oluşturulurken bir hata oluştu: ' + error.message 
+        });
+    }
+};
+
+// Giden İrsaliyeler API
+const getGidenIrsaliyeler = async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.user.dbName) {
+        return res.status(401).json({ error: 'Oturum bulunamadı' });
+    }
+
+    try {
+        const dbConfig = getTenantDbConfig(req.session.user.dbName);
+        const conn = await mysql.createConnection(dbConfig);
+
+        const [irsaliyeler] = await conn.query(`
+            SELECT 
+                i.id,
+                i.fis_no as no,
+                i.tarih,
+                c.unvan as cari,
+                i.geneltoplam as tutar,
+                CASE 
+                    WHEN i.durum = 0 THEN 'Beklemede'
+                    WHEN i.durum = 1 THEN 'Onaylandı'
+                    WHEN i.durum = 2 THEN 'İptal Edildi'
+                    ELSE 'Bilinmiyor'
+                END as durum,
+                i.aciklama
+            FROM irsaliyeler i
+            LEFT JOIN cariler c ON i.carikayitno = c.id
+            WHERE i.fis_tipi = 1  -- Giden irsaliyeler için (Satış irsaliyesi)
+            ORDER BY i.tarih DESC
+        `);
+
+        await conn.end();
+
+        // Tarihleri formatla
+        irsaliyeler.forEach(irsaliye => {
+            irsaliye.tarih = new Date(irsaliye.tarih).toLocaleDateString('tr-TR');
+            irsaliye.tutar = parseFloat(irsaliye.tutar).toFixed(2);
+        });
+
+        res.json(irsaliyeler);
+    } catch (error) {
+        console.error('Giden irsaliyeler listelenirken hata:', error);
+        res.status(500).json({ error: 'Giden irsaliyeler listelenirken bir hata oluştu' });
+    }
+};
+
+// Giden İrsaliye oluştur (Satış İrsaliyesi)
+const createGidenIrsaliye = async (req, res) => {
+    try {
+        const { 
+            carikayitno, 
+            depokayitno, 
+            belgeno, 
+            fiili_sevk_tarihi, 
+            cikis_adresi, 
+            sevkiyat_adresi, 
+            arac_plakasi, 
+            sofor,
+            urunler,
+            aratoplam,
+            kdvtoplam,
+            geneltoplam
+        } = req.body;
+        
+        const irsaliyeTipi = 1; // Satış irsaliyesi (Giden)
+        const fisNo = 'SIRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
+
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        
+        // İrsaliye ana kaydını oluştur
+        const [result] = await conn.execute(`
+            INSERT INTO irsaliyeler (
+                fis_no, 
+                faturabelgono, 
+                tarih, 
+                carikayitno, 
+                depokayitno, 
+                fis_tipi, 
+                aratoplam, 
+                kdvtoplam, 
+                geneltoplam, 
+                teslimalan, 
+                teslimeden, 
+                plaka, 
+                durum, 
+                tipi, 
+                aciklama,
+                kaydedenkullanicikayitno
+            ) VALUES (?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+        `, [
+            fisNo,
+            belgeno || null,
+            carikayitno,
+            depokayitno,
+            irsaliyeTipi, // fis_tipi = 1 (Satış irsaliyesi)
+            aratoplam || 0,
+            kdvtoplam || 0,
+            geneltoplam || 0,
+            cikis_adresi || null,
+            sevkiyat_adresi || null,
+            arac_plakasi || null,
+            irsaliyeTipi, // tipi = 1 (Satış)
+            `Şoför: ${sofor || 'Belirtilmemiş'}`,
+            req.session.user.id
+        ]);
+
+        const irsaliyeId = result.insertId;
+
+        // Ürün detaylarını kaydet
+        if (urunler && urunler.length > 0) {
+            for (const urun of urunler) {
+                await conn.execute(`
+                    INSERT INTO irsaliyefatura_detaylar (
+                        irsaliye_id, 
+                        urun_adi, 
+                        miktar, 
+                        birim, 
+                        iskontorani, 
+                        iskontotutar, 
+                        kdvorani, 
+                        tutar, 
+                        stokkayitno
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    irsaliyeId,
+                    urun.urun_adi,
+                    urun.miktar || 0,
+                    urun.birim || 'Adet',
+                    urun.iskontorani || 0,
+                    urun.iskontotutar || 0,
+                    urun.kdvorani || 0,
+                    urun.tutar || 0,
+                    urun.stokkayitno || null
+                ]);
+            }
+        }
+
+        await conn.end();
+        res.status(201).json({ 
+            success: true, 
+            message: 'Giden irsaliye başarıyla oluşturuldu.',
+            irsaliyeId: irsaliyeId,
+            fisNo: fisNo
+        });
+    } catch (error) {
+        console.error('Giden irsaliye oluşturma hatası:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Giden irsaliye oluşturulurken bir hata oluştu: ' + error.message 
+        });
+    }
+};
+
+// İrsaliye detay getir (ana bilgi + detaylar)
+const getIrsaliyeDetail = async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.user.dbName) {
+        return res.status(401).json({ success: false, message: 'Oturum bulunamadı' });
+    }
+
+    try {
+        const { id } = req.params;
+        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+
+        // İrsaliye ana bilgilerini getir
+        const [irsaliyeRows] = await conn.execute(`
+            SELECT 
+                i.*,
+                c.unvan as cari_unvan,
+                c.carikodu as cari_kodu,
+                c.vergi_no as cari_vkn,
+                d.depo_adi,
+                d.depo_kodu
+            FROM irsaliyeler i
+            LEFT JOIN cariler c ON i.carikayitno = c.id
+            LEFT JOIN depokarti d ON i.depokayitno = d.id
+            WHERE i.id = ?
+        `, [id]);
+
+        if (irsaliyeRows.length === 0) {
+            await conn.end();
+            return res.status(404).json({ success: false, message: 'İrsaliye bulunamadı' });
+        }
+
+        // İrsaliye detaylarını getir
+        const [detayRows] = await conn.execute(`
+            SELECT 
+                d.*,
+                s.stok_adi,
+                s.stok_kodu
+            FROM irsaliyefatura_detaylar d
+            LEFT JOIN stoklar s ON d.stokkayitno = s.id
+            WHERE d.irsaliye_id = ?
+            ORDER BY d.id ASC
+        `, [id]);
+
+        await conn.end();
+
+        res.json({
+            success: true,
+            irsaliye: irsaliyeRows[0],
+            detaylar: detayRows
+        });
+
+    } catch (error) {
+        console.error('İrsaliye detayı getirme hatası:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'İrsaliye detayları alınırken bir hata oluştu: ' + error.message 
+        });
+    }
+};
+
 // Router tanımlamaları
 router.get('/irsaliyeler', getIrsaliyeler);
+router.get('/giden-irsaliyeler', getGidenIrsaliyeler);
+router.get('/irsaliye-detail/:id', getIrsaliyeDetail);
 router.get('/cariler', getCariler);
 router.get('/depolar', getDepolar);
 router.get('/stoklar', getStoklar);
 router.post('/irsaliye', createIrsaliye);
+router.post('/gelen-irsaliye', createGelenIrsaliye);
+router.post('/giden-irsaliye', createGidenIrsaliye);
 
 // Liste: tarih aralığına göre irsaliye başlıkları
 router.get('/irsaliye/list', async (req, res) => {
@@ -391,5 +714,7 @@ module.exports = {
     gidenIrsaliyeler,
     getCariler,
     getDepolar,
-    getStoklar
+    getStoklar,
+    getGidenIrsaliyeler,
+    getIrsaliyeDetail
 };

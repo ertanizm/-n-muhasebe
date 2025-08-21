@@ -195,9 +195,16 @@ const {
 
 const processedGrupkayitno = (grupkayitno && grupkayitno.trim() !== '') ? grupkayitno : null;
 const processedVergikayitno = (vergikayitno && vergikayitno.trim() !== '') ? vergikayitno : null;
-const processedDepokayitno = (depokayitno && depokayitno.trim() !== '') ? depokayitno:null;
+const processedDepokayitno = (depokayitno && depokayitno.trim() !== '') ? depokayitno : null;
+
+// Fiyat değerlerini kontrol et
+const processedFiyat1 = (fiyat1 && fiyat1.toString().trim() !== '') ? parseFloat(fiyat1) : null;
+const processedFiyat2 = (fiyat2 && fiyat2.toString().trim() !== '') ? parseFloat(fiyat2) : null;
+const processedFiyat3 = (fiyat3 && fiyat3.toString().trim() !== '') ? parseFloat(fiyat3) : null;
+const processedMiktar = (miktar && miktar.toString().trim() !== '') ? parseFloat(miktar) : 0;
+
 const kullaniciId = req.session.user.id;
-console.log("Processed values:", processedVergikayitno, processedGrupkayitno);
+console.log("Processed values:", processedVergikayitno, processedGrupkayitno, processedFiyat1, processedFiyat2, processedFiyat3);
 
 if (id) {
     // Update
@@ -221,11 +228,11 @@ if (id) {
          WHERE id = ?`,
         [
             stok_kodu, stok_adi, birim, aktifbarkod,
-            kullaniciId,kullaniciId,
-            fiyat1, fiyat2, fiyat3,
+            kullaniciId, kullaniciId,
+            processedFiyat1, processedFiyat2, processedFiyat3,
             stoktipi, aktif,
-            miktar, 
-            processedGrupkayitno, processedVergikayitno,processedDepokayitno,
+            processedMiktar, 
+            processedGrupkayitno, processedVergikayitno, processedDepokayitno,
             id
         ]
     );
@@ -237,14 +244,14 @@ if (id) {
             guncelleyenkullanicikayitno, kaydedenkullanicikayitno, 
             fiyat1, fiyat2, fiyat3, 
             stoktipi, aktif, miktar,
-            grupkayitno, vergikayitno,depokayitno
+            grupkayitno, vergikayitno, depokayitno
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
             stok_kodu, stok_adi, birim, aktifbarkod,
             kullaniciId, kullaniciId,
-            fiyat1, fiyat2, fiyat3,
-            stoktipi, aktif, miktar,
-            processedGrupkayitno, processedVergikayitno,processedDepokayitno
+            processedFiyat1, processedFiyat2, processedFiyat3,
+            stoktipi, aktif, processedMiktar,
+            processedGrupkayitno, processedVergikayitno, processedDepokayitno
         ]
     );
 }
@@ -253,7 +260,7 @@ if (id) {
         res.json({ success: true });
     } catch (error) {
         console.error('Stok işlemi başarısız:', error);
-        res.status(500).json({ success: false, message: 'Stok işlemi sırasında hata oluştu' });
+        res.status(500).json({ success: false, message: 'Stok işlemi sırasında hata oluştu: ' + error.message });
     }
 });
 

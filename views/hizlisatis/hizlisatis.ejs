@@ -240,8 +240,14 @@
             // Eğer butona atanmış stok varsa, sepete ekle
             if (quickButtonStocks[index]) {
                 const s = quickButtonStocks[index];
+                console.log('Hızlı butondan eklenen stok:', s); // Debug için
                 // Hızlı butondan eklerken fiyat1/fiyat2'yi de aktar
-                addToCart({ id: s.id, stok_adi: s.stokAdi, fiyat1: s.fiyat1 || 0, fiyat2: s.fiyat2 || 0 });
+                addToCart({ 
+                    id: s.id, 
+                    stok_adi: s.stokAdi, 
+                    fiyat1: Number(s.fiyat1) || 0, 
+                    fiyat2: Number(s.fiyat2) || 0 
+                });
                 return;
             }
             // Yoksa stok seçme modalı aç
@@ -277,17 +283,44 @@
 
         async function assignStockToQuickButton(stokId, stokAdi) {
             if (activeQuickButtonIndex == null) return;
-            await fetch(`/api/quick-buttons/${activeQuickButtonIndex}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stokkayitno: stokId })
-            });
-            // UI güncelle
-            quickButtonStocks[activeQuickButtonIndex] = { id: stokId, stokAdi };
-            const btn = document.querySelector(`.quick-button[data-index="${activeQuickButtonIndex}"]`);
-            if (btn) btn.textContent = stokAdi;
-            bootstrap.Modal.getInstance(document.getElementById('stockPickerModal')).hide();
-            activeQuickButtonIndex = null;
+            
+            try {
+                // Önce stok detaylarını al
+                const stockRes = await fetch(`/api/stock/by-id?id=${stokId}`);
+                const stockJson = await stockRes.json();
+                
+                if (!stockJson.success) {
+                    throw new Error('Stok detayları alınamadı');
+                }
+                
+                const stockData = stockJson.data;
+                
+                // Hızlı butona ata
+                await fetch(`/api/quick-buttons/${activeQuickButtonIndex}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stokkayitno: stokId })
+                });
+                
+                // UI güncelle - fiyat bilgileriyle birlikte
+                quickButtonStocks[activeQuickButtonIndex] = { 
+                    id: stokId, 
+                    stokAdi: stokAdi,
+                    stokKodu: stockData.stok_kodu,
+                    fiyat1: Number(stockData.fiyat1) || 0,
+                    fiyat2: Number(stockData.fiyat2) || 0
+                };
+                
+                const btn = document.querySelector(`.quick-button[data-index="${activeQuickButtonIndex}"]`);
+                if (btn) btn.textContent = stokAdi;
+                
+                bootstrap.Modal.getInstance(document.getElementById('stockPickerModal')).hide();
+                activeQuickButtonIndex = null;
+                
+            } catch (error) {
+                console.error('Stok atama hatası:', error);
+                alert('Stok atanırken hata oluştu');
+            }
         }
 
         // Ürünleri yükle
@@ -326,16 +359,25 @@
             } else {
                 const fiyat1 = Number(product.fiyat1 ?? 0);
                 const fiyat2 = Number(product.fiyat2 ?? 0);
+                console.log('addToCart - fiyat bilgileri:', { fiyat1, fiyat2, product }); // Debug
                 // Kural:
                 // - Yalnız fiyat1 varsa: priceMode=fiyat1, price=fiyat1
                 // - Yalnız fiyat2 varsa: priceMode=fiyat2, price=fiyat2
-                // - Her ikisi de varsa: default MANUEL, price=0 (kullanıcı seçer)
+                // - Her ikisi de varsa: priceMode=fiyat1, price=fiyat1 (varsayılan fiyat1)
                 // - İkisi de yoksa: MANUEL 0
                 let priceMode = 'manual';
                 let priceNum = 0;
-                if (fiyat1 > 0 && fiyat2 <= 0) { priceMode = 'fiyat1'; priceNum = fiyat1; }
-                else if (fiyat2 > 0 && fiyat1 <= 0) { priceMode = 'fiyat2'; priceNum = fiyat2; }
-                else if (fiyat1 > 0 && fiyat2 > 0) { priceMode = 'manual'; priceNum = 0; }
+                if (fiyat1 > 0 && fiyat2 <= 0) { 
+                    priceMode = 'fiyat1'; 
+                    priceNum = fiyat1; 
+                } else if (fiyat2 > 0 && fiyat1 <= 0) { 
+                    priceMode = 'fiyat2'; 
+                    priceNum = fiyat2; 
+                } else if (fiyat1 > 0 && fiyat2 > 0) { 
+                    priceMode = 'fiyat1'; 
+                    priceNum = fiyat1; // Her ikisi de varsa fiyat1 varsayılan
+                }
+                console.log('addToCart - belirlenen:', { priceMode, priceNum }); // Debug
                 cart.push({
                     id: product.id,
                     name: product.stok_adi,

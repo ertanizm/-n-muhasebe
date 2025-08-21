@@ -1,0 +1,8 @@
+Tipi = 0 Alış
+Tipi = 1 Satış
+-------------------------------
+Fiştipi  &   İsim
+-------------------------------
+1        /   Satış irsaliyesi
+0        /   Alış irsaliyesi
+       

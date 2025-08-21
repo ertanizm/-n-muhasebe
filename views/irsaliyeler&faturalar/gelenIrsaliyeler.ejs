@@ -159,7 +159,7 @@
                                         <span class="search-icon-right" onclick="openStokModal(this.previousElementSibling)">🔍</span>
                                     </div>
                                 </td>
-                                <td><input type="number" placeholder="1,00" step="0.01" /></td>
+                                <td><input type="number" placeholder="" step="0.01" /></td>
                                 <td>
                                     <select class="form-control">
                                         <option>Adet</option>
@@ -170,7 +170,7 @@
                                         <option>Metre</option>
                                     </select>
                                 </td>
-                                <td><input type="number" placeholder="100,00" step="0.01" /></td>
+                                <td><input type="number" placeholder="" step="0.01" /></td>
                                 <td>
                                     <select class="form-control">
                                         <option value="0">%0</option>
@@ -179,7 +179,7 @@
                                         <option value="20">%20</option>
                                     </select>
                                 </td>
-                                <td><input type="number" placeholder="120,00" step="0.01" readonly /></td>
+                                <td><input type="number" placeholder="" step="0.01" readonly /></td>
                                 <td style="text-align: center;">
                                     <button class="btn-expand" onclick="toggleRowDetails(this)">+</button>
                                     <button class="btn-delete" onclick="removeRow(this)">×</button>
@@ -203,7 +203,7 @@
                                         </div>
                                         <div class="detail-row">
                                             <label>ÖTV</label>
-                                            <input type="number" class="form-control" placeholder="15,00" step="0.01" />
+                                            <input type="number" class="form-control" placeholder="" step="0.01" />
                                             <span class="percentage">%</span>
                                         </div>
                                     </div>
@@ -218,15 +218,15 @@
                         <div class="summary-section">
                             <div class="summary-item">
                                 <label>ARA TOPLAM</label>
-                                <span class="summary-value">100,00₺</span>
+                                <span class="summary-value">₺</span>
                             </div>
                             <div class="summary-item">
                                 <label>TOPLAM KDV</label>
-                                <span class="summary-value">20,00₺</span>
+                                <span class="summary-value">₺</span>
                             </div>
                             <div class="summary-item total">
                                 <label>GENEL TOPLAM</label>
-                                <span class="summary-value">120,00₺</span>
+                                <span class="summary-value">₺</span>
                             </div>
                         </div>
                     </div>
@@ -235,8 +235,8 @@
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
-            <button class="btn-save" onclick="saveIrsaliye()">Kaydet & Görüntüle</button>
-            <button class="btn-save" onclick="saveIrsaliye()">Kaydet</button>
+            <button class="btn-save" onclick="saveIrsaliye(true)">Kaydet & Görüntüle</button>
+            <button class="btn-save" onclick="saveIrsaliye(false)">Kaydet</button>
         </div>
     </div>
 </div>
@@ -513,7 +513,7 @@
                     <span class="search-icon-right" onclick="openStokModal(this.previousElementSibling)">🔍</span>
                 </div>
             </td>
-            <td><input type="number" placeholder="1,00" step="0.01" onchange="calculateRowTotal(this.closest('tr'))" /></td>
+            <td><input type="number" placeholder="" step="0.01" onchange="calculateRowTotal(this.closest('tr'))" /></td>
             <td>
                 <select class="form-control" onchange="calculateRowTotal(this.closest('tr'))">
                     <option>Adet</option>
@@ -524,7 +524,7 @@
                     <option>Metre</option>
                 </select>
             </td>
-            <td><input type="number" placeholder="100,00" step="0.01" onchange="calculateRowTotal(this.closest('tr'))" /></td>
+            <td><input type="number" placeholder="" step="0.01" onchange="calculateRowTotal(this.closest('tr'))" /></td>
             <td>
                 <select class="form-control" onchange="calculateRowTotal(this.closest('tr'))">
                     <option value="0">%0</option>
@@ -533,7 +533,7 @@
                     <option value="20">%20</option>
                 </select>
             </td>
-            <td><input type="number" placeholder="120,00" step="0.01" readonly /></td>
+            <td><input type="number" placeholder="" step="0.01" readonly /></td>
             <td style="text-align: center;">
                 <button class="btn-expand" onclick="toggleRowDetails(this)">+</button>
                 <button class="btn-delete" onclick="removeRow(this)">×</button>
@@ -624,7 +624,7 @@
     }
 
     // İrsaliye kaydetme
-    function saveIrsaliye() {
+    function saveIrsaliye(isView = false) {
         if (!selectedCariId) {
             alert('Lütfen tedarikçi seçin!');
             return;
@@ -697,7 +697,7 @@
             kdvToplam += (satirAraToplam * urun.kdvorani / 100);
         });
 
-        fetch('/api/irsaliye', {
+        fetch('/api/gelen-irsaliye', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -721,8 +721,13 @@
         .then(data => {
             if (data.success) {
                 alert('İrsaliye başarıyla kaydedildi! Fiş No: ' + data.fisNo);
-                closeModal();
-                location.reload(); // Sayfayı yenile
+                if (isView) {
+                    // Detay sayfasına yönlendir
+                    window.location.href = `/irsaliye/detay?id=${data.irsaliyeId}`;
+                } else {
+                    closeModal();
+                    location.reload(); // Sayfayı yenile
+                }
             } else {
                 alert('Hata: ' + data.message);
             }
@@ -773,28 +778,29 @@
     // Sayfa yüklendiğinde ilk satırın event'lerini bağla
     // İrsaliyeleri yükle
 function loadIrsaliyeler() {
-    fetch('/api/irsaliye/list')
+    fetch('/api/irsaliyeler') // Gelen irsaliyeler endpoint'i
         .then(response => response.json())
         .then(data => {
             const tbody = document.getElementById('irsaliyeTableBody');
             tbody.innerHTML = '';
             
-            if (!data.success || !data.data || data.data.length === 0) {
+            // API'den gelen veriler direkt array olarak geliyor
+            if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Kayıtlı irsaliye bulunamadı</td></tr>';
                 return;
             }
 
-            data.data.forEach(irsaliye => {
+            data.forEach(irsaliye => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${irsaliye.fis_no || ''}</td>
-                    <td>${irsaliye.tarih ? new Date(irsaliye.tarih).toLocaleDateString('tr-TR') : ''}</td>
+                    <td>${irsaliye.no || ''}</td>
+                    <td>${irsaliye.tarih || ''}</td>
                     <td>${irsaliye.cari || ''}</td>
-                    <td>${Number(irsaliye.geneltoplam || 0).toFixed(2)} ₺</td>
+                    <td>${Number(irsaliye.tutar || 0).toFixed(2)} ₺</td>
                     <td>
-                        <span class="irsaliye-status">Aktif</span>
+                        <span class="irsaliye-status">${irsaliye.durum || 'Bilinmiyor'}</span>
                     </td>
-                    <td></td>
+                    <td>${irsaliye.aciklama || ''}</td>
                     <td style="text-align:right;">
                         <div class="irsaliye-actions">
                             <button class="btn btn-light btn-sm" onclick="viewIrsaliye(${irsaliye.id})"><i class="fas fa-eye"></i></button>
@@ -815,8 +821,8 @@ function loadIrsaliyeler() {
 
 // İrsaliye görüntüleme fonksiyonu
 function viewIrsaliye(id) {
-    // TODO: İrsaliye detay görüntüleme işlemleri
-    console.log('İrsaliye görüntüle:', id);
+    // Detay sayfasına yönlendir
+    window.location.href = `/irsaliye/detay?id=${id}`;
 }
 
 // İrsaliye düzenleme fonksiyonu

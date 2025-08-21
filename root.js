@@ -77,6 +77,12 @@ router.use('/cari', cariOperations);
 
 router.get('/irsaliye/gelen', authMiddleware, irsaliyeController.gelenIrsaliyeler);
 router.get('/irsaliye/giden', authMiddleware, irsaliyeController.gidenIrsaliyeler);
+router.get('/irsaliye/detay', authMiddleware, (req, res) => {
+    res.render('irsaliyeler&faturalar/irsaliyeDetay', { 
+        user: req.session.user,
+        error: null 
+    });
+});
 
 // API routes
 router.use('/api', apiAuthMiddleware, irsaliyeController.router);

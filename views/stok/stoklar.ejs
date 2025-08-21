@@ -146,9 +146,9 @@
                         <table class="table table-striped">
                           <thead>
                             <tr>
-                              <th>Fiyat 1</th>
-                              <th>Fiyat 2</th>
-                              <th>Fiyat 3</th>
+                              <th>Satış Fiyatı 1</th>
+                              <th>Satış Fiyatı 2</th>
+                              <th>ALış Fiyatı</th>
                               <th>Vergi</th>
                               <!-- <th>Stok Tipi</th> -->
                               <!-- <th>Aktif</th> -->
@@ -244,14 +244,14 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="miktar" class="form-label">Miktar</label>
-                                <input type="text" class="form-control" id="miktar" name="miktar">
+                                <input type="text" class="form-control" id="miktar" name="miktar" placeholder="0.00">
                             </div>
                             <div class="col-md-11">
                                 <label for="aktifbarkod" class="form-label">Aktif Barkod</label>
                                 <input type="text" class="form-control" id="aktifbarkod" name="aktifbarkod">
                             </div>
                             <div class="col-md-4">
-                                <label for="grupkayitno" class="form-label">Grup Kayıt No</label>
+                                <label for="grupkayitno" class="form-label">Grup Seçimi</label>
                                  <select class="form-control" id="grupkayitno" name="grupkayitno">
                                     <option value="">Grup Seçiniz</option>
                                     <% gruplar.forEach(function(grup) { %>
@@ -260,7 +260,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label for="vergikayitno" class="form-label">Vergi Kayıt No</label>
+                                <label for="vergikayitno" class="form-label">Vergi Seçimi</label>
                                 <select class="form-control" id="vergikayitno" name="vergikayitno">
                                     <option value="">Vergi Seçiniz</option>
                                     <% vergiler.forEach(function(vergi) { %>
@@ -269,7 +269,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label for="depokayitno" class="form-label">Depo Kayıt No</label>
+                                <label for="depokayitno" class="form-label">Depo Seçimi</label>
                                 <select class="form-control" id="depokayitno" name="depokayitno">
                                     <option value="">Depo Seçiniz</option>
                                     <% depolar.forEach(function(depo) { %>
@@ -284,15 +284,15 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="fiyat1" class="form-label">Fiyat 1</label>
-                                <input type="number" step="0.01" class="form-control" id="fiyat1" name="fiyat1">
+                                <input type="number" step="0.01" class="form-control" id="fiyat1" name="fiyat1" placeholder="0.00">
                             </div>
                             <div class="col-md-4">
                                 <label for="fiyat2" class="form-label">Fiyat 2</label>
-                                <input type="number" step="0.01" class="form-control" id="fiyat2" name="fiyat2">
+                                <input type="number" step="0.01" class="form-control" id="fiyat2" name="fiyat2" placeholder="0.00">
                             </div>
                             <div class="col-md-4">  
                                 <label for="fiyat3" class="form-label">Fiyat 3</label>
-                                <input type="number" step="0.01" class="form-control" id="fiyat3" name="fiyat3">
+                                <input type="number" step="0.01" class="form-control" id="fiyat3" name="fiyat3" placeholder="0.00">
                             </div>
                             <div class="col-md-4">
                                 <label for="stoktipi" class="form-label">Stok Tipi</label>
@@ -328,6 +328,12 @@
             const form = document.getElementById('productForm');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
+
+            // Fiyat değerlerini kontrol et
+            if (data.fiyat1 === '' || data.fiyat1 === undefined) data.fiyat1 = null;
+            if (data.fiyat2 === '' || data.fiyat2 === undefined) data.fiyat2 = null;
+            if (data.fiyat3 === '' || data.fiyat3 === undefined) data.fiyat3 = null;
+            if (data.miktar === '' || data.miktar === undefined) data.miktar = 0;
 
             try {
                 const response = await fetch('/stok/stoklar', {  // Update API endpoint

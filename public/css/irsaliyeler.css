@@ -219,7 +219,7 @@
 }
 
 .product-table th {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
     color: #ffffff;
     font-weight: 600;
     padding: 16px 12px;
