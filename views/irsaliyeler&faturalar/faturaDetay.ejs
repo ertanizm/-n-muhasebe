@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İrsaliye Detayı</title>
+    <title>Fatura Detayı</title>
     <link href="/css/dashboard.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/irsaliyeDetay.css" rel="stylesheet">
-  
 </head>
 <body>
 <%- include('../sidebar') %>
@@ -16,15 +15,15 @@
 <div class="irsaliye-detail-container">
     <!-- Header -->
     <div class="detail-header">
-        <h2><i class="fas fa-file-invoice"></i> İrsaliye Detayı</h2>
+        <h2><i class="fas fa-file-invoice"></i> Fatura Detayı</h2>
         <div class="header-actions">
-            <button class="btn-action btn-edit" onclick="editIrsaliye()">
+            <button class="btn-action btn-edit" onclick="editFatura()">
                 <i class="fas fa-edit"></i> Düzenle
             </button>
-            <button class="btn-action btn-send" onclick="sendEIrsaliye()">
-                <i class="fas fa-paper-plane"></i> E-İrsaliye Gönder
+            <button class="btn-action btn-send" onclick="sendEFatura()">
+                <i class="fas fa-paper-plane"></i> E-Fatura Gönder
             </button>
-            <button class="btn-action btn-print" onclick="printIrsaliye()">
+            <button class="btn-action btn-print" onclick="printFatura()">
                 <i class="fas fa-print"></i> Yazdır
             </button>
             <button class="btn-action btn-back" onclick="goBack()">
@@ -38,18 +37,18 @@
         <!-- Info Cards -->
         <div class="info-grid">
             <div class="info-card">
-                <h4><i class="fas fa-info-circle"></i> İrsaliye Bilgileri</h4>
+                <h4><i class="fas fa-info-circle"></i> Fatura Bilgileri</h4>
                 <div class="info-row">
-                    <span class="info-label">İrsaliye No:</span>
+                    <span class="info-label">Fiş No:</span>
                     <span class="info-value" id="fisNo">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Fatura No:</span>
+                    <span class="info-value" id="faturaNo">-</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Tarih:</span>
                     <span class="info-value" id="tarih">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Belge No:</span>
-                    <span class="info-value" id="belgeNo">-</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Durum:</span>
@@ -60,9 +59,9 @@
             </div>
 
             <div class="info-card">
-                <h4><i class="fas fa-user"></i> Tedarikçi Bilgileri</h4>
+                <h4><i class="fas fa-user"></i> Müşteri Bilgileri</h4>
                 <div class="info-row">
-                    <span class="info-label">Tedarikçi:</span>
+                    <span class="info-label">Müşteri:</span>
                     <span class="info-value" id="cariUnvan">-</span>
                 </div>
                 <div class="info-row">
@@ -133,7 +132,7 @@
             <div class="efatura-details">
                 <div>
                     <h5><strong>SAYIN</strong></h5>
-                    <p id="efaturaTedarikci">-</p>
+                    <p id="efaturaMusteri">-</p>
                     <p>Adres: Belirtilmemiş</p>
                     <p>VKN: -</p>
                 </div>
@@ -141,7 +140,7 @@
                     <h5><strong>FATURA BİLGİLERİ</strong></h5>
                     <p><strong>Fatura No:</strong> <span id="efaturaNo">-</span></p>
                     <p><strong>Fatura Tarihi:</strong> <span id="efaturaTarih">-</span></p>
-                    <p><strong>Fatura Tipi:</strong> ALIŞ</p>
+                    <p><strong>Fatura Tipi:</strong> SATIŞ</p>
                     <p><strong>Para Birimi:</strong> TRY</p>
                 </div>
             </div>
@@ -184,50 +183,50 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
 <script>
-// URL'den irsaliye ID'sini al
+// URL'den fatura ID'sini al
 const urlParams = new URLSearchParams(window.location.search);
-const irsaliyeId = urlParams.get('id');
+const faturaId = urlParams.get('id');
 
-// Sayfa yüklendiğinde irsaliye detaylarını getir
+// Sayfa yüklendiğinde fatura detaylarını getir
 document.addEventListener('DOMContentLoaded', function() {
-    if (irsaliyeId) {
-        loadIrsaliyeDetails(irsaliyeId);
+    if (faturaId) {
+        loadFaturaDetails(faturaId);
     } else {
-        Swal.fire('Uyarı', 'İrsaliye ID bulunamadı!', 'warning');
+        Swal.fire('Uyarı', 'Fatura ID bulunamadı!', 'warning');
         goBack();
     }
 });
 
-async function loadIrsaliyeDetails(id) {
+async function loadFaturaDetails(id) {
     try {
-        // İrsaliye ana bilgilerini getir
-        const response = await fetch(`/api/irsaliye-detail/${id}`);
+        // Fatura ana bilgilerini getir
+        const response = await fetch(`/api/fatura/fatura-detail/${id}`);
         const data = await response.json();
 
         if (!data.success) {
-            throw new Error(data.message || 'İrsaliye detayları alınamadı');
+            throw new Error(data.message || 'Fatura detayları alınamadı');
         }
 
-        const irsaliye = data.irsaliye;
+        const fatura = data.fatura;
         const detaylar = data.detaylar;
 
         // Ana bilgileri doldur
-        document.getElementById('fisNo').textContent = irsaliye.fis_no || '-';
-        document.getElementById('tarih').textContent = new Date(irsaliye.tarih).toLocaleDateString('tr-TR');
-        document.getElementById('belgeNo').textContent = irsaliye.faturabelgono || '-';
-        document.getElementById('cariUnvan').textContent = irsaliye.cari_unvan || '-';
-        document.getElementById('depoAdi').textContent = irsaliye.depo_adi || '-';
-        document.getElementById('plaka').textContent = irsaliye.plaka || '-';
+        document.getElementById('fisNo').textContent = fatura.fis_no || '-';
+        document.getElementById('faturaNo').textContent = fatura.faturabelgeno || '-';
+        document.getElementById('tarih').textContent = new Date(fatura.tarih).toLocaleDateString('tr-TR');
+        document.getElementById('cariUnvan').textContent = fatura.cari_unvan || '-';
+        document.getElementById('depoAdi').textContent = fatura.depo_adi || '-';
+        document.getElementById('plaka').textContent = fatura.plaka || '-';
         
         // Şoför bilgisini açıklama'dan çıkar
-        const soforInfo = irsaliye.aciklama ? irsaliye.aciklama.replace('Şoför: ', '') : '-';
+        const soforInfo = fatura.aciklama ? fatura.aciklama.replace('Şoför: ', '') : '-';
         document.getElementById('sofor').textContent = soforInfo;
 
         // Durum badge'ini ayarla
         const durumElement = document.getElementById('durum');
-        const durumText = getDurumText(irsaliye.durum);
+        const durumText = getDurumText(fatura.durum);
         durumElement.textContent = durumText;
-        durumElement.className = `status-badge status-${getDurumClass(irsaliye.durum)}`;
+        durumElement.className = `status-badge status-${getDurumClass(fatura.durum)}`;
 
         // Ürünleri listele
         const tbody = document.getElementById('productsTableBody');
@@ -263,20 +262,20 @@ async function loadIrsaliyeDetails(id) {
         document.getElementById('genelToplam').textContent = genelToplam.toFixed(2) + ' ₺';
 
         // E-fatura önizlemesini doldur
-        fillEfaturaPreview(irsaliye, detaylar, araToplam, kdvToplam, genelToplam);
+        fillEfaturaPreview(fatura, detaylar, araToplam, kdvToplam, genelToplam);
 
     } catch (error) {
-        console.error('İrsaliye detayları yüklenirken hata:', error);
-        Swal.fire('Hata', 'İrsaliye detayları yüklenirken bir hata oluştu: ' + error.message, 'error');
+        console.error('Fatura detayları yüklenirken hata:', error);
+        Swal.fire('Hata', 'Fatura detayları yüklenirken bir hata oluştu: ' + error.message, 'error');
         goBack();
     }
 }
 
-function fillEfaturaPreview(irsaliye, detaylar, araToplam, kdvToplam, genelToplam) {
+function fillEfaturaPreview(fatura, detaylar, araToplam, kdvToplam, genelToplam) {
     // E-fatura bilgilerini doldur
-    document.getElementById('efaturaTedarikci').textContent = irsaliye.cari_unvan || '-';
-    document.getElementById('efaturaNo').textContent = irsaliye.fis_no || '-';
-    document.getElementById('efaturaTarih').textContent = new Date(irsaliye.tarih).toLocaleDateString('tr-TR');
+    document.getElementById('efaturaMusteri').textContent = fatura.cari_unvan || '-';
+    document.getElementById('efaturaNo').textContent = fatura.faturabelgeno || '-';
+    document.getElementById('efaturaTarih').textContent = new Date(fatura.tarih).toLocaleDateString('tr-TR');
     document.getElementById('efaturaGenelToplam').textContent = genelToplam.toFixed(2) + ' TL';
 
     // ETTN güncelle (örnek)
@@ -284,7 +283,7 @@ function fillEfaturaPreview(irsaliye, detaylar, araToplam, kdvToplam, genelTopla
     document.getElementById('ettn').textContent = ettn;
 
     // QR Kod oluştur
-    generateQRCode(irsaliye);
+    generateQRCode(fatura);
 
     // E-fatura tablosunu doldur
     const efaturaTableBody = document.getElementById('efaturaTableBody');
@@ -345,11 +344,11 @@ function generateETTN() {
     return ettn;
 }
 
-function generateQRCode(irsaliye) {
+function generateQRCode(fatura) {
     const canvas = document.getElementById('qrCanvas');
     
     // QR kod içeriği - Sadece müşteri unvanı
-    const qrContent = irsaliye.cari_unvan || 'Müşteri Belirtilmemiş';
+    const qrContent = fatura.cari_unvan || 'Müşteri Belirtilmemiş';
     
     // Kütüphanenin yüklenmesini bekle
     const tryGenerateQR = () => {
@@ -379,17 +378,17 @@ function generateQRCode(irsaliye) {
     tryGenerateQR();
 }
 
-function editIrsaliye() {
+function editFatura() {
     // Düzenleme sayfasına yönlendir
     Swal.fire('Bilgi', 'Düzenleme özelliği yakında eklenecek!', 'info');
 }
 
-function sendEIrsaliye() {
-    // E-İrsaliye gönderme işlemi
-    Swal.fire('Bilgi', 'E-İrsaliye gönderme özelliği yakında eklenecek!', 'info');
+function sendEFatura() {
+    // E-Fatura gönderme işlemi
+    Swal.fire('Bilgi', 'E-Fatura gönderme özelliği yakında eklenecek!', 'info');
 }
 
-function printIrsaliye() {
+function printFatura() {
     // Yazdırma işlemi
     window.print();
 }
@@ -397,9 +396,9 @@ function printIrsaliye() {
 function goBack() {
     // Geri git
     if (document.referrer.includes('gelen')) {
-        window.location.href = '/irsaliye/gelen';
+        window.location.href = '/fatura/gelen';
     } else if (document.referrer.includes('giden')) {
-        window.location.href = '/irsaliye/giden';
+        window.location.href = '/fatura/giden';
     } else {
         window.history.back();
     }

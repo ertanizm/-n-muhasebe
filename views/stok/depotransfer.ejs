@@ -542,7 +542,7 @@
             btn.addEventListener('click', function() {
                 const action = this.textContent.trim();
                 console.log('Export işlemi:', action);
-                alert(`${action} işlemi başlatıldı`);
+                Swal.fire('Bilgi', `${action} işlemi başlatıldı`, 'info');
             });
         });
 
@@ -555,10 +555,10 @@
             try {
                 // Transfer kaydetme işlemi
                 console.log('Transfer kaydediliyor:', data);
-                alert('Transfer başarıyla kaydedildi!');
+                Swal.fire('Başarılı', 'Transfer başarıyla kaydedildi!', 'success');
                 location.reload();
             } catch (error) {
-                alert('Transfer kaydedilirken hata oluştu');
+                Swal.fire('Hata', 'Transfer kaydedilirken hata oluştu', 'error');
             }
         });
 
@@ -578,15 +578,15 @@
                 
                 if (action === 'Onayla') {
                     if (confirm('Transferi onaylamak istediğinize emin misiniz?')) {
-                        alert('Transfer onaylandı!');
+                        Swal.fire('Başarılı', 'Transfer onaylandı!', 'success');
                     }
                 } else if (action === 'Tamamla') {
                     if (confirm('Transferi tamamlamak istediğinize emin misiniz?')) {
-                        alert('Transfer tamamlandı!');
+                        Swal.fire('Başarılı', 'Transfer tamamlandı!', 'success');
                     }
                 } else if (action === 'İptal') {
                     if (confirm('Transferi iptal etmek istediğinize emin misiniz?')) {
-                        alert('Transfer iptal edildi!');
+                        Swal.fire('Bilgi', 'Transfer iptal edildi!', 'info');
                     }
                 }
             });

@@ -348,10 +348,10 @@
                 if (result.success) {
                     location.reload(); // Sayfayı yenile
                 } else {
-                    alert('Kayıt sırasında bir hata oluştu: ' + result.message);
+                    Swal.fire('Hata', 'Kayıt sırasında bir hata oluştu: ' + result.message, 'error');
                 }
             } catch (error) {
-                alert('İşlem sırasında bir hata oluştu');
+                Swal.fire('Hata', 'İşlem sırasında bir hata oluştu', 'error');
             }
         });
 
@@ -371,9 +371,9 @@
             const result = await response.json();
             if (result.success) {
                 btn.closest('tr').remove();
-                alert('Stok başarıyla silindi.');
+                Swal.fire('Başarılı', 'Stok başarıyla silindi.', 'success');
             } else {
-                alert('Silme işlemi başarısız: ' + result.message);
+                Swal.fire('Hata', 'Silme işlemi başarısız: ' + result.message, 'error');
             }
         });
 
@@ -467,11 +467,11 @@
                 if (data.success) {
                     updateStoklarTablosu(data.stoklar);
                 } else {
-                    alert('Arama sırasında hata oluştu: ' + data.message);
+                    Swal.fire('Hata', 'Arama sırasında hata oluştu: ' + data.message, 'error');
                 }
             })
             .catch(error => {
-                alert('Arama sırasında hata oluştu: ' + error.message);
+                Swal.fire('Hata', 'Arama sırasında hata oluştu: ' + error.message, 'error');
             });
         }
 

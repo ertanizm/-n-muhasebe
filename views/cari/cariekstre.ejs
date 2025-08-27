@@ -161,13 +161,13 @@
                     updateKayitBilgisi(data.hareketler.length);
                 } else {
                     console.error('Backend hatası:', data);
-                    alert('Arama sırasında hata oluştu: ' + data.message);
+                    Swal.fire('Hata', 'Arama sırasında hata oluştu: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Arama hatası:', error);
                 console.error('Hata detayı:', error.message);
-                alert('Arama sırasında hata oluştu: ' + error.message);
+                Swal.fire('Hata', 'Arama sırasında hata oluştu: ' + error.message, 'error');
             });
         }
 
@@ -284,24 +284,24 @@
                     if (data.success) {
                         searchFiltre(); // Tabloyu yenile
                     } else {
-                        alert('Hareket silinirken hata oluştu: ' + data.message);
+                        Swal.fire('Hata', 'Hareket silinirken hata oluştu: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Silme hatası:', error);
-                    alert('Hareket silinirken hata oluştu');
+                    Swal.fire('Hata', 'Hareket silinirken hata oluştu', 'error');
                 });
             }
         }
 
         // Export fonksiyonları
         function exportToExcel() {
-            alert('Excel export işlemi başlatıldı');
+            Swal.fire('Bilgi', 'Excel export işlemi başlatıldı', 'info');
             // Excel export implementasyonu buraya eklenebilir
         }
 
         function exportToPDF() {
-            alert('PDF export işlemi başlatıldı');
+            Swal.fire('Bilgi', 'PDF export işlemi başlatıldı', 'info');
             // PDF export implementasyonu buraya eklenebilir
         }
 

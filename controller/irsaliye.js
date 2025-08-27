@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2/promise');
-const { getTenantDbConfig } = require('./db');
+const { 
+    getTenantDbConfig, 
+    generateIrsaliyeNumber, 
+    generateFisNumber 
+} = require('./db');
 
 // Sayfa render fonksiyonları
 const gelenIrsaliyeler = async (req, res) => {
@@ -32,6 +36,7 @@ const getIrsaliyeler = async (req, res) => {
             SELECT 
                 i.id,
                 i.fis_no as no,
+                i.faturabelgono as belge_no,
                 i.tarih,
                 c.unvan as cari,
                 i.geneltoplam as tutar,
@@ -124,9 +129,9 @@ const createIrsaliye = async (req, res) => {
 		const { 
 			carikayitno, 
 			depokayitno, 
-				aratoplam, 
-				kdvtoplam, 
-				geneltoplam, 
+			aratoplam, 
+			kdvtoplam, 
+			geneltoplam, 
 			urunler,
 			odeme_tipi,
 			beklet
@@ -140,25 +145,20 @@ const createIrsaliye = async (req, res) => {
 		conn = await mysql.createConnection(getTenantDbConfig(dbName));
 		await conn.beginTransaction();
 
-		// // beklet kolonu var mı? yoksa ekle
-		// const [colBekletRows] = await conn.execute(
-		// 	`SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'irsaliyeler' AND COLUMN_NAME = 'beklet'`,
-		// 	[dbName]
-		// );
-		// if (Number(colBekletRows[0].cnt) === 0) {
-		// 	await conn.execute(`ALTER TABLE irsaliyeler ADD COLUMN beklet TINYINT(1) NOT NULL DEFAULT 0`);
-		// }
+		// Seri numaralama sistemini kullan
+		const fis_tipi = 1; // POS satışları için giden irsaliye (satış)
+		const irsaliyeNo = await generateIrsaliyeNumber(conn, fis_tipi);
+		const fisNo = await generateFisNumber(conn, fis_tipi);
 
-		const fisNo = 'IRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
 		const isBeklet = Number(beklet) === 1;
 		const durumDegeri = isBeklet ? 0 : 1;
 
-		// Başlık kaydı (beklet kolonu ile)
+		// Başlık kaydı (faturabelgono alanına irsaliye numarasını kaydet)
 		const [result] = await conn.execute(
 			`INSERT INTO irsaliyeler (
-				fis_no, tarih, carikayitno, depokayitno, fis_tipi, aratoplam, kdvtoplam, geneltoplam, nakittoplam, bankatoplam, durum, tipi, beklet
-			) VALUES (?, CURDATE(), ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
-			[fisNo, carikayitno, depokayitno || 1, 0, aratoplam || 0, kdvtoplam || 0, geneltoplam || 0, durumDegeri, 0, isBeklet ? 1 : 0]
+				fis_no, faturabelgono, tarih, carikayitno, depokayitno, fis_tipi, aratoplam, kdvtoplam, geneltoplam, nakittoplam, bankatoplam, durum, tipi, beklet
+			) VALUES (?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?)`,
+			[fisNo, irsaliyeNo, carikayitno, depokayitno || 1, fis_tipi, aratoplam || 0, kdvtoplam || 0, geneltoplam || 0, durumDegeri, fis_tipi, isBeklet ? 1 : 0]
 		);
 		const irsaliyeId = result.insertId;
 
@@ -173,15 +173,15 @@ const createIrsaliye = async (req, res) => {
 		// Ürün detayları + stok düşümü
 		for (const urun of urunler) {
 			const params = [
-					irsaliyeId,
+				irsaliyeId,
 				urun.urun_adi || '',
 				Number(urun.miktar || 0),
-					urun.birim || 'Adet',
+				urun.birim || 'Adet',
 				Number(urun.iskontorani || 0),
 				Number(urun.iskontotutar || 0),
 				Number(urun.kdvorani || 0),
 				Number(urun.tutar || 0),
-					urun.stokkayitno || null
+				urun.stokkayitno || null
 			];
 			if (hasSatirTipi) {
 				await conn.execute(
@@ -227,19 +227,29 @@ const createIrsaliye = async (req, res) => {
 
 		await conn.commit();
 		await conn.end();
-		res.status(201).json({ success: true, fisNo: fisNo, irsaliyeId });
+		res.status(201).json({ 
+			success: true, 
+			fisNo: fisNo, 
+			irsaliyeNo: irsaliyeNo,
+			irsaliyeId 
+		});
 	} catch (error) {
 		console.error('İrsaliye oluşturma hatası:', error);
 		if (conn) {
 			try { await conn.rollback(); } catch (e) {}
 			try { await conn.end(); } catch (e) {}
 		}
-		res.status(500).json({ success: false, message: 'İrsaliye oluşturulamadı' });
+		res.status(500).json({ success: false, message: 'İrsaliye oluşturulamadı: ' + error.message });
 	}
 };
 
 // Gelen İrsaliye oluştur (Alış İrsaliyesi)
 const createGelenIrsaliye = async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.user.dbName) {
+        return res.status(401).json({ success: false, message: 'Oturum bulunamadı' });
+    }
+    
+    let conn;
     try {
         const { 
             carikayitno, 
@@ -256,11 +266,15 @@ const createGelenIrsaliye = async (req, res) => {
             geneltoplam
         } = req.body;
         
-        const irsaliyeTipi = 0; // Alış irsaliyesi (Gelen)
-        const fisNo = 'GIRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
-
-        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        const fis_tipi = 0; // Alış irsaliyesi (Gelen)
         
+        conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        await conn.beginTransaction();
+
+        // Seri numaralama sistemini kullan
+        const irsaliyeNo = await generateIrsaliyeNumber(conn, fis_tipi);
+        const fisNo = await generateFisNumber(conn, fis_tipi);
+
         // İrsaliye ana kaydını oluştur
         const [result] = await conn.execute(`
             INSERT INTO irsaliyeler (
@@ -283,17 +297,17 @@ const createGelenIrsaliye = async (req, res) => {
             ) VALUES (?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
         `, [
             fisNo,
-            belgeno || null,
+            irsaliyeNo, // faturabelgono alanına irsaliye numarasını kaydet
             carikayitno,
             depokayitno,
-            irsaliyeTipi, // fis_tipi = 0 (Alış irsaliyesi)
+            fis_tipi, // fis_tipi = 0 (Alış irsaliyesi)
             aratoplam || 0,
             kdvtoplam || 0,
             geneltoplam || 0,
             cikis_adresi || null,
             sevkiyat_adresi || null,
             arac_plakasi || null,
-            irsaliyeTipi, // tipi = 0 (Alış)
+            fis_tipi, // tipi = 0 (Alış)
             `Şoför: ${sofor || 'Belirtilmemiş'}`,
             req.session.user.id
         ]);
@@ -329,15 +343,22 @@ const createGelenIrsaliye = async (req, res) => {
             }
         }
 
+        await conn.commit();
         await conn.end();
+        
         res.status(201).json({ 
             success: true, 
             message: 'Gelen irsaliye başarıyla oluşturuldu.',
             irsaliyeId: irsaliyeId,
-            fisNo: fisNo
+            fisNo: fisNo,
+            irsaliyeNo: irsaliyeNo
         });
     } catch (error) {
         console.error('Gelen irsaliye oluşturma hatası:', error);
+        if (conn) {
+            try { await conn.rollback(); } catch (e) {}
+            try { await conn.end(); } catch (e) {}
+        }
         res.status(500).json({ 
             success: false, 
             message: 'Gelen irsaliye oluşturulurken bir hata oluştu: ' + error.message 
@@ -359,6 +380,7 @@ const getGidenIrsaliyeler = async (req, res) => {
             SELECT 
                 i.id,
                 i.fis_no as no,
+                i.faturabelgono as belge_no,
                 i.tarih,
                 c.unvan as cari,
                 i.geneltoplam as tutar,
@@ -392,6 +414,11 @@ const getGidenIrsaliyeler = async (req, res) => {
 
 // Giden İrsaliye oluştur (Satış İrsaliyesi)
 const createGidenIrsaliye = async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.user.dbName) {
+        return res.status(401).json({ success: false, message: 'Oturum bulunamadı' });
+    }
+    
+    let conn;
     try {
         const { 
             carikayitno, 
@@ -408,11 +435,15 @@ const createGidenIrsaliye = async (req, res) => {
             geneltoplam
         } = req.body;
         
-        const irsaliyeTipi = 1; // Satış irsaliyesi (Giden)
-        const fisNo = 'SIRSL-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
-
-        const conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        const fis_tipi = 1; // Satış irsaliyesi (Giden)
         
+        conn = await mysql.createConnection(getTenantDbConfig(req.session.user.dbName));
+        await conn.beginTransaction();
+
+        // Seri numaralama sistemini kullan
+        const irsaliyeNo = await generateIrsaliyeNumber(conn, fis_tipi);
+        const fisNo = await generateFisNumber(conn, fis_tipi);
+
         // İrsaliye ana kaydını oluştur
         const [result] = await conn.execute(`
             INSERT INTO irsaliyeler (
@@ -435,17 +466,17 @@ const createGidenIrsaliye = async (req, res) => {
             ) VALUES (?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
         `, [
             fisNo,
-            belgeno || null,
+            irsaliyeNo, // faturabelgono alanına irsaliye numarasını kaydet
             carikayitno,
             depokayitno,
-            irsaliyeTipi, // fis_tipi = 1 (Satış irsaliyesi)
+            fis_tipi, // fis_tipi = 1 (Satış irsaliyesi)
             aratoplam || 0,
             kdvtoplam || 0,
             geneltoplam || 0,
             cikis_adresi || null,
             sevkiyat_adresi || null,
             arac_plakasi || null,
-            irsaliyeTipi, // tipi = 1 (Satış)
+            fis_tipi, // tipi = 1 (Satış)
             `Şoför: ${sofor || 'Belirtilmemiş'}`,
             req.session.user.id
         ]);
@@ -481,15 +512,22 @@ const createGidenIrsaliye = async (req, res) => {
             }
         }
 
+        await conn.commit();
         await conn.end();
+        
         res.status(201).json({ 
             success: true, 
             message: 'Giden irsaliye başarıyla oluşturuldu.',
             irsaliyeId: irsaliyeId,
-            fisNo: fisNo
+            fisNo: fisNo,
+            irsaliyeNo: irsaliyeNo
         });
     } catch (error) {
         console.error('Giden irsaliye oluşturma hatası:', error);
+        if (conn) {
+            try { await conn.rollback(); } catch (e) {}
+            try { await conn.end(); } catch (e) {}
+        }
         res.status(500).json({ 
             success: false, 
             message: 'Giden irsaliye oluşturulurken bir hata oluştu: ' + error.message 

@@ -13,6 +13,7 @@ const cariRouter = require('./cariOperations'); // Import cari router
 const stokRouter = require('./stokOperation'); // Stok router ekle
 const depoRouter = require('./depoOperation'); // depo router ekle
 const irsaliyeRouter = require('./irsaliye'); // irsaliye router ekle
+const faturaRouter = require('./fatura'); // fatura router ekle
 const posRouter = require('./pos'); // POS router
 
 
@@ -53,6 +54,7 @@ app.use(session({
 // API routes should come first
 app.use('/api', express.json());
 app.use('/api', irsaliyeRouter.router);
+app.use('/api/fatura', faturaRouter.router);
 app.use('/api', posRouter);
 
 // Then other routes
@@ -190,6 +192,17 @@ app.post('/create-company', async (req, res) => {
             password: masterDbPass,
             database: dbName
         });
+        await tenantConn.query(`
+            CREATE TABLE belge_seri_no (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    belge_tipi VARCHAR(50) NOT NULL,
+    fis_tipi INT NOT NULL,
+    yil INT NOT NULL,
+    son_numara INT NOT NULL DEFAULT 0,
+    prefix VARCHAR(20) NOT NULL,
+    UNIQUE KEY uniq_belge_fis_yil (belge_tipi, fis_tipi, yil)
+);
+            `)
  await tenantConn.query(`
     CREATE TABLE IF NOT EXISTS stokgrupkarti (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -251,7 +264,7 @@ await tenantConn.query(`
     )
 `);
 
-       
+
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS cariler (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -283,7 +296,7 @@ await tenantConn.query(`
         await tenantConn.query(`
             INSERT IGNORE INTO cariler (carikodu, unvan)
 VALUES ('PEŞİN', 'PEŞİN SATIŞ');
-`);
+        `);
         await tenantConn.query(`
             CREATE TABLE IF NOT EXISTS hesapkarti (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -464,8 +477,40 @@ await tenantConn.query(`
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
 
+        // Belge seri numaralama tablosu
+        await tenantConn.query(`
+            CREATE TABLE IF NOT EXISTS belge_seri_no (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                belge_tipi VARCHAR(50) NOT NULL,
+                fis_tipi INT NOT NULL,
+                yil INT NOT NULL,
+                son_numara INT NOT NULL DEFAULT 0,
+                prefix VARCHAR(20) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_belge_fis_yil (belge_tipi, fis_tipi, yil)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+      
+        // Varsayılan seri numaralarını ekle
+        const currentYear = new Date().getFullYear();
 
-       
+        // 8 satırda da yıl lazım → Array.fill ile kolayca dolduralım
+        const params = Array(8).fill(currentYear);
+        
+        await tenantConn.query(`
+            INSERT IGNORE INTO belge_seri_no 
+                (belge_tipi, fis_tipi, yil, son_numara, prefix) 
+            VALUES 
+                ('IRSALIYE', 0, ?, 0, 'GIRSL'),
+                ('IRSALIYE', 1, ?, 0, 'SIRSL'),
+                ('FATURA', 0, ?, 0, 'GFAT'),
+                ('FATURA', 1, ?, 0, 'SFAT'),
+                ('POS', 0, ?, 0, 'POS'),
+                ('FISNO', 0, ?, 0, ''),
+                ('FISNO', 1, ?, 0, ''),
+                ('FISNO', 2, ?, 0, '')
+        `, params);
+        
         await tenantConn.end();
         await masterConn.end();
 

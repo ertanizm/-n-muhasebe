@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gelen İrsaliyeler</title>
+    <title>Gelen Faturalar</title>
     <link rel="stylesheet" href="/css/irsaliyeler.css">    <link href="/css/dashboard.css" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,18 +13,18 @@
 <%- include('../sidebar') %>
 <div class="irsaliye-content">
     <div class="irsaliye-header">
-        <div class="irsaliye-title">Gelen İrsaliyeler</div>
+        <div class="irsaliye-title">Gelen Faturalar</div>
         <button onclick="openModal()" class="btn btn-primary irsaliye-add-btn">
-            <i class="fas fa-plus"></i> İrsaliye Ekle
+            <i class="fas fa-plus"></i> Fatura Ekle
         </button>
     </div>
-    <!-- Gelen İrsaliyeler Tablosu -->
+    <!-- Gelen Faturalar Tablosu -->
     <div class="irsaliye-table-wrapper">
         <table class="table irsaliye-table">
             <thead>
                 <tr>
                     <th>Fiş No</th>
-                    <th>İrsaliye No</th>
+                    <th>Fatura No</th>
                     <th>Tarih</th>
                     <th>Cari</th>
                     <th>Tutar</th>
@@ -33,15 +33,15 @@
                     <th style="text-align:right;">İşlemler</th>
                 </tr>
             </thead>
-            <tbody id="irsaliyeTableBody">
-                <!-- İrsaliyeler buraya JavaScript ile yüklenecek -->
+            <tbody id="faturaTableBody">
+                <!-- Faturalar buraya JavaScript ile yüklenecek -->
             </tbody>
         </table>
     </div>
 </div>
 
 <!-- Modal -->
-<div class="modal-overlay" id="irsaliyeModal">
+<div class="modal-overlay" id="faturaModal">
     <div class="modal-container">
        
         <div class="modal-body">
@@ -111,21 +111,6 @@
                     </div>
                 </div>
 
-                <!-- Sevkiyat Yöntemi
-                <div class="form-section">
-                    <div class="section-title">SEVKİYAT YÖNTEMİ</div>
-                    <div class="radio-group">
-                        <div class="radio-item">
-                            <input type="radio" id="tasiyici" name="sevkiyat" value="tasiyici" checked>
-                            <label for="tasiyici">TAŞIYICI</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" id="kargo" name="sevkiyat" value="kargo">
-                            <label for="kargo">KARGO / LOJİSTİK</label>
-                        </div>
-                    </div>
-                </div> -->
-
                 <!-- Araç Bilgileri -->
                 <div class="form-section">
                     <div class="section-title">ARAÇ BİLGİLERİ</div>
@@ -185,9 +170,6 @@
                         <input type="text" id="sgkNo" class="form-control" placeholder="SGK Evrak No" />
                     </div>
                 </div>
-
-                <!-- Tarih Bilgileri -->
-               
 
                 <!-- Ürün Tablosu -->
                 <div class="form-section">
@@ -287,11 +269,11 @@
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
-            <button class="btn-save" onclick="saveIrsaliye(true)">Kaydet & Görüntüle</button>
-            <button class="btn-save" onclick="saveIrsaliye(false)">Kaydet</button>
+            <button class="btn-save" onclick="saveFatura(true)">Kaydet & Görüntüle</button>
+            <button class="btn-save" onclick="saveFatura(false)">Kaydet</button>
         </div>
     </div>
-</div>  
+</div>
 
 <!-- Cari Modal -->
 <div class="modal-overlay" id="cariModal">
@@ -368,11 +350,11 @@
     let selectedStokData = {};
 
     function openModal() {
-        document.getElementById('irsaliyeModal').style.display = 'block';
+        document.getElementById('faturaModal').style.display = 'block';
     }
 
     function closeModal() {
-        document.getElementById('irsaliyeModal').style.display = 'none';
+        document.getElementById('faturaModal').style.display = 'none';
     }
 
     // Cari Modal
@@ -385,56 +367,9 @@
         document.getElementById('cariModal').style.display = 'none';
     }
 
-    // E-Fatura tipi kuralları
-    function isDovizliTip(tip) {
-        return tip === '4' || tip === '6' || tip === '7' || tip === '13';
-    }
-
-    function isIstisnaliTip(tip) {
-        return tip === '2' || tip === '3' || tip === '4' || tip === '7' || tip === '12';
-    }
-
-    function isTevkifatliTip(tip) {
-        return tip === '5' || tip === '11' || tip === '13';
-    }
-
-    function isSgkTip(tip) {
-        return tip === '10';
-    }
-
-    function applyEfaturaTypeRules() {
-        const select = document.getElementById('efaturaTipi');
-        if (!select) return;
-        const tip = select.value;
-
-        // Bölümleri göster/gizle
-        document.getElementById('dovizSection').style.display = isDovizliTip(tip) ? 'block' : 'none';
-        document.getElementById('istisnaSection').style.display = isIstisnaliTip(tip) ? 'block' : 'none';
-        document.getElementById('sgkSection').style.display = isSgkTip(tip) ? 'block' : 'none';
-
-        // Tevkifatlı tiplerde detay satırlarındaki Tevkifat alanını vurgula/aç
-        const rows = document.querySelectorAll('#productTableBody tr:not(.row-details)');
-        rows.forEach(row => {
-            const detail = row.nextElementSibling;
-            if (!detail || !detail.classList.contains('row-details')) return;
-            if (isTevkifatliTip(tip)) {
-                // Detayı aç ve tevkifat oranını aktif et
-                detail.style.display = 'table-row';
-                const btn = row.querySelector('.btn-expand');
-                if (btn) { btn.textContent = '-'; btn.style.backgroundColor = '#dc3545'; }
-                const tevkifatSelect = detail.querySelector('.detail-row:nth-child(2) select');
-                if (tevkifatSelect) tevkifatSelect.disabled = false;
-            } else {
-                // Detayı kapat, tevkifat oranını sıfırla ve disable etme
-                const tevkifatSelect = detail.querySelector('.detail-row:nth-child(2) select');
-                if (tevkifatSelect) tevkifatSelect.value = '0';
-            }
-        });
-    }
-
     function loadCariler() {
         console.log('Cariler yükleniyor...');
-        fetch('/api/cariler')
+        fetch('/api/fatura/cariler')
         .then(response => {
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
@@ -472,7 +407,7 @@
         })
         .catch(error => {
             console.error('Cariler yüklenemedi:', error);
-            alert('Cariler yüklenirken hata oluştu: ' + error.message);
+            Swal.fire('Hata', 'Cariler yüklenirken hata oluştu: ' + error.message, 'error');
             
             const tbody = document.querySelector('#cariModal tbody');
             tbody.innerHTML = '<tr><td colspan="2">Hata: ' + error.message + '</td></tr>';
@@ -496,7 +431,7 @@
     }
 
     function loadDepolar() {
-        fetch('/api/depolar')
+        fetch('/api/fatura/depolar')
         .then(response => response.json())
         .then(depolar => {
             const tbody = document.querySelector('#depoModal tbody');
@@ -513,7 +448,7 @@
         })
         .catch(error => {
             console.error('Depolar yüklenemedi:', error);
-            alert('Depolar yüklenirken hata oluştu');
+            Swal.fire('Hata', 'Depolar yüklenirken hata oluştu', 'error');
         });
     }
 
@@ -538,7 +473,7 @@
     }
 
     function loadStoklar() {
-        fetch('/api/stoklar')
+        fetch('/api/fatura/stoklar')
         .then(response => response.json())
         .then(stoklar => {
             const tbody = document.querySelector('#stokModal tbody');
@@ -557,7 +492,7 @@
         })
         .catch(error => {
             console.error('Stoklar yüklenemedi:', error);
-            alert('Stoklar yüklenirken hata oluştu');
+            Swal.fire('Hata', 'Stoklar yüklenirken hata oluştu', 'error');
         });
     }
 
@@ -599,6 +534,49 @@
             calculateRowTotal(row);
         }
         closeStokModal();
+    }
+
+    // E-Fatura tipi kuralları
+    function isDovizliTip(tip) {
+        return tip === '4' || tip === '6' || tip === '7' || tip === '13';
+    }
+
+    function isIstisnaliTip(tip) {
+        return tip === '2' || tip === '3' || tip === '4' || tip === '7' || tip === '12';
+    }
+
+    function isTevkifatliTip(tip) {
+        return tip === '5' || tip === '11' || tip === '13';
+    }
+
+    function isSgkTip(tip) {
+        return tip === '10';
+    }
+
+    function applyEfaturaTypeRules() {
+        const select = document.getElementById('efaturaTipi');
+        if (!select) return;
+        const tip = select.value;
+
+        document.getElementById('dovizSection').style.display = isDovizliTip(tip) ? 'block' : 'none';
+        document.getElementById('istisnaSection').style.display = isIstisnaliTip(tip) ? 'block' : 'none';
+        document.getElementById('sgkSection').style.display = isSgkTip(tip) ? 'block' : 'none';
+
+        const rows = document.querySelectorAll('#productTableBody tr:not(.row-details)');
+        rows.forEach(row => {
+            const detail = row.nextElementSibling;
+            if (!detail || !detail.classList.contains('row-details')) return;
+            if (isTevkifatliTip(tip)) {
+                detail.style.display = 'table-row';
+                const btn = row.querySelector('.btn-expand');
+                if (btn) { btn.textContent = '-'; btn.style.backgroundColor = '#dc3545'; }
+                const tevkifatSelect = detail.querySelector('.detail-row:nth-child(2) select');
+                if (tevkifatSelect) tevkifatSelect.disabled = false;
+            } else {
+                const tevkifatSelect = detail.querySelector('.detail-row:nth-child(2) select');
+                if (tevkifatSelect) tevkifatSelect.value = '0';
+            }
+        });
     }
 
     // Ürün tablosuna satır ekleme
@@ -722,14 +700,14 @@
         document.querySelector('.summary-section .summary-item:nth-child(3) .summary-value').textContent = genelToplam.toFixed(2) + '₺';
     }
 
-    // İrsaliye kaydetme
-    function saveIrsaliye(isView = false) {
+    // Fatura kaydetme
+    function saveFatura(isView = false) {
         if (!selectedCariId) {
-            alert('Lütfen tedarikçi seçin!');
+            Swal.fire('Uyarı', 'Lütfen tedarikçi seçin!', 'warning');
             return;
         }
         if (!selectedDepoId) {
-            alert('Lütfen depo seçin!');
+            Swal.fire('Uyarı', 'Lütfen depo seçin!', 'warning');
             return;
         }
 
@@ -783,7 +761,7 @@
         });
 
         if (urunler.length === 0) {
-            alert('Lütfen en az bir ürün ekleyin!');
+            Swal.fire('Uyarı', 'Lütfen en az bir ürün ekleyin!', 'warning');
             return;
         }
 
@@ -796,7 +774,7 @@
             kdvToplam += (satirAraToplam * urun.kdvorani / 100);
         });
 
-        fetch('/api/gelen-irsaliye', {
+        fetch('/api/fatura/gelen-fatura', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -810,8 +788,8 @@
                 sevkiyat_adresi: sevkiyatAdresi,
                 arac_plakasi: aracPlakasi,
                 sofor: sofor,
-                efatura_tipi: (function(){ const v = document.getElementById('efaturaTipi') ? document.getElementById('efaturaTipi').value : ''; return v === '' ? null : parseInt(v); })(),
-                doviz: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(!(''+tip)) return null; if(!(tip==='4'||tip==='6'||tip==='7'||tip==='13')) return null; return { cins: document.getElementById('dovizCinsi')?.value || 'TRY', kur: parseFloat(document.getElementById('kur')?.value || '1') }; })(),
+                efatura_tipi: (function(){ const el = document.getElementById('efaturaTipi'); if(!el) return null; const v = el.value; return v === '' ? null : parseInt(v); })(),
+                doviz: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(!(tip==='4'||tip==='6'||tip==='7'||tip==='13')) return null; return { cins: document.getElementById('dovizCinsi')?.value || 'TRY', kur: parseFloat(document.getElementById('kur')?.value || '1') }; })(),
                 istisna: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(!(tip==='2'||tip==='3'||tip==='4'||tip==='7'||tip==='12')) return null; return { kod: document.getElementById('istisnaKodu')?.value || '', aciklama: document.getElementById('istisnaAciklama')?.value || '' }; })(),
                 sgkno: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(tip!=='10') return null; return document.getElementById('sgkNo')?.value || null; })(),
                 urunler: urunler,
@@ -823,21 +801,21 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('İrsaliye başarıyla kaydedildi! Fiş No: ' + data.fisNo);
+                Swal.fire('Başarılı', 'Fatura başarıyla kaydedildi! Fiş No: ' + data.fisNo, 'success');
                 if (isView) {
                     // Detay sayfasına yönlendir
-                    window.location.href = `/irsaliye/detay?id=${data.irsaliyeId}`;
+                    window.location.href = `/fatura/detay?id=${data.faturaId}`;
                 } else {
                     closeModal();
                     location.reload(); // Sayfayı yenile
                 }
             } else {
-                alert('Hata: ' + data.message);
+                Swal.fire('Hata', data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Hata:', error);
-            alert('İrsaliye kaydedilirken bir hata oluştu.');
+            Swal.fire('Hata', 'Fatura kaydedilirken bir hata oluştu.', 'error');
         });
     }
 
@@ -878,74 +856,73 @@
         expandButton.style.backgroundColor = '#28a745';
     }
 
-    // Sayfa yüklendiğinde ilk satırın event'lerini bağla
-    // İrsaliyeleri yükle
-function loadIrsaliyeler() {
-    fetch('/api/irsaliyeler') // Gelen irsaliyeler endpoint'i
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.getElementById('irsaliyeTableBody');
-            tbody.innerHTML = '';
-            
-            // API'den gelen veriler direkt array olarak geliyor
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Kayıtlı irsaliye bulunamadı</td></tr>';
-                return;
-            }
+    // Faturalar yükle
+    function loadFaturalar() {
+        fetch('/api/fatura/faturalar')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('faturaTableBody');
+                tbody.innerHTML = '';
+                
+                // API'den gelen veriler direkt array olarak geliyor
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Kayıtlı fatura bulunamadı</td></tr>';
+                    return;
+                }
 
-            data.forEach(irsaliye => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${irsaliye.fis_no || ''}</td>
-                    <td>${irsaliye.belge_no || ''}</td>
-                    <td>${irsaliye.tarih || ''}</td>
-                    <td>${irsaliye.cari || ''}</td>
-                    <td>${Number(irsaliye.tutar || 0).toFixed(2)} ₺</td>
-                    <td>
-                        <span class="irsaliye-status">${irsaliye.durum || 'Bilinmiyor'}</span>
-                    </td>
-                    <td>${irsaliye.aciklama || ''}</td>
-                    <td style="text-align:right;">
-                        <div class="irsaliye-actions">
-                            <button class="btn btn-light btn-sm" onclick="viewIrsaliye(${irsaliye.id})"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-light btn-sm" onclick="editIrsaliye(${irsaliye.id})"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-light btn-sm" onclick="deleteIrsaliye(${irsaliye.id})"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
+                data.forEach(fatura => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${fatura.fis_no || ''}</td>
+                        <td>${fatura.belge_no || ''}</td>
+                        <td>${fatura.tarih || ''}</td>
+                        <td>${fatura.cari || ''}</td>
+                        <td>${Number(fatura.tutar || 0).toFixed(2)} ₺</td>
+                        <td>
+                            <span class="irsaliye-status">${fatura.durum || 'Bilinmiyor'}</span>
+                        </td>
+                        <td>${fatura.aciklama || ''}</td>
+                        <td style="text-align:right;">
+                            <div class="irsaliye-actions">
+                                <button class="btn btn-light btn-sm" onclick="viewFatura(${fatura.id})"><i class="fas fa-eye"></i></button>
+                                <button class="btn btn-light btn-sm" onclick="editFatura(${fatura.id})"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-light btn-sm" onclick="deleteFatura(${fatura.id})"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Faturalar yüklenirken hata:', error);
+                const tbody = document.getElementById('faturaTableBody');
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Faturalar yüklenirken bir hata oluştu</td></tr>';
             });
-        })
-        .catch(error => {
-            console.error('İrsaliyeler yüklenirken hata:', error);
-            const tbody = document.getElementById('irsaliyeTableBody');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">İrsaliyeler yüklenirken bir hata oluştu</td></tr>';
-        });
-}
-
-// İrsaliye görüntüleme fonksiyonu
-function viewIrsaliye(id) {
-    // Detay sayfasına yönlendir
-    window.location.href = `/irsaliye/detay?id=${id}`;
-}
-
-// İrsaliye düzenleme fonksiyonu
-function editIrsaliye(id) {
-    // TODO: İrsaliye düzenleme işlemleri
-    console.log('İrsaliye düzenle:', id);
-}
-
-// İrsaliye silme fonksiyonu
-function deleteIrsaliye(id) {
-    if (confirm('Bu irsaliyeyi silmek istediğinizden emin misiniz?')) {
-        // TODO: İrsaliye silme işlemleri
-        console.log('İrsaliye sil:', id);
     }
-}
+
+    // Fatura görüntüleme fonksiyonu
+    function viewFatura(id) {
+        // Detay sayfasına yönlendir
+        window.location.href = `/fatura/detay?id=${id}`;
+    }
+
+    // Fatura düzenleme fonksiyonu
+    function editFatura(id) {
+        // TODO: Fatura düzenleme işlemleri
+        console.log('Fatura düzenle:', id);
+    }
+
+    // Fatura silme fonksiyonu
+    function deleteFatura(id) {
+        if (confirm('Bu faturayı silmek istediğinizden emin misiniz?')) {
+            // TODO: Fatura silme işlemleri
+            console.log('Fatura sil:', id);
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
-    // İrsaliyeleri yükle
-    loadIrsaliyeler();
+        // Faturalar yükle
+        loadFaturalar();
         const efaturaSelect = document.getElementById('efaturaTipi');
         if (efaturaSelect) {
             efaturaSelect.addEventListener('change', applyEfaturaTypeRules);

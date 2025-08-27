@@ -319,7 +319,7 @@
                 
             } catch (error) {
                 console.error('Stok atama hatası:', error);
-                alert('Stok atanırken hata oluştu');
+                Swal.fire('Hata', 'Stok atanırken hata oluştu', 'error');
             }
         }
 

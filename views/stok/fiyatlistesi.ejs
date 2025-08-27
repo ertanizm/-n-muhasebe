@@ -512,7 +512,7 @@
             btn.addEventListener('click', function() {
                 const action = this.textContent.trim();
                 console.log('Export işlemi:', action);
-                alert(`${action} işlemi başlatıldı`);
+                Swal.fire('Bilgi', `${action} işlemi başlatıldı`, 'info');
             });
         });
 
@@ -574,13 +574,13 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('Fiyat başarıyla güncellendi!');
+                    Swal.fire('Başarılı', 'Fiyat başarıyla güncellendi!', 'success');
                     location.reload();
                 } else {
-                    alert('Fiyat güncellenirken hata oluştu: ' + result.message);
+                    Swal.fire('Hata', 'Fiyat güncellenirken hata oluştu: ' + result.message, 'error');
                 }
             } catch (error) {
-                alert('İşlem sırasında bir hata oluştu');
+                Swal.fire('Hata', 'İşlem sırasında bir hata oluştu', 'error');
             }
         });
     </script>

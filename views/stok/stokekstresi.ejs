@@ -233,7 +233,7 @@
             };
 
             console.log('Stok arama filtresi:', filters);
-            alert('Stok arama işlemi başlatıldı');
+            Swal.fire('Bilgi', 'Stok arama işlemi başlatıldı', 'info');
         }
 
         // Filtreleri temizle
@@ -296,7 +296,7 @@
             btn.addEventListener('click', function() {
                 const action = this.textContent.trim();
                 console.log('Export işlemi:', action);
-                alert(`${action} işlemi başlatıldı`);
+                Swal.fire('Bilgi', `${action} işlemi başlatıldı`, 'info');
             });
         });
 

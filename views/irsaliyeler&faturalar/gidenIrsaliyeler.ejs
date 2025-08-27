@@ -23,6 +23,7 @@
         <table class="table irsaliye-table">
             <thead>
                 <tr>
+                    <th>Fiş No</th>
                     <th>İrsaliye No</th>
                     <th>Tarih</th>
                     <th>Cari</th>
@@ -116,6 +117,57 @@
                     <div class="form-group-inline">
                         <input type="text" id="aracPlakasi" class="form-control" placeholder="ARAÇ PLAKASI" />
                         <input type="text" id="sofor" class="form-control" placeholder="ŞOFÖR EKLE" />
+                    </div>
+                </div>
+
+                <!-- E Fatura Tipi -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">E FATURA</label>
+                        <select id="efaturaTipi" class="form-control">
+                            <option value=""></option>
+                            <option value="1">Ödeme Şekli</option>
+                            <option value="2">Ödeme Şekli ve İstisna</option>
+                            <option value="3">İstisna</option>
+                            <option value="4">Dövizli İstisna</option>
+                            <option value="5">Tevkifat</option>
+                            <option value="6">Dövizli</option>
+                            <option value="7">İhracat (Dövizli)</option>
+                            <option value="8">Özel Matrah</option>
+                            <option value="9">İhraç Kayıtlı</option>
+                            <option value="10">SGK</option>
+                            <option value="11">Ödeme Şekli ve Tevkifat</option>
+                            <option value="12">İhracat (TR)</option>
+                            <option value="13">Döviz + Tevkifat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Döviz Bilgileri (Dövizli tiplerde görünür) -->
+                <div class="form-section" id="dovizSection" style="display: none;">
+                    <div class="form-group-inline">
+                        <select id="dovizCinsi" class="form-control">
+                            <option value="TRY">TRY</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                        </select>
+                        <input type="number" id="kur" class="form-control" placeholder="Kur" step="0.0001" value="1.0000" />
+                    </div>
+                </div>
+
+                <!-- İstisna Bilgileri (İstisna içeren tiplerde görünür) -->
+                <div class="form-section" id="istisnaSection" style="display: none;">
+                    <div class="form-group-inline">
+                        <input type="text" id="istisnaKodu" class="form-control" placeholder="İstisna Kodu" />
+                        <input type="text" id="istisnaAciklama" class="form-control" placeholder="İstisna Açıklaması" />
+                    </div>
+                </div>
+
+                <!-- SGK Bilgisi (SGK tipinde görünür) -->
+                <div class="form-section" id="sgkSection" style="display: none;">
+                    <div class="form-group">
+                        <input type="text" id="sgkNo" class="form-control" placeholder="SGK Evrak No" />
                     </div>
                 </div>
 
@@ -355,7 +407,7 @@
         })
         .catch(error => {
             console.error('Cariler yüklenemedi:', error);
-            alert('Cariler yüklenirken hata oluştu: ' + error.message);
+            Swal.fire('Hata', 'Cariler yüklenirken hata oluştu: ' + error.message, 'error');
             
             const tbody = document.querySelector('#cariModal tbody');
             tbody.innerHTML = '<tr><td colspan="2">Hata: ' + error.message + '</td></tr>';
@@ -396,7 +448,7 @@
         })
         .catch(error => {
             console.error('Depolar yüklenemedi:', error);
-            alert('Depolar yüklenirken hata oluştu');
+            Swal.fire('Hata', 'Depolar yüklenirken hata oluştu', 'error');
         });
     }
 
@@ -440,7 +492,7 @@
         })
         .catch(error => {
             console.error('Stoklar yüklenemedi:', error);
-            alert('Stoklar yüklenirken hata oluştu');
+            Swal.fire('Hata', 'Stoklar yüklenirken hata oluştu', 'error');
         });
     }
 
@@ -482,6 +534,49 @@
             calculateRowTotal(row);
         }
         closeStokModal();
+    }
+
+    // E-Fatura tipi kuralları
+    function isDovizliTip(tip) {
+        return tip === '4' || tip === '6' || tip === '7' || tip === '13';
+    }
+
+    function isIstisnaliTip(tip) {
+        return tip === '2' || tip === '3' || tip === '4' || tip === '7' || tip === '12';
+    }
+
+    function isTevkifatliTip(tip) {
+        return tip === '5' || tip === '11' || tip === '13';
+    }
+
+    function isSgkTip(tip) {
+        return tip === '10';
+    }
+
+    function applyEfaturaTypeRules() {
+        const select = document.getElementById('efaturaTipi');
+        if (!select) return;
+        const tip = select.value;
+
+        document.getElementById('dovizSection').style.display = isDovizliTip(tip) ? 'block' : 'none';
+        document.getElementById('istisnaSection').style.display = isIstisnaliTip(tip) ? 'block' : 'none';
+        document.getElementById('sgkSection').style.display = isSgkTip(tip) ? 'block' : 'none';
+
+        const rows = document.querySelectorAll('#productTableBody tr:not(.row-details)');
+        rows.forEach(row => {
+            const detail = row.nextElementSibling;
+            if (!detail || !detail.classList.contains('row-details')) return;
+            if (isTevkifatliTip(tip)) {
+                detail.style.display = 'table-row';
+                const btn = row.querySelector('.btn-expand');
+                if (btn) { btn.textContent = '-'; btn.style.backgroundColor = '#dc3545'; }
+                const tevkifatSelect = detail.querySelector('.detail-row:nth-child(2) select');
+                if (tevkifatSelect) tevkifatSelect.disabled = false;
+            } else {
+                const tevkifatSelect = detail.querySelector('.detail-row:nth-child(2) select');
+                if (tevkifatSelect) tevkifatSelect.value = '0';
+            }
+        });
     }
 
     // Ürün tablosuna satır ekleme
@@ -608,11 +703,11 @@
     // İrsaliye kaydetme
     function saveIrsaliye(isPreview) {
         if (!selectedCariId) {
-            alert('Lütfen müşteri seçin!'); // tedarikçi -> müşteri
+            Swal.fire('Uyarı', 'Lütfen müşteri seçin!', 'warning'); // tedarikçi -> müşteri
             return;
         }
         if (!selectedDepoId) {
-            alert('Lütfen depo seçin!');
+            Swal.fire('Uyarı', 'Lütfen depo seçin!', 'warning');
             return;
         }
 
@@ -666,7 +761,7 @@
         });
 
         if (urunler.length === 0) {
-            alert('Lütfen en az bir ürün ekleyin!');
+            Swal.fire('Uyarı', 'Lütfen en az bir ürün ekleyin!', 'warning');
             return;
         }
 
@@ -693,6 +788,10 @@
                 sevkiyat_adresi: sevkiyatAdresi,
                 arac_plakasi: aracPlakasi,
                 sofor: sofor,
+                efatura_tipi: (function(){ const el = document.getElementById('efaturaTipi'); if(!el) return null; const v = el.value; return v === '' ? null : parseInt(v); })(),
+                doviz: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(!(tip==='4'||tip==='6'||tip==='7'||tip==='13')) return null; return { cins: document.getElementById('dovizCinsi')?.value || 'TRY', kur: parseFloat(document.getElementById('kur')?.value || '1') }; })(),
+                istisna: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(!(tip==='2'||tip==='3'||tip==='4'||tip==='7'||tip==='12')) return null; return { kod: document.getElementById('istisnaKodu')?.value || '', aciklama: document.getElementById('istisnaAciklama')?.value || '' }; })(),
+                sgkno: (function(){ const tip = document.getElementById('efaturaTipi')?.value || ''; if(tip!=='10') return null; return document.getElementById('sgkNo')?.value || null; })(),
                 urunler: urunler,
                 aratoplam: araToplam,
                 kdvtoplam: kdvToplam,
@@ -702,7 +801,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('İrsaliye başarıyla kaydedildi! Fiş No: ' + data.fisNo);
+                Swal.fire('Başarılı', 'İrsaliye başarıyla kaydedildi! Fiş No: ' + data.fisNo, 'success');
                 closeModal();
                 if (isPreview) {
                     // Detay sayfasına yönlendir
@@ -711,12 +810,12 @@
                     location.reload(); // Sayfayı yenile
                 }
             } else {
-                alert('Hata: ' + data.message);
+                Swal.fire('Hata', data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Hata:', error);
-            alert('İrsaliye kaydedilirken bir hata oluştu.');
+            Swal.fire('Hata', 'İrsaliye kaydedilirken bir hata oluştu.', 'error');
         });
     }
 
@@ -775,7 +874,8 @@ function loadIrsaliyeler() {
             data.forEach(irsaliye => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${irsaliye.no || ''}</td>
+                    <td>${irsaliye.fis_no || ''}</td>
+                    <td>${irsaliye.belge_no || ''}</td>
                     <td>${irsaliye.tarih || ''}</td>
                     <td>${irsaliye.cari || ''}</td>
                     <td>${Number(irsaliye.tutar || 0).toFixed(2)} ₺</td>
@@ -824,6 +924,11 @@ function deleteIrsaliye(id) {
     document.addEventListener('DOMContentLoaded', function() {
     // İrsaliyeleri yükle
     loadIrsaliyeler();
+        const efaturaSelect = document.getElementById('efaturaTipi');
+        if (efaturaSelect) {
+            efaturaSelect.addEventListener('change', applyEfaturaTypeRules);
+            applyEfaturaTypeRules();
+        }
         const firstRow = document.querySelector('#productTableBody tr');
         if (firstRow) {
             const inputs = firstRow.querySelectorAll('input[type="number"], select');

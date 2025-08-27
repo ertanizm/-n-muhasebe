@@ -342,7 +342,7 @@
                 const guncelBakiye = document.getElementById('guncelBakiye').value;
 
                 if (!kasaTanimi || !paraBirimi || !guncelBakiye) {
-                    alert('Lütfen tüm alanları doldurunuz!');
+                    Swal.fire('Uyarı', 'Lütfen tüm alanları doldurunuz!', 'warning');
                     return;
                 }
 
@@ -382,7 +382,7 @@
                 const posBankasi = document.getElementById('posBankaTanimi').value;
 
                 if (!posTanimi || !paraBirimi || !guncelBakiye || !posBankasi) {
-                    alert('Lütfen tüm alanları doldurunuz!');
+                    Swal.fire('Uyarı', 'Lütfen tüm alanları doldurunuz!', 'warning');
                     return;
                 }
 
@@ -421,7 +421,7 @@
                 const guncelBakiye = document.getElementById('bankaGuncelBakiye').value;
 
                 if (!bankaTanimi || !paraBirimi || !guncelBakiye) {
-                    alert('Lütfen tüm alanları doldurunuz!');
+                    Swal.fire('Uyarı', 'Lütfen tüm alanları doldurunuz!', 'warning');
                     return;
                 }
 

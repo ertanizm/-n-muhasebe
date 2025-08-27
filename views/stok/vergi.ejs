@@ -134,10 +134,10 @@
                 if (result.success) {
                     location.reload();
                 } else {
-                    alert('Kayıt sırasında bir hata oluştu: ' + result.message);
+                    Swal.fire('Hata', 'Kayıt sırasında bir hata oluştu: ' + result.message, 'error');
                 }
             } catch (error) {
-                alert('İşlem sırasında bir hata oluştu');
+                Swal.fire('Hata', 'İşlem sırasında bir hata oluştu', 'error');
             }
         });
 
@@ -154,9 +154,9 @@
                 const result = await response.json();
                 if (result.success) {
                     btn.closest('tr').remove();
-                    alert('Vergi kartı başarıyla silindi.');
+                    Swal.fire('Başarılı', 'Vergi kartı başarıyla silindi.', 'success');
                 } else {
-                    alert('Silme işlemi başarısız: ' + result.message);
+                    Swal.fire('Hata', 'Silme işlemi başarısız: ' + result.message, 'error');
                 }
             });
         });

@@ -5,6 +5,7 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const { getTenantDbConfig } = require('./controller/db');
 const irsaliyeController = require('./controller/irsaliye');
+const faturaController = require('./controller/fatura');
 const cariOperations = require('./controller/cariOperations');
 
 // Auth middleware for page routes
@@ -84,8 +85,19 @@ router.get('/irsaliye/detay', authMiddleware, (req, res) => {
     });
 });
 
+// Fatura rotları
+router.get('/fatura/gelen', authMiddleware, faturaController.gelenFaturalar);
+router.get('/fatura/giden', authMiddleware, faturaController.gidenFaturalar);
+router.get('/fatura/detay', authMiddleware, (req, res) => {
+    res.render('irsaliyeler&faturalar/faturaDetay', { 
+        user: req.session.user,
+        error: null 
+    });
+});
+
 // API routes
 router.use('/api', apiAuthMiddleware, irsaliyeController.router);
+router.use('/api/fatura', apiAuthMiddleware, faturaController.router);
 router.get('/ceklistesi', (req, res) => {
     res.render('finans/cekler', { error: null });
 });

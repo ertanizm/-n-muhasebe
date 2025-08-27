@@ -48,6 +48,15 @@
     transform: translateY(-2px);
 }
 
+.btn-send {
+    background: #fd7e14;
+}
+
+.btn-send:hover {
+    background: #e8650e;
+    transform: translateY(-2px);
+}
+
 .btn-print {
     background: #17a2b8;
 }

@@ -392,4 +392,897 @@ const hareketler = [
 </body>
 </html>
 
+----------------------------
+
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelen İrsaliyeler</title>
+    <link rel="stylesheet" href="/css/irsaliyeler.css">    <link href="/css/dashboard.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<%- include('../sidebar') %>
+<div class="irsaliye-content">
+    <div class="irsaliye-header">
+        <div class="irsaliye-title">Gelen İrsaliyeler</div>
+        <button onclick="openModal()" class="btn btn-primary irsaliye-add-btn">
+            <i class="fas fa-plus"></i> İrsaliye Ekle
+        </button>
+    </div>
+    <!-- Gelen İrsaliyeler Tablosu -->
+    <div class="irsaliye-table-wrapper">
+        <table class="table irsaliye-table">
+            <thead>
+                <tr>
+                    <th>Fiş No</th>
+                    <th>İrsaliye No</th>
+                    <th>Tarih</th>
+                    <th>Cari</th>
+                    <th>Tutar</th>
+                    <th>Durum</th>
+                    <th>Açıklama</th>
+                    <th style="text-align:right;">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody id="irsaliyeTableBody">
+                <!-- İrsaliyeler buraya JavaScript ile yüklenecek -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="irsaliyeModal">
+    <div class="modal-container">
+       
+        <div class="modal-body">
+            <div class="modal-form">
+                <!-- Tedarikçi -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">TEDARİKÇİ</label>
+                        <div class="customer-search">
+                            <input type="text" id="tedarikci" class="form-control" placeholder="Tedarikçi seçin" readonly />
+                            <span class="search-icon" onclick="openCariModal()">🔍</span>
+                        </div>
+                        <label class="form-label">DEPO</label>
+                        <div class="customer-search">
+                            <input type="text" id="depo" class="form-control" placeholder="Depo seçin" readonly />
+                            <span class="search-icon" onclick="openDepoModal()">🔍</span>
+                        </div>
+                        <label class="form-label">BELGE NO</label>
+                        <div class="customer-search">
+                            <input type="text" id="depo" class="form-control" placeholder="Belge numarası giriniz"  />
+                        </div>
+                        <label class="form-label">FİİLİ SEVK TARİHİ</label>
+                        <div class="customer-search">
+                            <input type="date" id="fiiliSevkTarihi" class="form-control" value="2025-07-29" />
+                        </div>
+                    </div>
+                </div>
+
+                
+
+                <!-- Adres Bilgileri -->
+                <div class="form-section">
+                    <div class="checkbox-inline">
+                        <input type="checkbox" id="adresEkle" onclick="toggleAdresGrubu()">
+                        <label for="adresEkle">Sevk Adresi Ekle</label>
+                    </div>
+                    <div id="adresGrubu" style="display: none;">
+                        <div class="address-section">
+                            <div class="form-group">
+                                <label class="form-label">ÇIKIŞ ADRESİ</label>
+                                <textarea id="cikisAdresi" class="form-control" rows="4"></textarea>
+                                <div style="margin-top: 8px;">
+                                    <input type="text" class="form-control" placeholder="POSTA KODU" style="margin-bottom: 8px;" />
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" class="form-control" placeholder="İLÇE" />
+                                        <input type="text" class="form-control" placeholder="İL" />
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="cikis_ayni">
+                                        <label for="cikis_ayni">Çıkış adresi tedarikçi adresi ile aynı</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">SEVKİYAT ADRESİ</label>
+                                <textarea id="sevkiyatAdresi" class="form-control" rows="4"></textarea>
+                                <div style="margin-top: 8px;">
+                                    <input type="text" class="form-control" placeholder="POSTA KODU" style="margin-bottom: 8px;" />
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" class="form-control" placeholder="İLÇE" />
+                                        <input type="text" class="form-control" placeholder="İL" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sevkiyat Yöntemi
+                <div class="form-section">
+                    <div class="section-title">SEVKİYAT YÖNTEMİ</div>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="tasiyici" name="sevkiyat" value="tasiyici" checked>
+                            <label for="tasiyici">TAŞIYICI</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="kargo" name="sevkiyat" value="kargo">
+                            <label for="kargo">KARGO / LOJİSTİK</label>
+                        </div>
+                    </div>
+                </div> -->
+
+                <!-- Araç Bilgileri -->
+                <div class="form-section">
+                    <div class="section-title">ARAÇ BİLGİLERİ</div>
+                    <div class="form-group-inline">
+                        <input type="text" id="aracPlakasi" class="form-control" placeholder="ARAÇ PLAKASI" />
+                        <input type="text" id="sofor" class="form-control" placeholder="ŞOFÖR EKLE" />
+                    </div>
+                </div>
+
+                <!-- E Fatura Tipi -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">E FATURA</label>
+                        <select id="efaturaTipi" class="form-control">
+                            <option value=""></option>
+                            <option value="1">Ödeme Şekli</option>
+                            <option value="2">Ödeme Şekli ve İstisna</option>
+                            <option value="3">İstisna</option>
+                            <option value="4">Dövizli İstisna</option>
+                            <option value="5">Tevkifat</option>
+                            <option value="6">Dövizli</option>
+                            <option value="7">İhracat (Dövizli)</option>
+                            <option value="8">Özel Matrah</option>
+                            <option value="9">İhraç Kayıtlı</option>
+                            <option value="10">SGK</option>
+                            <option value="11">Ödeme Şekli ve Tevkifat</option>
+                            <option value="12">İhracat (TR)</option>
+                            <option value="13">Döviz + Tevkifat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tarih Bilgileri -->
+               
+
+                <!-- Ürün Tablosu -->
+                <div class="form-section">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">HİZMET / ÜRÜN</th>
+                                <th style="width: 10%;">MİKTAR</th>
+                                <th style="width: 10%;">BİRİM</th>
+                                <th style="width: 15%;">BR. FİYAT</th>
+                                <th style="width: 10%;">VERGİ(KDV)</th>
+                                <th style="width: 15%;">TOPLAM</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody">
+                            <tr>
+                                <td>
+                                    <div class="product-search-container">
+                                        <input type="text" placeholder="Ürün/Hizmet" readonly />
+                                        <span class="search-icon-right" onclick="openStokModal(this.previousElementSibling)">🔍</span>
+                                    </div>
+                                </td>
+                                <td><input type="number" placeholder="" step="0.01" /></td>
+                                <td>
+                                    <select class="form-control">
+                                        <option>Adet</option>
+                                        <option>Kg</option>
+                                        <option>Gr</option>
+                                        <option>Ton</option>
+                                        <option>Litre</option>
+                                        <option>Metre</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" placeholder="" step="0.01" /></td>
+                                <td>
+                                    <select class="form-control">
+                                        <option value="0">%0</option>
+                                        <option value="1">%1</option>
+                                        <option value="10">%10</option>
+                                        <option value="20">%20</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" placeholder="" step="0.01" readonly /></td>
+                                <td style="text-align: center;">
+                                    <button class="btn-expand" onclick="toggleRowDetails(this)">+</button>
+                                    <button class="btn-delete" onclick="removeRow(this)">×</button>
+                                </td>
+                            </tr>
+                            <tr class="row-details" style="display: none;">
+                                <td colspan="7">
+                                    <div class="detail-fields">
+                                        <div class="detail-row">
+                                            <label>AÇIKLAMA</label>
+                                            <input type="text" class="form-control" placeholder="Açıklama giriniz" />
+                                            <button class="btn-close-detail" onclick="closeRowDetails(this)">×</button>
+                                        </div>
+                                        <div class="detail-row">
+                                            <label>TEVKİFAT ORANI</label>
+                                            <select class="form-control">
+                                                <option value="0">%0</option>
+                                                <option value="15">%15</option>
+                                                <option value="20">%20</option>
+                                            </select>
+                                        </div>
+                                        <div class="detail-row">
+                                            <label>ÖTV</label>
+                                            <input type="number" class="form-control" placeholder="" step="0.01" />
+                                            <span class="percentage">%</span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="product-summary">
+                        <button class="btn-add-row" onclick="addProductRow()">+ YENİ SATIR EKLE</button>
+                        
+                        <div class="summary-section">
+                            <div class="summary-item">
+                                <label>ARA TOPLAM</label>
+                                <span class="summary-value">₺</span>
+                            </div>
+                            <div class="summary-item">
+                                <label>TOPLAM KDV</label>
+                                <span class="summary-value">₺</span>
+                            </div>
+                            <div class="summary-item total">
+                                <label>GENEL TOPLAM</label>
+                                <span class="summary-value">₺</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
+            <button class="btn-save" onclick="saveIrsaliye(true)">Kaydet & Görüntüle</button>
+            <button class="btn-save" onclick="saveIrsaliye(false)">Kaydet</button>
+        </div>
+    </div>
+</div>  
+
+<!-- Cari Modal -->
+<div class="modal-overlay" id="cariModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeCariModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Carikodu</th>
+                        <th>Unvan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Depo Modal -->
+<div class="modal-overlay" id="depoModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeDepoModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Depo Kodu</th>
+                        <th>Depo Adı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- API'den gelecek veriler -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Stok Modal -->
+<div class="modal-overlay" id="stokModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeStokModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Stok Kodu</th>
+                        <th>Stok Adı</th>
+                        <th>Birim</th>
+                        <th>Fiyat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- API'den gelecek veriler -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global değişkenler
+    let selectedCariId = null;
+    let selectedDepoId = null;
+    let selectedStokData = {};
+
+    function openModal() {
+        document.getElementById('irsaliyeModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('irsaliyeModal').style.display = 'none';
+    }
+
+    // Cari Modal
+    function openCariModal() {
+        document.getElementById('cariModal').style.display = 'block';
+        loadCariler();
+    }
+
+    function closeCariModal() {
+        document.getElementById('cariModal').style.display = 'none';
+    }
+
+    function loadCariler() {
+        console.log('Cariler yükleniyor...');
+        fetch('/api/cariler')
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(cariler => {
+            console.log('Gelen cariler:', cariler);
+            
+            if (cariler.error) {
+                throw new Error(cariler.error + (cariler.details ? ': ' + cariler.details : ''));
+            }
+            
+            const tbody = document.querySelector('#cariModal tbody');
+            tbody.innerHTML = '';
+            
+            if (!cariler || cariler.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2">Kayıtlı cari bulunamadı</td></tr>';
+                return;
+            }
+            
+            cariler.forEach(cari => {
+                const row = document.createElement('tr');
+                row.onclick = () => selectCari(cari.id, cari.carikodu, cari.unvan);
+                row.style.cursor = 'pointer';
+                row.innerHTML = `
+                    <td>${cari.carikodu || ''}</td>
+                    <td>${cari.unvan}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Cariler yüklenemedi:', error);
+            alert('Cariler yüklenirken hata oluştu: ' + error.message);
+            
+            const tbody = document.querySelector('#cariModal tbody');
+            tbody.innerHTML = '<tr><td colspan="2">Hata: ' + error.message + '</td></tr>';
+        });
+    }
+
+    function selectCari(id, kodu, unvan) {
+        selectedCariId = id;
+        document.getElementById('tedarikci').value = unvan;
+        closeCariModal();
+    }
+
+    // Depo Modal
+    function openDepoModal() {
+        document.getElementById('depoModal').style.display = 'block';
+        loadDepolar();
+    }
+
+    function closeDepoModal() {
+        document.getElementById('depoModal').style.display = 'none';
+    }
+
+    function loadDepolar() {
+        fetch('/api/depolar')
+        .then(response => response.json())
+        .then(depolar => {
+            const tbody = document.querySelector('#depoModal tbody');
+            tbody.innerHTML = '';
+            depolar.forEach(depo => {
+                const row = document.createElement('tr');
+                row.onclick = () => selectDepo(depo.id, depo.depo_kodu, depo.depo_adi);
+                row.innerHTML = `
+                    <td>${depo.depo_kodu || ''}</td>
+                    <td>${depo.depo_adi}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Depolar yüklenemedi:', error);
+            alert('Depolar yüklenirken hata oluştu');
+        });
+    }
+
+    function selectDepo(id, kodu, adi) {
+        selectedDepoId = id;
+        document.getElementById('depo').value = adi;
+        closeDepoModal();
+    }
+
+    // Stok Modal
+    let currentStokInput = null;
+
+    function openStokModal(inputElement) {
+        currentStokInput = inputElement;
+        document.getElementById('stokModal').style.display = 'block';
+        loadStoklar();
+    }
+
+    function closeStokModal() {
+        document.getElementById('stokModal').style.display = 'none';
+        currentStokInput = null;
+    }
+
+    function loadStoklar() {
+        fetch('/api/stoklar')
+        .then(response => response.json())
+        .then(stoklar => {
+            const tbody = document.querySelector('#stokModal tbody');
+            tbody.innerHTML = '';
+            stoklar.forEach(stok => {
+                const row = document.createElement('tr');
+                row.onclick = () => selectStok(stok.id, stok.stok_kodu, stok.stok_adi, stok.birim, stok.fiyat1);
+                row.innerHTML = `
+                    <td>${stok.stok_kodu || ''}</td>
+                    <td>${stok.stok_adi}</td>
+                    <td>${stok.birim || ''}</td>
+                    <td>${stok.fiyat1 || '0,00'} ₺</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Stoklar yüklenemedi:', error);
+            alert('Stoklar yüklenirken hata oluştu');
+        });
+    }
+
+    function selectStok(id, kodu, adi, birim, fiyat) {
+        if (currentStokInput) {
+            const row = currentStokInput.closest('tr');
+            
+            // Ürün adını input'a yaz
+            currentStokInput.value = adi;
+            
+            // Birim seçimini güncelle
+            const birimSelect = row.querySelector('td:nth-child(3) select');
+            if (birimSelect && birim) {
+                for (let option of birimSelect.options) {
+                    if (option.value === birim) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Fiyatı güncelle
+            const fiyatInput = row.querySelector('td:nth-child(4) input');
+            if (fiyatInput && fiyat) {
+                fiyatInput.value = parseFloat(fiyat).toFixed(2);
+            }
+            
+            // Stok bilgisini sakla
+            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+            selectedStokData[rowIndex] = {
+                id: id,
+                kodu: kodu,
+                adi: adi,
+                birim: birim,
+                fiyat: fiyat
+            };
+            
+            // Toplam hesapla
+            calculateRowTotal(row);
+        }
+        closeStokModal();
+    }
+
+    // Ürün tablosuna satır ekleme
+    function addProductRow() {
+        const tbody = document.getElementById('productTableBody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>
+                <div class="product-search-container">
+                    <input type="text" placeholder="Ürün/Hizmet" readonly />
+                    <span class="search-icon-right" onclick="openStokModal(this.previousElementSibling)">🔍</span>
+                </div>
+            </td>
+            <td><input type="number" placeholder="" step="0.01" onchange="calculateRowTotal(this.closest('tr'))" /></td>
+            <td>
+                <select class="form-control" onchange="calculateRowTotal(this.closest('tr'))">
+                    <option>Adet</option>
+                    <option>Kg</option>
+                    <option>Gr</option>
+                    <option>Ton</option>
+                    <option>Litre</option>
+                    <option>Metre</option>
+                </select>
+            </td>
+            <td><input type="number" placeholder="" step="0.01" onchange="calculateRowTotal(this.closest('tr'))" /></td>
+            <td>
+                <select class="form-control" onchange="calculateRowTotal(this.closest('tr'))">
+                    <option value="0">%0</option>
+                    <option value="1">%1</option>
+                    <option value="10">%10</option>
+                    <option value="20">%20</option>
+                </select>
+            </td>
+            <td><input type="number" placeholder="" step="0.01" readonly /></td>
+            <td style="text-align: center;">
+                <button class="btn-expand" onclick="toggleRowDetails(this)">+</button>
+                <button class="btn-delete" onclick="removeRow(this)">×</button>
+            </td>
+        `;
+        
+        // Detay satırını da ekle
+        const detailRow = document.createElement('tr');
+        detailRow.className = 'row-details';
+        detailRow.style.display = 'none';
+        detailRow.innerHTML = `
+            <td colspan="7">
+                <div class="detail-fields">
+                    <div class="detail-row">
+                        <label>AÇIKLAMA</label>
+                        <input type="text" class="form-control" placeholder="Açıklama giriniz" />
+                        <button class="btn-close-detail" onclick="closeRowDetails(this)">×</button>
+                    </div>
+                    <div class="detail-row">
+                        <label>TEVKİFAT ORANI</label>
+                        <select class="form-control">
+                            <option value="0">%0</option>
+                            <option value="15">%15</option>
+                            <option value="20">%20</option>
+                        </select>
+                    </div>
+                    <div class="detail-row">
+                        <label>ÖTV</label>
+                        <input type="number" class="form-control" placeholder="15,00" step="0.01" />
+                        <span class="percentage">%</span>
+                    </div>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(newRow);
+        tbody.appendChild(detailRow);
+    }
+
+    // Satır silme
+    function removeRow(button) {
+        const row = button.closest('tr');
+        const detailRow = row.nextElementSibling;
+        if (detailRow && detailRow.classList.contains('row-details')) {
+            detailRow.remove();
+        }
+        row.remove();
+        calculateTotal();
+    }
+
+    // Satır toplamını hesapla
+    function calculateRowTotal(row) {
+        const miktar = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
+        const fiyat = parseFloat(row.querySelector('td:nth-child(4) input').value) || 0;
+        const kdvOrani = parseFloat(row.querySelector('td:nth-child(5) select').value) || 0;
+        
+        const araToplam = miktar * fiyat;
+        const kdvTutari = (araToplam * kdvOrani) / 100;
+        const toplam = araToplam + kdvTutari;
+        
+        row.querySelector('td:nth-child(6) input').value = toplam.toFixed(2);
+        calculateTotal();
+    }
+
+    // Genel toplam hesapla
+    function calculateTotal() {
+        let araToplam = 0;
+        let kdvToplam = 0;
+        
+        const rows = document.querySelectorAll('#productTableBody tr:not(.row-details)');
+        rows.forEach(row => {
+            const miktar = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
+            const fiyat = parseFloat(row.querySelector('td:nth-child(4) input').value) || 0;
+            const kdvOrani = parseFloat(row.querySelector('td:nth-child(5) select').value) || 0;
+            
+            const satirAraToplam = miktar * fiyat;
+            const satirKdv = (satirAraToplam * kdvOrani) / 100;
+            
+            araToplam += satirAraToplam;
+            kdvToplam += satirKdv;
+        });
+        
+        const genelToplam = araToplam + kdvToplam;
+        
+        document.querySelector('.summary-section .summary-item:nth-child(1) .summary-value').textContent = araToplam.toFixed(2) + '₺';
+        document.querySelector('.summary-section .summary-item:nth-child(2) .summary-value').textContent = kdvToplam.toFixed(2) + '₺';
+        document.querySelector('.summary-section .summary-item:nth-child(3) .summary-value').textContent = genelToplam.toFixed(2) + '₺';
+    }
+
+    // İrsaliye kaydetme
+    function saveIrsaliye(isView = false) {
+        if (!selectedCariId) {
+            alert('Lütfen tedarikçi seçin!');
+            return;
+        }
+        if (!selectedDepoId) {
+            alert('Lütfen depo seçin!');
+            return;
+        }
+
+        const belgeno = document.querySelector('input[placeholder="Belge numarası giriniz"]').value;
+        const fiiliSevkTarihi = document.getElementById('fiiliSevkTarihi').value;
+        const cikisAdresi = document.getElementById('cikisAdresi').value;
+        const sevkiyatAdresi = document.getElementById('sevkiyatAdresi').value;
+        const aracPlakasi = document.getElementById('aracPlakasi').value;
+        const sofor = document.getElementById('sofor').value;
+
+        const urunler = [];
+        const rows = document.querySelectorAll('#productTableBody tr:not(.row-details)');
+        
+        rows.forEach((row, index) => {
+            const urunAdi = row.querySelector('input[placeholder="Ürün/Hizmet"]').value;
+            if (urunAdi) {
+                const miktar = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
+                const birim = row.querySelector('td:nth-child(3) select').value;
+                const fiyat = parseFloat(row.querySelector('td:nth-child(4) input').value) || 0;
+                const kdvOrani = parseFloat(row.querySelector('td:nth-child(5) select').value) || 0;
+                const toplam = parseFloat(row.querySelector('td:nth-child(6) input').value) || 0;
+                
+                // Detay satırından ek bilgileri al
+                const detailRow = row.nextElementSibling;
+                let aciklama = '';
+                let tevkifatOrani = 0;
+                let otv = 0;
+                
+                if (detailRow && detailRow.classList.contains('row-details')) {
+                    aciklama = detailRow.querySelector('.detail-row:nth-child(1) input').value || '';
+                    tevkifatOrani = parseFloat(detailRow.querySelector('.detail-row:nth-child(2) select').value) || 0;
+                    otv = parseFloat(detailRow.querySelector('.detail-row:nth-child(3) input').value) || 0;
+                }
+                
+                const stokData = selectedStokData[index];
+                
+                urunler.push({
+                    urun_adi: urunAdi,
+                    miktar: miktar,
+                    birim: birim,
+                    iskontorani: 0,
+                    iskontotutar: 0,
+                    kdvorani: kdvOrani,
+                    tutar: toplam,
+                    stokkayitno: stokData ? stokData.id : null,
+                    aciklama: aciklama,
+                    tevkifat_orani: tevkifatOrani,
+                    otv: otv
+                });
+            }
+        });
+
+        if (urunler.length === 0) {
+            alert('Lütfen en az bir ürün ekleyin!');
+            return;
+        }
+
+        // Toplamları hesapla
+        let araToplam = 0;
+        let kdvToplam = 0;
+        urunler.forEach(urun => {
+            const satirAraToplam = urun.miktar * (urun.tutar / (1 + urun.kdvorani / 100));
+            araToplam += satirAraToplam;
+            kdvToplam += (satirAraToplam * urun.kdvorani / 100);
+        });
+
+        fetch('/api/gelen-irsaliye', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                carikayitno: selectedCariId,
+                depokayitno: selectedDepoId,
+                belgeno: belgeno,
+                fiili_sevk_tarihi: fiiliSevkTarihi,
+                cikis_adresi: cikisAdresi,
+                sevkiyat_adresi: sevkiyatAdresi,
+                arac_plakasi: aracPlakasi,
+                sofor: sofor,
+                efatura_tipi: (function(){ const v = document.getElementById('efaturaTipi') ? document.getElementById('efaturaTipi').value : ''; return v === '' ? null : parseInt(v); })(),
+                urunler: urunler,
+                aratoplam: araToplam,
+                kdvtoplam: kdvToplam,
+                geneltoplam: araToplam + kdvToplam
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('İrsaliye başarıyla kaydedildi! Fiş No: ' + data.fisNo);
+                if (isView) {
+                    // Detay sayfasına yönlendir
+                    window.location.href = `/irsaliye/detay?id=${data.irsaliyeId}`;
+                } else {
+                    closeModal();
+                    location.reload(); // Sayfayı yenile
+                }
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İrsaliye kaydedilirken bir hata oluştu.');
+        });
+    }
+
+    // Checkbox fonksiyonu
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'cikis_ayni' && e.target.checked) {
+            console.log('Çıkış adresi tedarikçi adresi ile aynı olarak işaretlendi');
+        }
+    });
+
+    function toggleAdresGrubu() {
+        const adresGrubu = document.getElementById('adresGrubu');
+        adresGrubu.style.display = adresGrubu.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleRowDetails(button) {
+        const currentRow = button.closest('tr');
+        const detailRow = currentRow.nextElementSibling;
+        
+        if (detailRow.style.display === 'none') {
+            detailRow.style.display = 'table-row';
+            button.textContent = '-';
+            button.style.backgroundColor = '#dc3545';
+        } else {
+            detailRow.style.display = 'none';
+            button.textContent = '+';
+            button.style.backgroundColor = '#28a745';
+        }
+    }
+
+    function closeRowDetails(button) {
+        const detailRow = button.closest('.row-details');
+        const mainRow = detailRow.previousElementSibling;
+        const expandButton = mainRow.querySelector('.btn-expand');
+        
+        detailRow.style.display = 'none';
+        expandButton.textContent = '+';
+        expandButton.style.backgroundColor = '#28a745';
+    }
+
+    // Sayfa yüklendiğinde ilk satırın event'lerini bağla
+    // İrsaliyeleri yükle
+function loadIrsaliyeler() {
+    fetch('/api/irsaliyeler') // Gelen irsaliyeler endpoint'i
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('irsaliyeTableBody');
+            tbody.innerHTML = '';
+            
+            // API'den gelen veriler direkt array olarak geliyor
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Kayıtlı irsaliye bulunamadı</td></tr>';
+                return;
+            }
+
+            data.forEach(irsaliye => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${irsaliye.fis_no || ''}</td>
+                    <td>${irsaliye.belge_no || ''}</td>
+                    <td>${irsaliye.tarih || ''}</td>
+                    <td>${irsaliye.cari || ''}</td>
+                    <td>${Number(irsaliye.tutar || 0).toFixed(2)} ₺</td>
+                    <td>
+                        <span class="irsaliye-status">${irsaliye.durum || 'Bilinmiyor'}</span>
+                    </td>
+                    <td>${irsaliye.aciklama || ''}</td>
+                    <td style="text-align:right;">
+                        <div class="irsaliye-actions">
+                            <button class="btn btn-light btn-sm" onclick="viewIrsaliye(${irsaliye.id})"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-light btn-sm" onclick="editIrsaliye(${irsaliye.id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-light btn-sm" onclick="deleteIrsaliye(${irsaliye.id})"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('İrsaliyeler yüklenirken hata:', error);
+            const tbody = document.getElementById('irsaliyeTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">İrsaliyeler yüklenirken bir hata oluştu</td></tr>';
+        });
+}
+
+// İrsaliye görüntüleme fonksiyonu
+function viewIrsaliye(id) {
+    // Detay sayfasına yönlendir
+    window.location.href = `/irsaliye/detay?id=${id}`;
+}
+
+// İrsaliye düzenleme fonksiyonu
+function editIrsaliye(id) {
+    // TODO: İrsaliye düzenleme işlemleri
+    console.log('İrsaliye düzenle:', id);
+}
+
+// İrsaliye silme fonksiyonu
+function deleteIrsaliye(id) {
+    if (confirm('Bu irsaliyeyi silmek istediğinizden emin misiniz?')) {
+        // TODO: İrsaliye silme işlemleri
+        console.log('İrsaliye sil:', id);
+    }
+}
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // İrsaliyeleri yükle
+    loadIrsaliyeler();
+        const firstRow = document.querySelector('#productTableBody tr');
+        if (firstRow) {
+            const inputs = firstRow.querySelectorAll('input[type="number"], select');
+            inputs.forEach(input => {
+                input.addEventListener('change', () => calculateRowTotal(firstRow));
+            });
+            
+            const stokInput = firstRow.querySelector('input[placeholder="Ürün/Hizmet"]');
+            const searchIcon = firstRow.querySelector('.search-icon-right');
+            if (searchIcon) {
+                searchIcon.onclick = () => openStokModal(stokInput);
+            }
+        }
+    });
+</script>
+
+<script src="/js/script.js"></script>
+</body>
+</html> 
+
 
